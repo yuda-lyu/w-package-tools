@@ -1,0 +1,58 @@
+{
+  "name": "w-package-tools",
+  "version": "1.0.0",
+  "description": "A tool for build packages.",
+  "main": "dist/w-package-tools.umd.js",
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/node": "^7.5.5",
+    "@babel/plugin-proposal-export-default-from": "^7.5.2",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/register": "^7.5.5",
+    "@babel/runtime": "^7.5.5",
+    "core-js": "^3.2.1",
+    "docdash": "^1.1.1",
+    "eslint": "^6.3.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-friendly-formatter": "^4.0.1",
+    "eslint-loader": "^3.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-vue": "^5.2.3",
+    "gh-pages": "^2.1.1",
+    "jsdoc": "^3.6.3",
+    "jsdoc-vuejs": "^3.0.3",
+    "mocha": "^6.2.0",
+    "rollup": "^1.20.3",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-babel-minify": "^9.0.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-postcss": "^2.0.3",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-vue": "^5.0.1",
+    "vue-template-compiler": "^2.6.10"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --require @babel/register",
+    "deploy": "gh-pages -d docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuda-lyu/w-package-tools"
+  },
+  "homepage": "https://yuda-lyu.github.io/w-package-tools/w-package-tools.html",
+  "keywords": [
+    "package",
+    "tool",
+    "build"
+  ],
+  "author": "yuda-lyu(semisphere)",
+  "license": "MIT"
+}
