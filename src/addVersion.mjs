@@ -24,4 +24,6 @@ async function addVersion(fnPks = './package.json') {
     console.log('now version: ' + pks.version)
 
 }
-addVersion()
+
+
+export default addVersion

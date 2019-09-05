@@ -27,4 +27,6 @@ async function modifyReadme(fnRM = './README.md', fnPks = './package.json') {
     fs.writeFileSync(fnRM, c, 'utf8')
 
 }
-modifyReadme()
+
+
+export default modifyReadme
