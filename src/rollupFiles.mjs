@@ -38,7 +38,9 @@ async function rollupFiles(opt = {}) {
         return rollupFile(o)
     })
         .then()
-        .catch()
+        .catch((err) => {
+            console.log(err)
+        })
 
 }
 
