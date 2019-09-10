@@ -32,6 +32,9 @@ function cleanFolder(path) {
             }
         })
     }
+    else{
+        fs.mkdirSync(path)
+    }
 }
 
 
