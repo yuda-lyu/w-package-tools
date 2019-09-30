@@ -11,7 +11,7 @@ import replace from 'rollup-plugin-replace'
 import terser from 'rollup-plugin-terser'
 import getPks from './getPks.mjs'
 
-
+console.log(terser)
 /**
  * 使用rollup編譯檔案
  *
@@ -151,7 +151,7 @@ async function rollupFile(opt = {}) {
 
     if (bMinify) {
         //plugins.push(minify({ comments: false, }))
-        plugins.push(terser)
+        plugins.push(terser.terser())
     }
 
     //input, 欲編譯的檔案

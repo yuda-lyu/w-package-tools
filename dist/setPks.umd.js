@@ -1,30 +1,7 @@
 /*!
- * setPks v1.0.5
+ * setPks v1.0.6
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs')) :
-    typeof define === 'function' && define.amd ? define(['fs'], factory) :
-    (global = global || self, global.setPks = factory(global.fs));
-}(this, function (fs) { 'use strict';
-
-    fs = fs && fs.hasOwnProperty('default') ? fs['default'] : fs;
-
-    /**
-     * 儲存資料至package.json
-     *
-     * @param {Object} pks 輸入package.json資料物件
-     * @param {string} [fn='./package.json'] 輸入package.json路徑字串
-     */
-
-    function setPks(pks) {
-      var fn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : './package.json';
-      var c = JSON.stringify(pks, null, 2);
-      fs.writeFileSync(fn, c, 'utf8');
-    }
-
-    return setPks;
-
-}));
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t(require("fs")):"function"==typeof define&&define.amd?define(["fs"],t):(e=e||self).setPks=t(e.fs)}(this,(function(e){"use strict";return e=e&&e.hasOwnProperty("default")?e.default:e,function(t){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"./package.json",f=JSON.stringify(t,null,2);e.writeFileSync(n,f,"utf8")}}));
 //# sourceMappingURL=setPks.umd.js.map

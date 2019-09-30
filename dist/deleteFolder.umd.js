@@ -1,43 +1,7 @@
 /*!
- * deleteFolder v1.0.5
+ * deleteFolder v1.0.6
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs')) :
-    typeof define === 'function' && define.amd ? define(['fs'], factory) :
-    (global = global || self, global.deleteFolder = factory(global.fs));
-}(this, function (fs) { 'use strict';
-
-    fs = fs && fs.hasOwnProperty('default') ? fs['default'] : fs;
-
-    /**
-     * 刪除資料牙
-     *
-     * @param {Str} path 輸入欲刪除資料夾路徑字串
-     */
-
-    function deleteFolder(path) {
-      if (fs.existsSync(path)) {
-        //console.log('in: ', path)
-        fs.readdirSync(path).forEach(function (file, index) {
-          var curPath = path + '/' + file;
-
-          if (fs.lstatSync(curPath).isDirectory()) {
-            // recurse
-            deleteFolder(curPath);
-          } else {
-            // delete file
-            //console.log('delete file: ', curPath)
-            fs.unlinkSync(curPath);
-          }
-        }); //console.log('delete folder: ', path)
-
-        fs.rmdirSync(path);
-      }
-    }
-
-    return deleteFolder;
-
-}));
+!function(e,n){"object"==typeof exports&&"undefined"!=typeof module?module.exports=n(require("fs")):"function"==typeof define&&define.amd?define(["fs"],n):(e=e||self).deleteFolder=n(e.fs)}(this,(function(e){"use strict";return e=e&&e.hasOwnProperty("default")?e.default:e,function n(t){e.existsSync(t)&&(e.readdirSync(t).forEach((function(f,i){var r=t+"/"+f;e.lstatSync(r).isDirectory()?n(r):e.unlinkSync(r)})),e.rmdirSync(t))}}));
 //# sourceMappingURL=deleteFolder.umd.js.map

@@ -1,46 +1,7 @@
 /*!
- * getFiles v1.0.5
+ * getFiles v1.0.6
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs')) :
-    typeof define === 'function' && define.amd ? define(['fs'], factory) :
-    (global = global || self, global.getFiles = factory(global.fs));
-}(this, function (fs) { 'use strict';
-
-    fs = fs && fs.hasOwnProperty('default') ? fs['default'] : fs;
-
-    /**
-     * 取得資料夾下所有檔案
-     *
-     * @param {String} fd 輸入資料夾路徑字串
-     * @returns {Array} 回傳檔案字串陣列
-     */
-
-    function getFiles(fd) {
-      //check
-      if (!fs.existsSync(fd)) {
-        return [];
-      } //readdir
-
-
-      var ltfs = fs.readdirSync(fd, {
-        withFileTypes: true
-      }); //filter
-
-      ltfs = ltfs.filter(function (v) {
-        var b = !v.isDirectory();
-        return b;
-      }); //map
-
-      ltfs = ltfs.map(function (v) {
-        return v.name;
-      });
-      return ltfs;
-    }
-
-    return getFiles;
-
-}));
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t(require("fs")):"function"==typeof define&&define.amd?define(["fs"],t):(e=e||self).getFiles=t(e.fs)}(this,(function(e){"use strict";return e=e&&e.hasOwnProperty("default")?e.default:e,function(t){if(!e.existsSync(t))return[];var n=e.readdirSync(t,{withFileTypes:!0});return n=(n=n.filter((function(e){return!e.isDirectory()}))).map((function(e){return e.name}))}}));
 //# sourceMappingURL=getFiles.umd.js.map
