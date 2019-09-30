@@ -1,6 +1,46 @@
 /*!
- * getFiles v1.0.4
+ * getFiles v1.0.5
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
- */(function(a,b){"object"==typeof exports&&"undefined"!=typeof module?module.exports=b(require("fs")):"function"==typeof define&&define.amd?define(["fs"],b):(a=a||self,a.getFiles=b(a.fs))})(this,function(a){'use strict';function b(b){if(!a.existsSync(b))return[];var c=a.readdirSync(b,{withFileTypes:!0});return c=c.filter(function(a){var c=!a.isDirectory();return c}),c=c.map(function(a){return a.name}),c}return a=a&&a.hasOwnProperty("default")?a["default"]:a,b});
+ */
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs')) :
+    typeof define === 'function' && define.amd ? define(['fs'], factory) :
+    (global = global || self, global.getFiles = factory(global.fs));
+}(this, function (fs) { 'use strict';
+
+    fs = fs && fs.hasOwnProperty('default') ? fs['default'] : fs;
+
+    /**
+     * 取得資料夾下所有檔案
+     *
+     * @param {String} fd 輸入資料夾路徑字串
+     * @returns {Array} 回傳檔案字串陣列
+     */
+
+    function getFiles(fd) {
+      //check
+      if (!fs.existsSync(fd)) {
+        return [];
+      } //readdir
+
+
+      var ltfs = fs.readdirSync(fd, {
+        withFileTypes: true
+      }); //filter
+
+      ltfs = ltfs.filter(function (v) {
+        var b = !v.isDirectory();
+        return b;
+      }); //map
+
+      ltfs = ltfs.map(function (v) {
+        return v.name;
+      });
+      return ltfs;
+    }
+
+    return getFiles;
+
+}));
 //# sourceMappingURL=getFiles.umd.js.map

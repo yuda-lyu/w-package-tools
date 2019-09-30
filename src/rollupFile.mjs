@@ -7,7 +7,8 @@ import resolve from 'rollup-plugin-node-resolve'
 import postcss from 'rollup-plugin-postcss'
 import babel from 'rollup-plugin-babel'
 import replace from 'rollup-plugin-replace'
-import minify from 'rollup-plugin-babel-minify'
+//import minify from 'rollup-plugin-babel-minify'
+import terser from 'rollup-plugin-terser'
 import getPks from './getPks.mjs'
 
 
@@ -149,7 +150,8 @@ async function rollupFile(opt = {}) {
     }))
 
     if (bMinify) {
-        plugins.push(minify({ comments: false, }))
+        //plugins.push(minify({ comments: false, }))
+        plugins.push(terser)
     }
 
     //input, 欲編譯的檔案

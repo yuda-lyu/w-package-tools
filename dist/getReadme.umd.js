@@ -1,6 +1,34 @@
 /*!
- * getReadme v1.0.4
+ * getReadme v1.0.5
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
- */(function(a,b){"object"==typeof exports&&"undefined"!=typeof module?module.exports=b(require("fs"),require("lodash")):"function"==typeof define&&define.amd?define(["fs","lodash"],b):(a=a||self,a.getReadme=b(a.fs,a.lodash))})(this,function(a,b){'use strict';function c(){var d=0<arguments.length&&void 0!==arguments[0]?arguments[0]:"./README.md",e=a.readFileSync(d,"utf8");return{content:e,lines:b.split(e,"\r\n")}}return a=a&&a.hasOwnProperty("default")?a["default"]:a,b=b&&b.hasOwnProperty("default")?b["default"]:b,c});
+ */
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs'), require('lodash')) :
+    typeof define === 'function' && define.amd ? define(['fs', 'lodash'], factory) :
+    (global = global || self, global.getReadme = factory(global.fs, global.lodash));
+}(this, function (fs, _) { 'use strict';
+
+    fs = fs && fs.hasOwnProperty('default') ? fs['default'] : fs;
+    _ = _ && _.hasOwnProperty('default') ? _['default'] : _;
+
+    /**
+     * 讀取readme資料物件
+     *
+     * @param {string} [fn='./README.md'] 輸入readme檔案路徑字串
+     * @returns {Object} 回傳readme資料物件
+     */
+
+    function getReadme() {
+      var fn = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : './README.md';
+      var c = fs.readFileSync(fn, 'utf8');
+      return {
+        content: c,
+        lines: _.split(c, '\r\n')
+      };
+    }
+
+    return getReadme;
+
+}));
 //# sourceMappingURL=getReadme.umd.js.map
