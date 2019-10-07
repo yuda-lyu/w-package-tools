@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import pmSeries from './pmSeries.mjs'
-import deleteFolder from './deleteFolder.mjs'
+import cleanFolder from './cleanFolder.mjs'
 import rollupFile from './rollupFile.mjs'
 
 
@@ -22,8 +22,8 @@ import rollupFile from './rollupFile.mjs'
  */
 async function rollupFiles(opt = {}) {
 
-    //deleteFolder
-    deleteFolder(opt.fdTar)
+    //cleanFolder
+    cleanFolder(opt.fdTar)
 
     //fns
     let fns = opt.fns
