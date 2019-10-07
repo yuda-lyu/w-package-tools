@@ -7,7 +7,7 @@ import setPks from './setPks.mjs'
  * 自動添加package.json內版本補丁號
  *
  */
-async function addVersion(fnPks = './package.json') {
+function addVersion(fnPks = './package.json') {
 
     //pks
     let pks = getPks(fnPks)

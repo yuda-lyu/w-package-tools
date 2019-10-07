@@ -8,7 +8,7 @@ import getReadme from './getReadme.mjs'
  *
  * @param {string} [fnRM='./README.md'] 輸入readme檔案路徑字串
  */
-async function modifyReadme(fnRM = './README.md', fnPks = './package.json') {
+function modifyReadme(fnRM = './README.md', fnPks = './package.json') {
 
     //pks
     let pks = getPks(fnPks)
