@@ -149,7 +149,14 @@ async function rollupFile(opt = {}) {
     }))
 
     if (bMinify) {
-        //plugins.push(minify({ comments: false, }))
+        // plugins.push(minify({
+        //     comments: false,
+        // }))
+        // plugins.push(terser.terser({
+        //     output: {
+        //         comments: false,
+        //     },
+        // }))
         plugins.push(terser.terser())
     }
 
@@ -174,6 +181,7 @@ async function rollupFile(opt = {}) {
         name: nameDist,
         file,
         sourcemap: bSourcemap,
+        sourcemapExcludeSources: false,
     }
 
     //bundle
