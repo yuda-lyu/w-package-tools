@@ -181,7 +181,7 @@ async function rollupFile(opt = {}) {
         name: nameDist,
         file,
         sourcemap: bSourcemap,
-        sourcemapExcludeSources: false,
+        sourcemapExcludeSources: true,
     }
 
     //bundle
