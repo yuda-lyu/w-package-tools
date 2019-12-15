@@ -154,7 +154,7 @@ async function rollupFile(opt = {}) {
         // }))
         // plugins.push(terser.terser({
         //     output: {
-        //         comments: false,
+        //         comments: false, //default
         //     },
         // }))
         plugins.push(terser.terser())
