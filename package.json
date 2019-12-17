@@ -1,9 +1,11 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "A tool for build packages.",
   "main": "dist/w-package-tools.umd.js",
-  "dependencies": {},
+  "dependencies": {
+    "lodash": "^4.17.15"
+  },
   "devDependencies": {
     "@babel/cli": "^7.7.5",
     "@babel/core": "^7.7.5",
