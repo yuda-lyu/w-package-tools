@@ -1,5 +1,5 @@
 /*!
- * getFiles v1.0.13
+ * getFiles v1.0.14
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
