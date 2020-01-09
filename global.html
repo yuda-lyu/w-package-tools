@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#deleteFolder">deleteFolder</a></li><li><a href="global.html#getFiles">getFiles</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#pmSeries">pmSeries</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#createDir">createDir</a></li><li><a href="global.html#deleteFolder">deleteFolder</a></li><li><a href="global.html#getFiles">getFiles</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#pmSeries">pmSeries</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
 </nav>
 
 <div id="main">
@@ -318,6 +318,142 @@
             
 
             <td class="description last"><p>輸入欲清空資料夾路徑字串</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="createDir"><span class="type-signature"></span>createDir<span class="signature">(p)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="createDir.mjs.html">createDir.mjs</a>, <a href="createDir.mjs.html#line25">line 25</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>自動建立資料夾</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>p</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>輸入資料夾路徑字串</p></td>
         </tr>
 
     
@@ -1575,45 +1711,6 @@
 
         <tr>
             
-                <td class="name"><code>hookNameDist</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設為null</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>nameDistType</code></td>
             
 
@@ -1647,6 +1744,45 @@
             
 
             <td class="description last"><p>輸入編譯檔案名稱格式字串，預設為''，可選'kebabCase'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>hookNameDist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設為null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -2150,45 +2286,6 @@
 
         <tr>
             
-                <td class="name"><code>hookNameDist</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>null</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入強制指定編譯檔案名稱字串，預設為null</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>nameDistType</code></td>
             
 
@@ -2222,6 +2319,45 @@
             
 
             <td class="description last"><p>輸入編譯檔案名稱格式字串，預設為''，可選'kebabCase'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>hookNameDist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設為null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -2690,7 +2826,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Wed Jan 01 2020 10:47:41 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Jan 09 2020 14:41:43 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
