@@ -4,13 +4,13 @@ import fs from 'fs'
 /**
  * 刪除資料牙
  *
- * @param {Str} path 輸入欲刪除資料夾路徑字串
+ * @param {String} pah 輸入欲刪除資料夾路徑字串
  */
-function deleteFolder(path) {
-    if (fs.existsSync(path)) {
-        //console.log('in: ', path)
-        fs.readdirSync(path).forEach(function(file, index) {
-            var curPath = path + '/' + file
+function deleteFolder(pah) {
+    if (fs.existsSync(pah)) {
+        //console.log('in: ', pah)
+        fs.readdirSync(pah).forEach(function(file, index) {
+            var curPath = pah + '/' + file
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolder(curPath)
             }
@@ -19,8 +19,8 @@ function deleteFolder(path) {
                 fs.unlinkSync(curPath)
             }
         })
-        //console.log('delete folder: ', path)
-        fs.rmdirSync(path)
+        //console.log('delete folder: ', pah)
+        fs.rmdirSync(pah)
     }
 }
 

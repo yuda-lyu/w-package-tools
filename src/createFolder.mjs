@@ -16,16 +16,15 @@ function sepPath(c) {
     return s
 }
 
-
 /**
  * 自動建立資料夾
  *
- * @param {String} p 輸入資料夾路徑字串
+ * @param {String} pah 輸入資料夾路徑字串
  */
-function createDir(p) {
+function createFolder(pah) {
 
     //s
-    let s = sepPath(p)
+    let s = sepPath(pah)
 
     //each
     let n = []
@@ -54,4 +53,4 @@ function createDir(p) {
 }
 
 
-export default createDir
+export default createFolder

@@ -1,9 +1,9 @@
 import fs from 'fs'
 
 
-function core(path) {
-    fs.readdirSync(path).forEach(function(file, index) {
-        var curPath = path + '/' + file
+function core(pah) {
+    fs.readdirSync(pah).forEach(function(file, index) {
+        var curPath = pah + '/' + file
         if (fs.lstatSync(curPath).isDirectory()) { // recurse
             core(curPath)
         }
@@ -11,19 +11,19 @@ function core(path) {
             fs.unlinkSync(curPath)
         }
     })
-    fs.rmdirSync(path)
+    fs.rmdirSync(pah)
 }
 
 
 /**
  * 清空資料夾
  *
- * @param {String} path 輸入欲清空資料夾路徑字串
+ * @param {String} pah 輸入欲清空資料夾路徑字串
  */
-function cleanFolder(path) {
-    if (fs.existsSync(path)) {
-        fs.readdirSync(path).forEach(function(file, index) {
-            var curPath = path + '/' + file
+function cleanFolder(pah) {
+    if (fs.existsSync(pah)) {
+        fs.readdirSync(pah).forEach(function(file, index) {
+            var curPath = pah + '/' + file
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 core(curPath)
             }
@@ -33,7 +33,7 @@ function cleanFolder(path) {
         })
     }
     else {
-        fs.mkdirSync(path)
+        fs.mkdirSync(pah)
     }
 }
 
