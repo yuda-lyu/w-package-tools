@@ -1,5 +1,5 @@
 /*!
- * addVersion v1.0.15
+ * addVersion v1.0.17
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
