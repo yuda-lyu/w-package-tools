@@ -1,6 +1,7 @@
 export addVersion from './addVersion.mjs'
 export modifyReadme from './modifyReadme.mjs'
 export cleanFolder from './cleanFolder.mjs'
+export createDir from './createDir.mjs'
 export deleteFolder from './deleteFolder.mjs'
 export getFiles from './getFiles.mjs'
 export getPks from './getPks.mjs'

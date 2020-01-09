@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>setPks.mjs - Documentation</title>
+    <title>createDir.mjs - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -32,7 +32,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">setPks.mjs</h1>
+    <h1 class="page-title">createDir.mjs</h1>
     
 
     
@@ -42,22 +42,63 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import fs from 'fs'
+            <pre class="prettyprint source linenums"><code>
+import fs from 'fs'
+import path from 'path'
+import _ from 'lodash'
 
 
-/**
- * 儲存資料至package.json
- *
- * @param {Object} pks 輸入package.json資料物件
- * @param {string} [fn='./package.json'] 輸入package.json路徑字串
- */
-function setPks(pks, fn = './package.json') {
-    let c = JSON.stringify(pks, null, 2)
-    fs.writeFileSync(fn, c, 'utf8')
+function unitPath(c) {
+    c = c.replace(/\\/g, path.sep)
+    c = c.replace(/\//g, path.sep)
+    return c
+}
+
+function sepPath(c) {
+    c = unitPath(c)
+    let s = _.split(c, path.sep)
+    return s
 }
 
 
-export default setPks
+/**
+ * 自動建立資料夾
+ *
+ * @param {String} p 輸入資料夾路徑字串
+ */
+function createDir(p) {
+
+    //s
+    let s = sepPath(p)
+
+    //each
+    let n = []
+    _.each(s, (v) => {
+
+        //push
+        n.push(v + path.sep)
+
+        //t
+        let t = _.join(n, '')
+
+        //check
+        if (v.indexOf(':') &lt; 0) {
+
+            //mkdirSync
+            //console.log(t, fs.existsSync(t))
+            if (!fs.existsSync(t)) {
+                fs.mkdirSync(t)
+            }
+
+        }
+
+    })
+
+
+}
+
+
+export default createDir
 </code></pre>
         </article>
     </section>
