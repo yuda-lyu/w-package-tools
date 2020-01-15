@@ -14,6 +14,8 @@ import rollupFiles from './rollupFiles.mjs'
  * @param {String} [opt.htmlLang='zh-tw'] 輸入所產生html的lang字串，預設'zh-tw'
  * @param {String} [opt.head=''] 輸入head內額外html字串，預設''
  * @param {String} [opt.newVue=''] 輸入body初始化(new Vue)內額外設定字串，預設''
+ * @param {String} [opt.globals={}] 輸入rollup不打包套件時內外部套件關聯性設定物件，預設{}
+ * @param {String} [opt.external=[]] 輸入rollup不打包套件清單陣列，預設[]
  */
 async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app.html', opt = {}) {
 
@@ -30,6 +32,8 @@ async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app
     let htmlLang = _.get(opt, 'htmlLang', 'zh-tw')
     let head = _.get(opt, 'head', '')
     let newVue = _.get(opt, 'newVue', '')
+    let globals = _.get(opt, 'globals', {})
+    let external = _.get(opt, 'external', [])
 
     //h
     let h = `
@@ -87,10 +91,8 @@ async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app
         hookNameDist: () => {
             return tarName
         },
-        globals: {
-        },
-        external: [
-        ],
+        globals,
+        external,
     })
 
     //app.html
