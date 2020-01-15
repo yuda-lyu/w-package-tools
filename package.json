@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "A tool for build packages.",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {

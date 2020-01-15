@@ -6,7 +6,7 @@ import getReadme from './getReadme.mjs'
 /**
  * 更新readme內cdn連結為最新版本
  *
- * @param {string} [fnRM='./README.md'] 輸入readme檔案路徑字串
+ * @param {String} [fnRM='./README.md'] 輸入readme檔案路徑字串
  */
 function modifyReadme(fnRM = './README.md', fnPks = './package.json') {
 
