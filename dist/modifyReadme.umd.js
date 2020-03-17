@@ -1,5 +1,5 @@
 /*!
- * modifyReadme v1.0.22
+ * modifyReadme v1.0.23
  * (c) 2018-2019 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
