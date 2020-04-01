@@ -142,6 +142,10 @@ async function rollupFile(opt = {}) {
                 }
             ]
         ],
+        plugins: [
+            "@babel/plugin-proposal-export-default-from",
+            "@babel/plugin-transform-runtime"
+        ]
     }))
 
     plugins.push(postcss({
