@@ -1,6 +1,6 @@
 import path from 'path'
 import _ from 'lodash'
-import rollup from 'rollup'
+import { rollup } from 'rollup'
 import vue from 'rollup-plugin-vue'
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
@@ -10,6 +10,7 @@ import replace from '@rollup/plugin-replace'
 //import minify from 'rollup-plugin-babel-minify'
 import terser from 'rollup-plugin-terser'
 import getPks from './getPks.mjs'
+
 
 /**
  * 使用rollup編譯檔案
@@ -143,8 +144,8 @@ async function rollupFile(opt = {}) {
             ]
         ],
         plugins: [
-            "@babel/plugin-proposal-export-default-from",
-            "@babel/plugin-transform-runtime"
+            '@babel/plugin-proposal-export-default-from',
+            '@babel/plugin-transform-runtime'
         ]
     }))
 
@@ -189,7 +190,7 @@ async function rollupFile(opt = {}) {
     }
 
     //bundle
-    let bundle = await rollup.rollup(inputOptions)
+    let bundle = await rollup(inputOptions)
 
     //output
     // const { output } = await bundle.generate(outputOptions)
