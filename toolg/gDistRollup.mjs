@@ -9,7 +9,7 @@ let fns = getFiles(fdSrc)
 _.pull(fns, 'rollupFiles.mjs', 'rollupFile.mjs')
 
 rollupFiles({
-    fns: fns,
+    fns,
     fdSrc,
     fdTar,
     //nameDistType: 'kebabCase',
@@ -32,6 +32,7 @@ rollupFiles({
         'rollup-plugin-postcss': 'rollup-plugin-postcss',
         'rollup-plugin-terser': 'rollup-plugin-terser',
         'rollup-plugin-vue': 'rollup-plugin-vue',
+        'rollup-plugin-vue-template-compiler': 'rollup-plugin-vue-template-compiler',
     },
     external: [
         'fs',
@@ -46,5 +47,6 @@ rollupFiles({
         'rollup-plugin-postcss',
         'rollup-plugin-terser',
         'rollup-plugin-vue',
+        'rollup-plugin-vue-template-compiler',
     ],
 })

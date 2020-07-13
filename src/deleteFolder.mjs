@@ -2,7 +2,7 @@ import fs from 'fs'
 
 
 /**
- * 刪除資料牙
+ * 刪除資料夾
  *
  * @param {String} pah 輸入欲刪除資料夾路徑字串
  */

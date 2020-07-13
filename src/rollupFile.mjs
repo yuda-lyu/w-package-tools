@@ -99,7 +99,7 @@ async function rollupFile(opt = {}) {
     let bBanner = opt.bBanner
     let cbanner = null
     if (bBanner !== false) {
-        cbanner = `/*!\n * ${nameDist} v${pkg.version}\n * (c) 2018-2019 ${pkg.author}\n * Released under the ${license} License.\n */`
+        cbanner = `/*!\n * ${nameDist} v${pkg.version}\n * (c) 2018-2020 ${pkg.author}\n * Released under the ${license} License.\n */`
     }
     let banner = cbanner
 
@@ -144,8 +144,10 @@ async function rollupFile(opt = {}) {
             ]
         ],
         plugins: [
+            '@babel/plugin-transform-runtime',
             '@babel/plugin-proposal-export-default-from',
-            '@babel/plugin-transform-runtime'
+            '@babel/plugin-proposal-nullish-coalescing-operator',
+            '@babel/plugin-proposal-optional-chaining',
         ]
     }))
 

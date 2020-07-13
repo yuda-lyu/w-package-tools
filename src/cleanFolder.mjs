@@ -4,8 +4,8 @@ import fs from 'fs'
 function core(pah) {
     fs.readdirSync(pah).forEach(function(file, index) {
         var curPath = pah + '/' + file
-        if (fs.lstatSync(curPath).isDirectory()) { // recurse
-            core(curPath)
+        if (fs.lstatSync(curPath).isDirectory()) {
+            core(curPath) // recurse
         }
         else { // delete file
             fs.unlinkSync(curPath)
