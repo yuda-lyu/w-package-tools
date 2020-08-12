@@ -1,1 +1,1 @@
-{"version":3,"file":"createFolder.umd.js","sources":["../src/createFolder.mjs"],"sourcesContent":null,"names":["pah","fs","mkdirSync","recursive","err","console","log"],"mappings":";;;;;sSAQA,SAAsBA,OAIdC,EAAGC,UAAUF,EAAK,CAAEG,WAAW,IAEnC,MAAOC,GACHC,QAAQC,IAAI,qBAAsBF"}
+{"version":3,"file":"createFolder.umd.js","sources":["../src/createFolder.mjs"],"sourcesContent":null,"names":["pah","fs","mkdirSync","recursive","err","console","log"],"mappings":";;;;;gVAQA,SAAsBA,OAIdC,EAAGC,UAAUF,EAAK,CAAEG,WAAW,IAEnC,MAAOC,GACHC,QAAQC,IAAI,qBAAsBF"}
