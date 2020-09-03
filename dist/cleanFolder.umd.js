@@ -1,7 +1,7 @@
 /*!
- * cleanFolder v1.0.28
+ * cleanFolder v1.0.29
  * (c) 2018-2020 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
-!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e(require("fs")):"function"==typeof define&&define.amd?define(["fs"],e):(n="undefined"!=typeof globalThis?globalThis:n||self).cleanFolder=e(n.fs)}(this,(function(n){"use strict";return n=n&&Object.prototype.hasOwnProperty.call(n,"default")?n.default:n,function(e){n.existsSync(e)?n.readdirSync(e).forEach((function(t,i){var o=e+"/"+t;n.lstatSync(o).isDirectory()?function e(t){n.readdirSync(t).forEach((function(i,o){var r=t+"/"+i;n.lstatSync(r).isDirectory()?e(r):n.unlinkSync(r)})),n.rmdirSync(t)}(o):n.unlinkSync(o)})):n.mkdirSync(e)}}));
+!function(e,n){"object"==typeof exports&&"undefined"!=typeof module?module.exports=n(require("fs")):"function"==typeof define&&define.amd?define(["fs"],n):(e="undefined"!=typeof globalThis?globalThis:e||self).cleanFolder=n(e.fs)}(this,(function(e){"use strict";function n(e){return e&&"object"==typeof e&&"default"in e?e:{default:e}}var t=n(e);return function(e){t.default.existsSync(e)?t.default.readdirSync(e).forEach((function(n,f){var i=e+"/"+n;t.default.lstatSync(i).isDirectory()?function e(n){t.default.readdirSync(n).forEach((function(f,i){var u=n+"/"+f;t.default.lstatSync(u).isDirectory()?e(u):t.default.unlinkSync(u)})),t.default.rmdirSync(n)}(i):t.default.unlinkSync(i)})):t.default.mkdirSync(e)}}));
 //# sourceMappingURL=cleanFolder.umd.js.map

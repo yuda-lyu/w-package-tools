@@ -1,1 +1,1 @@
-{"version":3,"file":"getReadme.umd.js","sources":["../src/getReadme.mjs"],"sourcesContent":null,"names":["fn","c","fs","readFileSync","content","lines","_","split"],"mappings":";;;;;sbAUA,eAAmBA,yDAAK,cAChBC,EAAIC,EAAGC,aAAaH,EAAI,cACrB,CACHI,QAASH,EACTI,MAAOC,EAAEC,MAAMN,EAAG"}
+{"version":3,"file":"getReadme.umd.js","sources":["../src/getReadme.mjs"],"sourcesContent":null,"names":["fn","c","fs","readFileSync","content","lines","_","split"],"mappings":";;;;;0YAUA,eAAmBA,yDAAK,cAChBC,EAAIC,UAAGC,aAAaH,EAAI,cACrB,CACHI,QAASH,EACTI,MAAOC,UAAEC,MAAMN,EAAG"}
