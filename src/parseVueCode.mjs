@@ -50,19 +50,6 @@ function parseVueCode(h) {
     tmp = s.join('\r\n')
     //console.log('tmp', tmp)
 
-    //mounted
-    m1 = 'mounted: function() {'
-    m2 = '    },'
-    let mounted = getBlock(ss, m1, m2)
-    if (!mounted) {
-        mounted = 'function() { return {} }'
-    }
-    else {
-        mounted = 'function() {' + mounted
-        mounted = strdelright(mounted, 1)
-    }
-    //console.log('mounted', mounted)
-
     //data
     m1 = 'data: function() {'
     m2 = '    },'
@@ -75,6 +62,19 @@ function parseVueCode(h) {
         data = strdelright(data, 1)
     }
     //console.log('data', data)
+
+    //mounted
+    m1 = 'mounted: function() {'
+    m2 = '    },'
+    let mounted = getBlock(ss, m1, m2)
+    if (!mounted) {
+        mounted = 'function() { return {} }'
+    }
+    else {
+        mounted = 'function() {' + mounted
+        mounted = strdelright(mounted, 1)
+    }
+    //console.log('mounted', mounted)
 
     //computed
     m1 = 'computed:'
@@ -112,7 +112,7 @@ function parseVueCode(h) {
     }
     //console.log('action', action)
 
-    return { tmp, mounted, data, computed, methods, action, }
+    return { tmp, data, mounted, computed, methods, action, }
 }
 
 
