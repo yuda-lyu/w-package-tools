@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "A tool for build packages.",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
@@ -36,6 +36,7 @@
     "jsdoc-vuejs": "^3.0.9",
     "lodash": "^4.17.20",
     "mocha": "^8.2.1",
+    "postcss": "^8.2.4",
     "rollup": "^2.38.2",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-postcss": "^4.0.0",
