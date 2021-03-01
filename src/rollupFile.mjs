@@ -121,6 +121,7 @@ async function rollupFile(opt = {}) {
     }
 
     plugins.push(replace({
+        'preventAssignment': true,
         'process.env.NODE_ENV': JSON.stringify(env)
     }))
 
