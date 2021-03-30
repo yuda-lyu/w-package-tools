@@ -5,8 +5,9 @@ import vue from 'rollup-plugin-vue'
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import postcss from 'rollup-plugin-postcss'
-import babel from 'rollup-plugin-babel'
+import { babel } from '@rollup/plugin-babel'
 import replace from '@rollup/plugin-replace'
+import json from '@rollup/plugin-json'
 //import minify from 'rollup-plugin-babel-minify'
 import { terser } from 'rollup-plugin-terser'
 import getPks from './getPks.mjs'
@@ -116,6 +117,8 @@ async function rollupFile(opt = {}) {
     //plugins
     let plugins = []
 
+    plugins.push(json())
+
     if (nameExt === 'vue') {
         plugins.push(vue())
     }
@@ -133,7 +136,8 @@ async function rollupFile(opt = {}) {
     }))
 
     plugins.push(babel({
-        runtimeHelpers: true,
+        // runtimeHelpers: true, //已停用
+        babelHelpers: 'runtime',
         //exclude: 'node_modules/**', //can not exclude node_modules, need compile packages in node_modules
         presets: [
             [

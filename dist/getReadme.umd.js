@@ -1,5 +1,5 @@
 /*!
- * getReadme v1.0.36
+ * getReadme v1.0.37
  * (c) 2018-2020 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
