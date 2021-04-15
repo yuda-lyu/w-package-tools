@@ -1,5 +1,5 @@
 /*!
- * parseVueCode v1.0.37
+ * parseVueCode v1.0.38
  * (c) 2018-2020 yuda-lyu(semisphere)
  * Released under the MIT License.
  */

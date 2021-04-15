@@ -11,6 +11,7 @@ import json from '@rollup/plugin-json'
 //import minify from 'rollup-plugin-babel-minify'
 import { terser } from 'rollup-plugin-terser'
 import getPks from './getPks.mjs'
+import nodePolyfills from 'rollup-plugin-node-polyfills'
 
 
 /**
@@ -114,6 +115,10 @@ async function rollupFile(opt = {}) {
     //external, 提供字串需解析成陣列, 指定哪些內部模組需引用外部模組
     let external = opt.external
 
+    //bNodePolyfill, 提供使用node用api的編譯
+    let bNodePolyfill = opt.bNodePolyfill
+    bNodePolyfill = bNodePolyfill === true
+
     //plugins
     let plugins = []
 
@@ -129,6 +134,11 @@ async function rollupFile(opt = {}) {
     }))
 
     plugins.push(commonjs())
+
+    if (bNodePolyfill) {
+        //要放在commonjs之後否則無法處理require語法
+        plugins.push(nodePolyfills())
+    }
 
     plugins.push(resolve({
         preferBuiltins: false,
