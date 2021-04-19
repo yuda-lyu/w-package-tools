@@ -1,1 +1,0 @@
-{"version":3,"file":"setPks.umd.js","sources":["../src/setPks.mjs"],"sourcesContent":null,"names":["pks","fn","c","JSON","stringify","fs","writeFileSync"],"mappings":";;;;;0VASA,SAAgBA,OAAKC,yDAAK,iBAClBC,EAAIC,KAAKC,UAAUJ,EAAK,KAAM,GAClCK,UAAGC,cAAcL,EAAIC,EAAG"}

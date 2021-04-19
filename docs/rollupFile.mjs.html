@@ -46,17 +46,19 @@
 import _ from 'lodash'
 import { rollup } from 'rollup'
 import vue from 'rollup-plugin-vue'
-import buble from '@rollup/plugin-buble'
 import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
+import replace from '@rollup/plugin-replace'
 import postcss from 'rollup-plugin-postcss'
 import { babel } from '@rollup/plugin-babel'
-import replace from '@rollup/plugin-replace'
-import json from '@rollup/plugin-json'
-//import minify from 'rollup-plugin-babel-minify'
+import babelForVue2 from 'rollup-plugin-babel' //才能編譯vue2含async語法的組件
 import { terser } from 'rollup-plugin-terser'
 import getPks from './getPks.mjs'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
+
+
+let babelForJs = babel
 
 
 /**
@@ -71,14 +73,22 @@ import nodePolyfills from 'rollup-plugin-node-polyfills'
  * @param {String} [opt.format='umd'] 輸入編譯格式字串，預設為'umd'，可選'umd','iife'
  * @param {Boolean} [opt.bSourcemap=true] 輸入編譯檔案是否提供sourcemap布林值，預設為true
  * @param {Boolean} [opt.bBanner=true] 輸入編譯檔案是否帶有開頭banner布林值，預設為true
+ * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設為true
  * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設為true
+ * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設為true
  * @param {Object} opt.globals 輸入指定內外模組的關聯性物件
  * @param {Array} opt.external 輸入指定內部模組需引用外部模組陣列
  */
 async function rollupFile(opt = {}) {
 
+    //bLog
+    let bLog = opt.bLog
+    bLog = bLog !== false
+
     //console
-    console.log('compiling: ' + opt.fn)
+    if (bLog) {
+        console.log('compiling: ' + opt.fn)
+    }
 
     //pkg
     let pkg = getPks()
@@ -109,7 +119,7 @@ async function rollupFile(opt = {}) {
     }
 
     //nameExt
-    let nameExt = _.last(ssfn)
+    let nameExt = _.toLower(_.last(ssfn))
 
     //nameDistType
     let nameDistType = opt.nameDistType
@@ -146,7 +156,7 @@ async function rollupFile(opt = {}) {
     let bBanner = opt.bBanner
     let cbanner = null
     if (bBanner !== false) {
-        cbanner = `/*!\n * ${nameDist} v${pkg.version}\n * (c) 2018-2020 ${pkg.author}\n * Released under the ${license} License.\n */`
+        cbanner = `/*!\n * ${nameDist} v${pkg.version}\n * (c) 2018-2021 ${pkg.author}\n * Released under the ${license} License.\n */`
     }
     let banner = cbanner
 
@@ -155,10 +165,10 @@ async function rollupFile(opt = {}) {
     bMinify = bMinify !== false
 
     //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
-    let globals = opt.globals
+    let globals = _.get(opt, 'globals', [])
 
     //external, 提供字串需解析成陣列, 指定哪些內部模組需引用外部模組
-    let external = opt.external
+    let external = _.get(opt, 'external', [])
 
     //bNodePolyfill, 提供使用node用api的編譯
     let bNodePolyfill = opt.bNodePolyfill
@@ -169,15 +179,14 @@ async function rollupFile(opt = {}) {
 
     plugins.push(json())
 
-    if (nameExt === 'vue') {
-        plugins.push(vue())
-        plugins.push(buble()) //編譯至ES5, Transpile/polyfill with reasonable browser support
-    }
-
     plugins.push(replace({
         'preventAssignment': true,
         'process.env.NODE_ENV': JSON.stringify(env)
     }))
+
+    if (nameExt === 'vue') {
+        plugins.push(vue())
+    }
 
     plugins.push(commonjs())
 
@@ -191,40 +200,40 @@ async function rollupFile(opt = {}) {
         browser: true,
     }))
 
-    plugins.push(babel({
-        // runtimeHelpers: true, //已停用
-        babelHelpers: 'runtime', //這是@rollup/plugin-babel的設定, 非babel的, 故babel.config.js不能給予這設定
-        //exclude: 'node_modules/**', //can not exclude node_modules, need compile packages in node_modules
+    let babelOpt = {
         presets: [
             [
                 '@babel/preset-env',
                 {
                     useBuiltIns: 'entry', //entry usage, usage is not stable
                     corejs: 3,
-                    // targets: '> 0.25%, not dead, IE 11',
-                    // targets: 'IE 11',
-                    // targets: {
-                    //     'ie': '11'
-                    // }
                 }
             ]
         ],
         plugins: [
             '@babel/plugin-transform-runtime',
-            '@babel/plugin-proposal-export-default-from',
             '@babel/plugin-proposal-nullish-coalescing-operator',
+            '@babel/plugin-proposal-object-rest-spread',
+            '@babel/plugin-proposal-export-default-from',
             '@babel/plugin-proposal-optional-chaining',
         ]
-    }))
+    }
+    let babelPlugin
+    if (nameExt === 'vue') {
+        babelOpt.runtimeHelpers = true //給rollup-plugin-babel用, 為舊版babel設定
+        babelPlugin = babelForVue2(babelOpt)
+    }
+    else {
+        babelOpt.babelHelpers = 'runtime' //新版babel設定
+        babelPlugin = babelForJs(babelOpt)
+    }
+    plugins.push(babelPlugin)
 
     plugins.push(postcss({
         extensions: ['.css']
     }))
 
     if (bMinify) {
-        // plugins.push(minify({
-        //     comments: false,
-        // }))
         // plugins.push(terser.terser({
         //     output: {
         //         comments: false, //default
@@ -266,9 +275,12 @@ async function rollupFile(opt = {}) {
 
     //write
     let r = await bundle.write(outputOptions)
+    // console.log(r)
 
     //console
-    console.log('\x1b[32m%s\x1b[0m', 'output: ' + `${nameDist}.${format}.js`)
+    if (bLog) {
+        console.log('\x1b[32m%s\x1b[0m', 'output: ' + `${nameDist}.${format}.js`)
+    }
 
     return r
 }
@@ -289,7 +301,7 @@ export default rollupFile
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Mon Apr 19 2021 10:25:18 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Mon Apr 19 2021 16:51:41 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

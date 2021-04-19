@@ -1,1 +1,0 @@
-{"version":3,"file":"pmSeries.umd.js","sources":["../src/pmSeries.mjs"],"sourcesContent":null,"names":["pms","fn","Promise","resolve","reject","reduce","pmm","v","then","t","err"],"mappings":";;;;;gPAOA,SAAkBA,EAAKC,UACZ,IAAIC,SAAQ,SAACC,EAASC,GACzBJ,EAAIK,QAAO,SAASC,EAAKC,UACdD,EAAIE,MAAK,SAASC,UACdR,EAAGM,QAEfL,QAAQC,WACNK,MAAK,WACFL,cACK,SAASO,GACdN,EAAOM"}

@@ -3,7 +3,7 @@ import fs from 'fs'
 
 function core(pah) {
     fs.readdirSync(pah).forEach(function(file, index) {
-        var curPath = pah + '/' + file
+        let curPath = pah + '/' + file
         if (fs.lstatSync(curPath).isDirectory()) {
             core(curPath) // recurse
         }
@@ -23,7 +23,7 @@ function core(pah) {
 function cleanFolder(pah) {
     if (fs.existsSync(pah)) {
         fs.readdirSync(pah).forEach(function(file, index) {
-            var curPath = pah + '/' + file
+            let curPath = pah + '/' + file
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 core(curPath)
             }

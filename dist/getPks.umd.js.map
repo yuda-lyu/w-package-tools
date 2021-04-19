@@ -1,1 +1,0 @@
-{"version":3,"file":"getPks.umd.js","sources":["../src/getPks.mjs"],"sourcesContent":null,"names":["fn","c","fs","readFileSync","JSON","parse"],"mappings":";;;;;0VASA,eAAgBA,yDAAK,iBACbC,EAAIC,UAAGC,aAAaH,EAAI,eACrBI,KAAKC,MAAMJ"}

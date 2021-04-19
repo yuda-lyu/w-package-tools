@@ -10,7 +10,7 @@ function deleteFolder(pah) {
     if (fs.existsSync(pah)) {
         //console.log('in: ', pah)
         fs.readdirSync(pah).forEach(function(file, index) {
-            var curPath = pah + '/' + file
+            let curPath = pah + '/' + file
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolder(curPath)
             }
