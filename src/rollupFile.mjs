@@ -2,6 +2,7 @@ import path from 'path'
 import _ from 'lodash'
 import { rollup } from 'rollup'
 import vue from 'rollup-plugin-vue'
+import buble from '@rollup/plugin-buble'
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import postcss from 'rollup-plugin-postcss'
@@ -126,6 +127,7 @@ async function rollupFile(opt = {}) {
 
     if (nameExt === 'vue') {
         plugins.push(vue())
+        plugins.push(buble()) //編譯至ES5, Transpile/polyfill with reasonable browser support
     }
 
     plugins.push(replace({
@@ -147,7 +149,7 @@ async function rollupFile(opt = {}) {
 
     plugins.push(babel({
         // runtimeHelpers: true, //已停用
-        babelHelpers: 'runtime',
+        babelHelpers: 'runtime', //這是@rollup/plugin-babel的設定, 非babel的, 故babel.config.js不能給予這設定
         //exclude: 'node_modules/**', //can not exclude node_modules, need compile packages in node_modules
         presets: [
             [
@@ -155,6 +157,11 @@ async function rollupFile(opt = {}) {
                 {
                     useBuiltIns: 'entry', //entry usage, usage is not stable
                     corejs: 3,
+                    // targets: '> 0.25%, not dead, IE 11',
+                    // targets: 'IE 11',
+                    // targets: {
+                    //     'ie': '11'
+                    // }
                 }
             ]
         ],
