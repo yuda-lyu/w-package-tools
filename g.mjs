@@ -9,27 +9,6 @@ let fdTar = './test-code-out'
 
 cleanFolder(fdTar)
 
-// rollupCode(fs.readFileSync(`${fdSrc}/g1.js`, 'utf8'), {
-//     bMinify: false,
-// })
-//     .then((code) => {
-//         console.log(code)
-//     })
-//     .catch((err) => {
-//         console.log(err)
-//     })
-
-// rollupCode(fs.readFileSync(`${fdSrc}/g3.vue`, 'utf8'), {
-//     bMinify: false,
-//     formatIn: 'vue'
-// })
-//     .then((code) => {
-//         console.log(code)
-//     })
-//     .catch((err) => {
-//         console.log(err)
-//     })
-
 rollupFile({
     fn: 'g1.js',
     fdSrc,
@@ -77,6 +56,27 @@ rollupFile({
     .catch((err) => {
         console.log(err)
     })
+
+// rollupCode(fs.readFileSync(`${fdSrc}/g1.js`, 'utf8'), {
+//     bMinify: false,
+// })
+//     .then((code) => {
+//         console.log(code)
+//     })
+//     .catch((err) => {
+//         console.log(err)
+//     })
+
+// rollupCode(fs.readFileSync(`${fdSrc}/g3.vue`, 'utf8'), {
+//     bMinify: false,
+//     formatIn: 'vue'
+// })
+//     .then((code) => {
+//         console.log(code)
+//     })
+//     .catch((err) => {
+//         console.log(err)
+//     })
 
 
 //node --experimental-modules --es-module-specifier-resolution=node g.mjs
