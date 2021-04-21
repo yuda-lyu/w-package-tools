@@ -45,8 +45,8 @@ async function extractHtml(opt = {}) {
     let fpHtml = _.get(opt, 'fpHtml', '')
     let fpAction = _.get(opt, 'fpAction', '')
 
-    //newVue偵測添加逗號
-    if (w.strright(newVue, 1) !== ',') {
+    //newVue若為有效字串, 需偵測最末是否有逗號, 若無則自動添加
+    if (w.isestr(newVue) && w.strright(newVue, 1) !== ',') {
         newVue = `${newVue},`
     }
 

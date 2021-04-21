@@ -6,6 +6,7 @@ import setPks from './setPks.mjs'
 /**
  * 自動添加package.json內版本補丁號
  *
+ * @param {String} fnPks 輸入package.json位置路徑字串
  */
 function addVersion(fnPks = './package.json') {
 
