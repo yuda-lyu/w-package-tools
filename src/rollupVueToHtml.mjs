@@ -5,17 +5,17 @@ import rollupFiles from './rollupFiles.mjs'
 
 
 /**
- * 使用rollup編譯Vue檔案並自動產生瀏覽用的html檔
+ * 使用rollup編譯Vue檔案並產生瀏覽用的html檔
  *
  * @param {String} [src='./src/App.vue'] 輸入欲打包Vue檔案(*.vue)的位置字串，預設'./src/App.vue'
  * @param {String} [tar='./docs/examples/app.html'] 輸入輸出html的位置字串，並於該目錄下會出現打包後的js檔與map檔，預設'./docs/examples/app.html'
  * @param {Object} [opt={}] 輸入其他設定物件，預設{}
- * @param {String} [opt.title=''] 輸入標題字串，預設''
  * @param {String} [opt.htmlLang='zh-tw'] 輸入所產生html的lang字串，預設'zh-tw'
+ * @param {String} [opt.title=''] 輸入標題字串，預設''
  * @param {String} [opt.head=''] 輸入head內額外html字串，預設''
- * @param {String} [opt.newVue=''] 輸入body初始化(new Vue)內額外設定字串，預設''
- * @param {String} [opt.globals={}] 輸入rollup不打包套件時內外部套件關聯性設定物件，預設{}
- * @param {String} [opt.external=[]] 輸入rollup不打包套件清單陣列，預設[]
+ * @param {String} [opt.newVue=''] 輸入初始化(new Vue)內額外設定字串，預設''
+ * @param {Object} [opt.globals={}] 輸入rollup不打包套件時內外部套件關聯性設定物件，預設{}
+ * @param {Array} [opt.external=[]] 輸入rollup不打包套件清單陣列，預設[]
  */
 async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app.html', opt = {}) {
 
@@ -28,8 +28,8 @@ async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app
     let tarName = _.head(_.split(_.last(vtar), '.')) //'app'
 
     //opt
-    let title = _.get(opt, 'title', '')
     let htmlLang = _.get(opt, 'htmlLang', 'zh-tw')
+    let title = _.get(opt, 'title', '')
     let head = _.get(opt, 'head', '')
     let newVue = _.get(opt, 'newVue', '')
     let globals = _.get(opt, 'globals', {})
@@ -42,6 +42,7 @@ async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>${title}</title>
 
     <!-- @babel/polyfill已廢棄 -->

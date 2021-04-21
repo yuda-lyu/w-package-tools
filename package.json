@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "A tool for build packages.",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
@@ -22,6 +22,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@rollup/plugin-replace": "^2.4.2",
+    "@starptech/prettyhtml": "^0.10.0",
     "babel-core": "^6.26.3",
     "babel-eslint": "^10.1.0",
     "core-js": "^3.10.1",
@@ -55,7 +56,8 @@
     "@vue/cli-service": "^4.5.12"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require @babel/register",
+    "test": "./node_modules/.bin/mocha --timeout 60000 --require @babel/register",
+    "tests": "./node_modules/.bin/mocha --parallel --require @babel/register",
     "deploy": "gh-pages -d docs"
   },
   "repository": {
