@@ -14,12 +14,13 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** w-package-tools is mainly dependent on `rollup`, `@babel` and `core-js`.
+> **Note:** w-package-tools is mainly dependent on `@rollup`, `@babel`, `core-js`, `eslint`, etc.
 
 ```alias
 npm i w-package-tools
 
-import getFiles from 'w-package-tools/src/getFiles.mjs'
+import rollupCode from 'w-package-tools/src/rollupCode.mjs'
 
-console.log(getFiles('path for forder'))
+let opt={}
+console.log(rollupCode(opt))
 ```
