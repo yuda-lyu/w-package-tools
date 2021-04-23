@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#createFolder">createFolder</a></li><li><a href="global.html#deleteFolder">deleteFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getFiles">getFiles</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#pmSeries">pmSeries</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
 </nav>
 
 <div id="main">
@@ -42,8 +42,10 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import path from 'path'
+            <pre class="prettyprint source linenums"><code>import fs from 'fs'
+import path from 'path'
 import _ from 'lodash'
+import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
 import { rollup } from 'rollup'
 import vue from 'rollup-plugin-vue'
 import commonjs from '@rollup/plugin-commonjs'
@@ -54,8 +56,8 @@ import postcss from 'rollup-plugin-postcss'
 import { babel } from '@rollup/plugin-babel'
 import babelForVue2 from 'rollup-plugin-babel' //才能編譯vue2含async語法的組件
 import { terser } from 'rollup-plugin-terser'
-import getPks from './getPks.mjs'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
+import getPks from './getPks.mjs'
 
 
 let babelForJs = babel
@@ -68,9 +70,11 @@ let babelForJs = babel
  * @param {String} opt.fn 輸入原始碼檔案名稱字串，檔案需含副檔名，不含所在資料夾
  * @param {String} opt.fdSrc 輸入原始碼檔案所在資料夾字串
  * @param {String} opt.fdTar 輸入編譯檔案至儲存資料夾字串
- * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，預設為''，可選'kebabCase'
+ * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設為''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設為null，會複寫nameDistType之處理結果
- * @param {String} [opt.format='umd'] 輸入編譯格式字串，預設為'umd'，可選'umd','iife'
+ * @param {String} [opt.format='umd'] 輸入編譯格式字串，可選'umd'、'iife'，預設為'umd'
+ * @param {String} [opt.targets='ie11'] 輸入編譯等級字串，可選'ie11'、'last'，預設為'ie11'
+ * @param {String} [opt.ext='js'] 輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設為'js'
  * @param {Boolean} [opt.bSourcemap=true] 輸入編譯檔案是否提供sourcemap布林值，預設為true
  * @param {Boolean} [opt.bBanner=true] 輸入編譯檔案是否帶有開頭banner布林值，預設為true
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設為true
@@ -85,41 +89,46 @@ async function rollupFile(opt = {}) {
     let bLog = opt.bLog
     bLog = bLog !== false
 
-    //console
-    if (bLog) {
-        console.log('compiling: ' + opt.fn)
-    }
-
     //pkg
     let pkg = getPks()
 
     //env
     let env = process.env.NODE_ENV
 
-    //fn
-    let fn = opt.fn
-
     //fdSrc
     let fdSrc = opt.fdSrc
-    if (fdSrc.substr(fdSrc.length - 1, 1) !== path.sep) {
-        fdSrc = fdSrc += path.sep
+    if (!w.fsIsFolder(fdSrc)) {
+        fdSrc = ''
     }
 
     //fdTar
     let fdTar = opt.fdTar
-    if (fdTar.substr(fdTar.length - 1, 1) !== path.sep) {
-        fdTar = fdTar += path.sep
+    if (!w.fsIsFolder(fdTar)) {
+        fdTar = ''
     }
 
-    //nameTrue
-    let ssfn = _.split(fn, '.')
-    let nameTrue = fn
-    if (ssfn.length >= 2) {
-        nameTrue = _.join(_.dropRight(ssfn), '.')
+    //fn
+    let fn = opt.fn
+
+    //fpIn, 欲編譯的檔案
+    let fpIn = path.resolve(fdSrc, fn)
+    // console.log('fpIn', fpIn)
+
+    //check
+    if (!w.fsIsFile(fpIn)) {
+        return Promise.reject(`invalid fpIn: ${fpIn}`)
+    }
+
+    //console
+    if (bLog) {
+        console.log('compiling: ' + w.getFileName(fpIn))
     }
 
     //nameExt
-    let nameExt = _.toLower(_.last(ssfn))
+    let nameExt = _.toLower(w.strdelleft(path.extname(fpIn), 1))
+
+    //nameTrue
+    let nameTrue = w.getFileTrueName(fpIn)
 
     //nameDistType
     let nameDistType = opt.nameDistType
@@ -140,6 +149,21 @@ async function rollupFile(opt = {}) {
     let format = opt.format
     if (!format) {
         format = 'umd'
+    }
+
+    //targets
+    let targets = opt.targets
+    if (targets === 'new') {
+        targets = 'last 2 Chrome versions'
+    }
+    else {
+        targets = 'defaults' //> 0.5%, last 2 versions, Firefox ESR, not dead
+    }
+
+    //ext
+    let ext = opt.ext
+    if (ext !== 'js' &amp;&amp; ext !== 'mjs') {
+        ext = 'js'
     }
 
     //license
@@ -201,12 +225,15 @@ async function rollupFile(opt = {}) {
     }))
 
     let babelOpt = {
+        // babelrc: false,
         presets: [
             [
                 '@babel/preset-env',
                 {
                     useBuiltIns: 'entry', //entry usage, usage is not stable
                     corejs: 3,
+                    // modules: false,
+                    targets,
                 }
             ]
         ],
@@ -242,16 +269,23 @@ async function rollupFile(opt = {}) {
         plugins.push(terser())
     }
 
-    //input, 欲編譯的檔案
-    let input = `${fdSrc}${fn}`
-
-    //file, 編譯後檔案
-    let file = `${fdTar}${nameDist}.${format}.js`
+    //fpOut, 編譯後檔案
+    let returnCode = false
+    let fpOut = ''
+    if (w.isestr(fdTar)) {
+        fpOut = path.resolve(fdTar, `${nameDist}.${format}.${ext}`)
+    }
+    else {
+        returnCode = true
+        fpOut = `./temp-${w.genID()}`
+    }
+    // console.log('fpOut', fpOut)
 
     //inputOptions
     let inputOptions = {
         external,
-        input,
+        input: fpIn,
+        // treeshake: false,
         plugins,
     }
 
@@ -261,7 +295,7 @@ async function rollupFile(opt = {}) {
         globals,
         format,
         name: nameDist,
-        file,
+        file: fpOut,
         sourcemap: bSourcemap,
         sourcemapExcludeSources: true,
     }
@@ -274,15 +308,34 @@ async function rollupFile(opt = {}) {
     // console.log('output', output)
 
     //write
-    let r = await bundle.write(outputOptions)
-    // console.log(r)
+    await bundle.write(outputOptions)
 
-    //console
-    if (bLog) {
-        console.log('\x1b[32m%s\x1b[0m', 'output: ' + `${nameDist}.${format}.js`)
+    //returnCode
+    let code = ''
+    if (returnCode) {
+
+        //若編譯成功則讀取轉換後之程式碼
+        code = fs.readFileSync(fpOut, 'utf8')
+
+        //unlinkSync
+        try {
+            fs.unlinkSync(fpOut)
+        }
+        catch (err) {
+            console.log(err)
+        }
+
     }
 
-    return r
+    //console
+    if (bLog &amp;&amp; !returnCode) {
+        console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpOut))
+    }
+
+    if (returnCode) {
+        return code
+    }
+    return 'finish'
 }
 
 
@@ -301,7 +354,7 @@ export default rollupFile
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Wed Apr 21 2021 15:50:13 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Fri Apr 23 2021 13:00:42 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
