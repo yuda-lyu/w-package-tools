@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>web-worker-simple</title>
+
+        <script>
+
+            let code=`
+
+//sendMessage
+function sendMessage(data) {
+    self.postMessage(data)
+}
+
+//onmessage
+self.onmessage = function (e) {
+
+    //dataRecv
+    let dataRecv = e.data
+    console.log('inner worker dataRecv:', dataRecv)
+
+    //dataSend
+    let dataSend = {
+        from: 'inner worker',
+        fun: 'call def',
+        input: { x: 1, y: 12.34, z: 'mnop' },
+        recv: dataRecv,
+    }
+
+    //sendMessage
+    sendMessage(dataSend)
+    console.log('inner worker dataSend:', dataSend)
+
+}
+
+setTimeout(() => {
+
+    //dataSend
+    let dataSend = {
+        s: 'delay 5s'
+    }
+
+    //sendMessage
+    sendMessage(dataSend)
+    console.log('inner worker dataSend(after 5s):', dataSend)
+
+}, 5000)
+
+            `
+
+            function genWebWorker(code) {
+
+                //URL
+                let URL = window.URL || window.webkitURL
+
+                //blob
+                let blob
+                try {
+                    //blob for Chrome 8+, Firefox 6+, Safari 6.0+, Opera 15+
+                    blob = new Blob([code])
+                    return new Worker(URL.createObjectURL(blob))
+                }
+                catch (err) {
+                    console.log(err)
+                }
+
+            }
+
+            //genWebWorker
+            let wk=genWebWorker(code)
+
+            //check, IE11安全性問題
+            if (wk === null) {
+                console.log('invalid webworker')
+            }
+
+            function terminate() {
+                wk.terminate()
+                wk = undefined
+            }
+
+            if(true){
+
+                //dataSend
+                let dataSend={
+                    from: 'outer worker',
+                    fun: 'call abc',
+                    input: { i: 1, j: 12.34, k: 'mnop' },
+                }
+
+                //postMessage
+                wk.postMessage(dataSend)
+                console.log('outer worker dataSend:', dataSend)
+
+            }
+
+            if(true){
+
+                setTimeout(() => {
+
+                    //dataSend
+                    let dataSend = {
+                        s: 'delay 2.5s'
+                    }
+
+                    //postMessage
+                    wk.postMessage(dataSend)
+                    console.log('outer worker dataSend(after 5s):', dataSend)
+
+                }, 2500)
+
+            }
+
+            //onmessage
+            wk.onmessage = function (e) {
+
+                //dataRecv
+                let dataRecv = e.data
+                console.log('out worker dataRecv:', dataRecv)
+
+            }
+
+        </script>
+
+    </head>
+
+    <body>
+    </body>
+
+</html>

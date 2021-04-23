@@ -1,14 +1,5 @@
 import _ from 'lodash'
-
-
-function strleft(c, n) {
-    return c.substr(0, n)
-}
-
-
-function strdelright(c, n) {
-    return strleft(c, c.length - n)
-}
+import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
 
 
 function getBlock(ss, m1, m2) {
@@ -59,7 +50,7 @@ function parseVueCode(h) {
     }
     else {
         data = 'function() {' + data
-        data = strdelright(data, 1)
+        data = w.strdelright(data, 1)
     }
     //console.log('data', data)
 
@@ -72,7 +63,7 @@ function parseVueCode(h) {
     }
     else {
         mounted = 'function() {' + mounted
-        mounted = strdelright(mounted, 1)
+        mounted = w.strdelright(mounted, 1)
     }
     //console.log('mounted', mounted)
 
@@ -84,7 +75,7 @@ function parseVueCode(h) {
         computed = '{}'
     }
     else {
-        computed = strdelright(computed, 1)
+        computed = w.strdelright(computed, 1)
     }
     //console.log('computed', computed)
 
@@ -96,7 +87,7 @@ function parseVueCode(h) {
         methods = '{}'
     }
     else {
-        methods = strdelright(methods, 1)
+        methods = w.actionstrdelright(methods, 1)
     }
     //console.log('methods', methods)
 
@@ -108,7 +99,7 @@ function parseVueCode(h) {
         action = '[]'
     }
     else {
-        action = strdelright(action, 1)
+        action = w.strdelright(action, 1)
     }
     //console.log('action', action)
 

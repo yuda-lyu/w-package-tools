@@ -3,7 +3,7 @@ import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
 import rollupFile from './rollupFile.mjs'
 
 
-async function rollupCode(codeSrc, opt = {}) {
+async function rollupWebWorker(opt = {}) {
 
     //name
     let name = opt.name
@@ -29,7 +29,7 @@ async function rollupCode(codeSrc, opt = {}) {
 
     //opt
     opt.fdSrc = ''
-    opt.fdTar = '' //不給輸出資料夾則為回傳程式碼
+    opt.fdTar = '' //回傳程式碼
     opt.fn = fpIn
     opt.format = formatOut
     opt.bLog = false
@@ -54,4 +54,4 @@ async function rollupCode(codeSrc, opt = {}) {
 }
 
 
-export default rollupCode
+export default rollupWebWorker

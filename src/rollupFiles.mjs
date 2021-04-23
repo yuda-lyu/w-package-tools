@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import pmSeries from './pmSeries.mjs'
-import cleanFolder from './cleanFolder.mjs'
+import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
 import rollupFile from './rollupFile.mjs'
 
 
@@ -24,8 +23,8 @@ import rollupFile from './rollupFile.mjs'
  */
 async function rollupFiles(opt = {}) {
 
-    //cleanFolder
-    cleanFolder(opt.fdTar)
+    //fsCleanFolder
+    w.fsCleanFolder(opt.fdTar)
 
     //fns
     let fns = opt.fns
@@ -34,12 +33,11 @@ async function rollupFiles(opt = {}) {
     }
 
     //pmSeries
-    return pmSeries(fns, (fn) => {
+    return w.pmSeries(fns, (fn) => {
         let o = { ...opt }
         o.fn = fn
         return rollupFile(o)
     })
-        .then()
         .catch((err) => {
             console.log(err)
         })

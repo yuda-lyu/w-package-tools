@@ -1,6 +1,6 @@
 import fs from 'fs'
 import _ from 'lodash'
-import createFolder from './createFolder.mjs'
+import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
 import rollupFiles from './rollupFiles.mjs'
 
 
@@ -80,8 +80,8 @@ async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app
 </html>
 `
 
-    //createFolder
-    createFolder(fdTar)
+    //fsCreateFolder
+    w.fsCreateFolder(fdTar)
 
     //rollupFiles
     await rollupFiles({

@@ -1,7 +1,7 @@
 import fs from 'fs'
-import prettyhtml from '@starptech/prettyhtml'
 import _ from 'lodash'
-import w from 'wsemi'
+import prettyhtml from '@starptech/prettyhtml'
+import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
 
 
 /**
@@ -112,12 +112,22 @@ async function extractHtml(opt = {}) {
 
     //write html
     if (w.isestr(fpHtml)) {
-        fs.writeFileSync(fpHtml, h, 'utf8')
+        try {
+            fs.writeFileSync(fpHtml, h, 'utf8')
+        }
+        catch (err) {
+            console.log(err)
+        }
     }
 
     //write action
     if (w.isestr(fpAction)) {
-        fs.writeFileSync(fpAction, action, 'utf8')
+        try {
+            fs.writeFileSync(fpAction, action, 'utf8')
+        }
+        catch (err) {
+            console.log(err)
+        }
     }
 
 }
