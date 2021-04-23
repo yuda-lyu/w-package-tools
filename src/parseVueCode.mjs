@@ -87,7 +87,7 @@ function parseVueCode(h) {
         methods = '{}'
     }
     else {
-        methods = w.actionstrdelright(methods, 1)
+        methods = w.strdelright(methods, 1)
     }
     //console.log('methods', methods)
 
