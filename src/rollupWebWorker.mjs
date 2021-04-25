@@ -1,6 +1,7 @@
 import fs from 'fs'
 import _ from 'lodash'
 import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
+import rollupFile from './rollupFile.mjs'
 import rollupCode from './rollupCode.mjs'
 
 
@@ -443,15 +444,16 @@ async function rollupWebWorker(opt = {}) {
         return Promise.reject('invalid opt.fpTar')
     }
 
-    //code
-    let code = fs.readFileSync(fpSrc)
-
-    //rollupCode
-    let codeTransOri = await rollupCode(code, {
+    //rollupFile, 要用原檔案才能正確打包與引入模組與套件
+    let codeTransOri = await rollupFile({
         // name, //打包成es不需要name
         //預處理, 把code內的關聯都打包出來, 故只用es與new
-        formatOut: 'es',
+        fn: w.getFileName(fpSrc),
+        fdSrc: w.getDirName(fpSrc),
+        format: 'es',
         targets: 'new',
+        bLog: false,
+        bBanner: false,
         bSourcemap: false,
         bMinify: false,
     })

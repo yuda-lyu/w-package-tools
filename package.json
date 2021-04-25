@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.50",
+  "version": "1.0.51",
   "description": "A tool for build packages.",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
@@ -54,7 +54,7 @@
     "vue-template-compiler": "^2.6.12"
   },
   "devDependencies": {
-    "w-distributions": "^1.0.2",
+    "w-distributions": "1.0.2",
     "@vue/cli-service": "^4.5.12"
   },
   "scripts": {
