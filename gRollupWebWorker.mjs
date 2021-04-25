@@ -38,6 +38,7 @@ async function core() {
         funNames: funNames2_Obj,
         fpSrc: path.resolve(fdSrc, 'gWebWorker2_Obj.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWebWorker2_Obj.ww.umd.js'), //檔案輸出路徑
+        formatOut: 'umd',
     })
         .catch((err) => {
             console.log(err)
@@ -50,6 +51,7 @@ async function core() {
         evNames: evNames3_Fun,
         fpSrc: path.resolve(fdSrc, 'gWebWorker3_Fun.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWebWorker3_Fun.ww.umd.js'), //檔案輸出路徑
+        formatOut: 'umd',
     })
         .catch((err) => {
             console.log(err)
@@ -62,6 +64,7 @@ async function core() {
         evNames: evNames4_FunAsm,
         fpSrc: path.resolve(fdSrc, 'gWebWorker4_FunAsm.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWebWorker4_FunAsm.ww.umd.js'), //檔案輸出路徑
+        formatOut: 'umd',
     })
         .catch((err) => {
             console.log(err)

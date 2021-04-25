@@ -444,13 +444,19 @@ async function rollupWebWorker(opt = {}) {
         return Promise.reject('invalid opt.fpTar')
     }
 
-    //rollupFile, 要用原檔案才能正確打包與引入模組與套件
+    //formatOut, umd為瀏覽器端直接使用, es為供vue-cli或webpack使用
+    let formatOut = _.get(opt, 'formatOut', null)
+    if (!formatOut) {
+        formatOut = 'es'
+    }
+
+    //rollupFile, 預處理, 把code內的關聯都打包出來, 故需用es, 程式碼之後還會編譯故targets使用new, 此處要用rollupFile對原檔案打包, 才能正確引入相關模組與套件
     let codeTransOri = await rollupFile({
         // name, //打包成es不需要name
-        //預處理, 把code內的關聯都打包出來, 故只用es與new
-        fn: w.getFileName(fpSrc),
+        fn: w.getFileName(fpSrc), //rollupFile會偵測副檔名作為formatIn
         fdSrc: w.getDirName(fpSrc),
-        format: 'es',
+        // fdTar: '', //沒給代表回傳程式碼
+        format: 'es', //輸出formatOut
         targets: 'new',
         bLog: false,
         bBanner: false,
@@ -471,7 +477,7 @@ async function rollupWebWorker(opt = {}) {
     //rollupCode
     let codeRes = await rollupCode(codeMerge, {
         name,
-        formatOut: 'umd', //打包成umd給瀏覽器端使用
+        formatOut,
         targets: 'new', //因程式碼用字串+blob方式作為web worker初始化之方式, 無法支援ie11(會需要改安全性)只好放棄, 改用最新語法new打包
         bSourcemap: false,
         bMinify: true,

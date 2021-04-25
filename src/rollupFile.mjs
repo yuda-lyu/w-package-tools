@@ -80,8 +80,8 @@ async function rollupFile(opt = {}) {
         console.log('compiling: ' + w.getFileName(fpIn))
     }
 
-    //nameExt
-    let nameExt = _.toLower(w.strdelleft(path.extname(fpIn), 1))
+    //extIn
+    let extIn = _.toLower(w.strdelleft(path.extname(fpIn), 1))
 
     //nameTrue
     let nameTrue = w.getFileTrueName(fpIn)
@@ -101,10 +101,10 @@ async function rollupFile(opt = {}) {
         nameDist = hookNameDist(nameDist, nameTrue, fn)
     }
 
-    //format
-    let format = opt.format
-    if (!format) {
-        format = 'umd'
+    //formatOut
+    let formatOut = opt.format
+    if (!formatOut) {
+        formatOut = 'umd'
     }
 
     //targets
@@ -116,10 +116,10 @@ async function rollupFile(opt = {}) {
         targets = 'defaults' //> 0.5%, last 2 versions, Firefox ESR, not dead
     }
 
-    //ext
-    let ext = opt.ext
-    if (ext !== 'js' && ext !== 'mjs') {
-        ext = 'js'
+    //extOut
+    let extOut = opt.ext
+    if (extOut !== 'js' && extOut !== 'mjs') {
+        extOut = 'js'
     }
 
     //license
@@ -164,7 +164,7 @@ async function rollupFile(opt = {}) {
         'process.env.NODE_ENV': JSON.stringify(env)
     }))
 
-    if (nameExt === 'vue') {
+    if (extIn === 'vue') {
         plugins.push(vue())
     }
 
@@ -202,7 +202,7 @@ async function rollupFile(opt = {}) {
         ]
     }
     let babelPlugin
-    if (nameExt === 'vue') {
+    if (extIn === 'vue') {
         babelOpt.runtimeHelpers = true //給rollup-plugin-babel用, 為舊版babel設定
         babelPlugin = babelForVue2(babelOpt)
     }
@@ -228,8 +228,8 @@ async function rollupFile(opt = {}) {
     //fpOut, 編譯後檔案
     let returnCode = false
     let fpOut = ''
-    if (w.isestr(fdTar)) {
-        fpOut = path.resolve(fdTar, `${nameDist}.${format}.${ext}`)
+    if (w.fsIsFolder(fdTar)) {
+        fpOut = path.resolve(fdTar, `${nameDist}.${formatOut}.${extOut}`)
     }
     else {
         returnCode = true
@@ -249,7 +249,7 @@ async function rollupFile(opt = {}) {
     let outputOptions = {
         banner,
         globals,
-        format,
+        format: formatOut,
         name: nameDist,
         file: fpOut,
         sourcemap: bSourcemap,

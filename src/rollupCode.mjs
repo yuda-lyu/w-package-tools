@@ -11,11 +11,13 @@ async function rollupCode(codeSrc, opt = {}) {
         name = `temp-${w.genID()}`
     }
 
-    //formatIn,formatOut
+    //formatIn
     let formatIn = opt.formatIn
     if (!formatIn) {
         formatIn = 'js'
     }
+
+    //formatOut
     let formatOut = opt.formatOut
     if (!formatOut) {
         formatOut = 'umd'
