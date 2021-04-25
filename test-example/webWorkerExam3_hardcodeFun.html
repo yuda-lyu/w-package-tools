@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>web-worker hardcode for function</title>
+
+        <script src="https://cdn.jsdelivr.net/npm/eventemitter3@4.0.7/index.min.js"></script>
+
+        <script>
+
+function evem() {
+    return new EventEmitter()
+}
+
+function genPm() {
+    let resolve
+    let reject
+    let p = new Promise(function() {
+        resolve = arguments[0]
+        reject = arguments[1]
+    })
+    p.resolve = resolve
+    p.reject = reject
+    return p
+}
+
+function genID(len = 10) {
+    let uuid = []
+    let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
+    let radix = chars.length
+    //uuid
+    for (let i = 0; i < len; i++) uuid[i] = chars[0 | Math.random() * radix]
+    let r = uuid.join('')
+    return r
+}
+        </script>
+
+        <script>
+
+let code=`
+importScripts('https://cdn.jsdelivr.net/npm/eventemitter3@4.0.7/index.min.js')
+
+function trim(c) {
+    return c.trim()
+}
+
+function evem() {
+    return new EventEmitter()
+}
+
+function gWebWorker3_Fun(inip1, inip2) {
+    let ev = evem()
+
+    async function aaa(p1) {
+        return 'aaaRes p [' + p1 + '] p' + trim(' [trim] ')
+    }
+
+    async function bbb(p1, p2) {
+        if (p1 <= p2) {
+            return 'bbbRes p1<=p2'
+        }
+        return Promise.reject('bbbRes p1>p2')
+    }
+
+    async function ccc(n) {
+        let r = 1
+        for (let i = 0; i < n; i++) {
+            r += 1
+            r -= 1
+            r *= 5.5
+            r /= 5.5
+        }
+        return 'no.=' + n + ', r=' + r
+    }
+
+    async function ddd(p1, p2) {
+        ev.emit('ev-ddd', 'emit data p1='+p1+', p2='+p2)
+        return 'dddRes emit-event'
+    }
+
+    setTimeout(() => {
+        ddd(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
+    }, 1000)
+
+    ev.aaa=aaa
+    ev.bbb=bbb
+    ev.ccc=ccc
+    ev.ddd=ddd
+    return ev
+}
+
+let instance=null
+function init(input){
+
+    //init
+    let r=gWebWorker3_Fun(...input)
+
+    //on
+    r.on('ev-ddd',(msg)=>{
+
+        //sendMessage
+        let res={
+            mode:'emit',
+            evName:'ev-ddd',
+            msg,
+        }
+        sendMessage(res)
+
+    })
+
+    //save
+    instance=r
+
+}
+
+function sendMessage(data) {
+    self.postMessage(data)
+}
+
+async function run(data) {
+    // console.log('inner worker run',data)
+
+    //mode
+    let mode=data.mode
+
+    //init
+    if(mode==='init'){
+        
+        //input
+        let input=data.input
+
+        //instance
+        init(...input)
+
+    }
+
+    //call
+    if(mode==='call'){
+        
+        //fun
+        let fun=instance[data.fun]
+
+        //input
+        let input=data.input
+
+        //exec
+        let state=''
+        let msg=null
+        await fun(...input)
+            .then((suc)=>{
+                state='success'
+                msg=suc
+            })
+            .catch((err)=>{
+                state='error'
+                msg=err
+            })
+
+        //sendMessage
+        let res={
+            mode:'return',
+            id:data.id,
+            fun:data.fun,
+            state,
+            msg,
+        }
+        sendMessage(res)
+
+    }
+
+}
+
+self.onmessage = function (e) {
+    // console.log('inner worker recv:', e.data)
+
+    //dataRecv
+    let dataRecv = e.data
+
+    //run
+    run(dataRecv)
+
+}
+
+`
+
+function _m(inip1,inip2){
+    let ev=evem()
+
+    async function aaa(p1) {
+        return 'aaaRes p ['+p1+'] p'
+    }
+
+    async function bbb(p1, p2) {
+        if (p1 <= p2) {
+            return 'bbbRes p1<=p2'
+        }
+        return Promise.reject('bbbRes p1>p2')
+    }
+
+    async function ccc(n) {
+        let r = 1
+        for (let i = 0; i < n; i++) {
+            r += 1
+            r -= 1
+            r *= 5.5
+            r /= 5.5
+        }
+        return 'no.=' + n + ', r=' + r
+    }
+
+    async function ddd(p1, p2) {
+        ev.emit('ev-ddd', 'emit data p1='+p1+', p2='+p2)
+        return 'dddRes emit-event'
+    }
+
+    setTimeout(() => {
+        ddd(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
+    }, 1000)
+
+    ev.aaa=aaa
+    ev.bbb=bbb
+    ev.ccc=ccc
+    ev.ddd=ddd
+    return ev
+}
+
+let m=_m(1.234,'xyz')
+m.on('ev-ddd',(msg)=>{
+    console.log('m.ev-ddd',msg)
+})
+m.on('error',(msg)=>{
+    console.log('m.error',msg)
+})
+
+m.aaa(1)
+    .then((res)=>{
+        console.log('m.aaa(1) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.aaa(1) catch',err)
+    })
+
+m.bbb(1,2)
+    .then((res)=>{
+        console.log('m.bbb(1,2) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.bbb(1,2) catch',err)
+    })
+
+m.bbb(5,3)
+    .then((res)=>{
+        console.log('m.bbb(5,3) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.bbb(5,3) catch',err)
+    })
+
+m.ccc(300000000) //運算量大會堵塞主執行緒
+    .then((res)=>{
+        console.log('m.ccc(n) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.ccc(n) catch',err)
+    })
+
+m.ddd(4.56,'mnop')
+    .then((res)=>{
+        console.log('m.ddd(4.56,\'mnop\') then',res)
+    })
+    .catch((err)=>{
+        console.log('m.ddd(4.56,\'mnop\') catch',err)
+    })
+
+function wrapWebWorker(){
+
+    function genWebWorker(code) {
+
+        //URL
+        let URL = window.URL || window.webkitURL
+
+        //blob
+        let blob
+        try {
+            //blob for Chrome 8+, Firefox 6+, Safari 6.0+, Opera 15+
+            blob = new Blob([code])
+            return new Worker(URL.createObjectURL(blob))
+        }
+        catch (err) {
+            console.log(err)
+        }
+
+    }
+
+    //genWebWorker
+    let wk=genWebWorker(code)
+
+    //check, IE11安全性問題
+    if (wk === null) {
+        console.log('invalid webworker')
+    }
+
+    // function terminate() {
+    //     wk.terminate()
+    //     wk = undefined
+    // }
+
+    //evem
+    let ev=evem()
+
+    function init(){
+
+        //dataSend
+        let dataSend={
+            mode:'init',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+    }
+
+    function aaa(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            mode:'call',
+            id,
+            fun: 'aaa',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+    }
+
+    function bbb(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            mode:'call',
+            id,
+            fun: 'bbb',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+    }
+
+    function ccc(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            mode:'call',
+            id,
+            fun: 'ccc',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+    }
+
+    function ddd(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            mode:'call',
+            id,
+            fun: 'ddd',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+    }
+
+    //onmessage
+    wk.onmessage = function (e) {
+        // console.log('outer worker recv:', e.data)
+
+        //dataRecv
+        let dataRecv = e.data
+
+        //mode
+        let mode=dataRecv.mode
+
+        //emit
+        if(mode==='emit'){
+
+            //emit
+            ev.emit(dataRecv.evName, dataRecv.msg)
+
+        }
+
+        //return
+        if(mode==='return'){
+
+            //emit
+            ev.emit(dataRecv.id, dataRecv)
+
+        }
+
+    }
+
+    //init
+    init([...arguments])
+
+    ev.aaa=aaa
+    ev.bbb=bbb
+    ev.ccc=ccc
+    ev.ddd=ddd
+    return ev
+}
+let w=wrapWebWorker(1.234,'xyz')
+w.on('ev-ddd',(msg)=>{
+    console.log('w.ev-ddd',msg)
+})
+w.on('error',(msg)=>{
+    console.log('w.error',msg)
+})
+
+w.aaa(1)
+    .then((res)=>{
+        console.log('w.aaa(1) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.aaa(1) catch',err)
+    })
+
+w.bbb(1,2)
+    .then((res)=>{
+        console.log('w.bbb(1,2) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.bbb(1,2) catch',err)
+    })
+
+w.bbb(5,3)
+    .then((res)=>{
+        console.log('w.bbb(5,3) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.bbb(5,3) catch',err)
+    })
+
+w.ccc(300000000) //運算量大但會於web worker內執行, 不會堵塞主執行緒
+    .then((res)=>{
+        console.log('w.ccc(n) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.ccc(n) catch',err)
+    })
+
+w.ddd(4.56,'mnop')
+    .then((res)=>{
+        console.log('w.ddd(4.56,\'mnop\') then',res)
+    })
+    .catch((err)=>{
+        console.log('w.ddd(4.56,\'mnop\') catch',err)
+    })
+
+        </script>
+
+    </head>
+
+    <body>
+        <div></div>
+    </body>
+
+</html>

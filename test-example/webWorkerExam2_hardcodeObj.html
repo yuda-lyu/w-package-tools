@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>web-worker hardcode for object</title>
+
+        <script src="https://cdn.jsdelivr.net/npm/eventemitter3@4.0.7/index.min.js"></script>
+
+        <script>
+
+function evem() {
+    return new EventEmitter()
+}
+
+function genPm() {
+    let resolve
+    let reject
+    let p = new Promise(function() {
+        resolve = arguments[0]
+        reject = arguments[1]
+    })
+    p.resolve = resolve
+    p.reject = reject
+    return p
+}
+
+function genID(len = 10) {
+    let uuid = []
+    let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
+    let radix = chars.length
+    //uuid
+    for (let i = 0; i < len; i++) uuid[i] = chars[0 | Math.random() * radix]
+    let r = uuid.join('')
+    return r
+}
+        </script>
+
+        <script>
+
+let code=`
+async function aaa(p1) {
+    return 'aaaRes p ['+p1+'] p'
+}
+
+async function bbb(p1, p2) {
+    if (p1 <= p2) {
+        return 'bbbRes p1<=p2'
+    }
+    return Promise.reject('bbbRes p1>p2')
+}
+
+async function ccc(n) {
+    let r = 1
+    for (let i = 0; i < n; i++) {
+        r += 1
+        r -= 1
+        r *= 5.5
+        r /= 5.5
+    }
+    return 'no.=' + n + ', r=' + r
+}
+
+let funcs={
+    aaa,
+    bbb,
+    ccc,
+}
+
+function sendMessage(data) {
+    self.postMessage(data)
+}
+
+async function run(data) {
+    // console.log('inner worker run',data)
+
+    //fun
+    let fun=funcs[data.fun]
+
+    //input
+    let input=data.input
+
+    //exec
+    let state=''
+    let msg=null
+    await fun(...input)
+        .then((suc)=>{
+            state='success'
+            msg=suc
+        })
+        .catch((err)=>{
+            state='error'
+            msg=err
+        })
+
+    //sendMessage
+    let res={
+        id:data.id,
+        fun:data.fun,
+        state,
+        msg,
+    }
+    sendMessage(res)
+
+}
+
+self.onmessage = function (e) {
+    // console.log('inner worker recv:', e.data)
+
+    //dataRecv
+    let dataRecv = e.data
+
+    //run
+    run(dataRecv)
+
+}
+
+`
+
+async function _aaa(p1) {
+    return 'aaaRes p ['+p1+'] p'
+}
+
+async function _bbb(p1, p2) {
+    if (p1 <= p2) {
+        return 'bbbRes p1<=p2'
+    }
+    return Promise.reject('bbbRes p1>p2')
+}
+
+async function _ccc(n) {
+    let r = 1
+    for (let i = 0; i < n; i++) {
+        r += 1
+        r -= 1
+        r *= 5.5
+        r /= 5.5
+    }
+    return 'no.=' + n + ', r=' + r
+}
+
+let m={
+    aaa:_aaa,
+    bbb:_bbb,
+    ccc:_ccc,
+}
+
+m.aaa(1)
+    .then((res)=>{
+        console.log('m.aaa(1) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.aaa(1) catch',err)
+    })
+
+m.bbb(1,2)
+    .then((res)=>{
+        console.log('m.bbb(1,2) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.bbb(1,2) catch',err)
+    })
+
+m.bbb(5,3)
+    .then((res)=>{
+        console.log('m.bbb(5,3) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.bbb(5,3) catch',err)
+    })
+
+m.ccc(300000000) //運算量大會堵塞主執行緒
+    .then((res)=>{
+        console.log('m.ccc(n) then',res)
+    })
+    .catch((err)=>{
+        console.log('m.ccc(n) catch',err)
+    })
+
+function wrapWebWorker(){
+
+    function genWebWorker(code) {
+
+        //URL
+        let URL = window.URL || window.webkitURL
+
+        //blob
+        let blob
+        try {
+            //blob for Chrome 8+, Firefox 6+, Safari 6.0+, Opera 15+
+            blob = new Blob([code])
+            return new Worker(URL.createObjectURL(blob))
+        }
+        catch (err) {
+            console.log(err)
+        }
+
+    }
+
+    //genWebWorker
+    let wk=genWebWorker(code)
+
+    //check, IE11安全性問題
+    if (wk === null) {
+        console.log('invalid webworker')
+    }
+
+    // function terminate() {
+    //     wk.terminate()
+    //     wk = undefined
+    // }
+
+    //evem
+    let ev=evem()
+
+    function aaa(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            id,
+            fun: 'aaa',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+    }
+
+    function bbb(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            id,
+            fun: 'bbb',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+    }
+
+    function ccc(){
+
+        //pm
+        let pm=genPm()
+
+        //id
+        let id=genID()
+
+        //dataSend
+        let dataSend={
+            id,
+            fun: 'ccc',
+            input: [...arguments], //若直接用arguments會無法編譯
+        }
+
+        //postMessage
+        wk.postMessage(dataSend)
+
+        //once
+        ev.once(id, (res) => {
+            if (res.state === 'success') {
+                pm.resolve(res.msg)
+            }
+            else {
+                pm.reject(res.msg)
+            }
+        })
+
+        return pm
+        }
+
+    //onmessage
+    wk.onmessage = function (e) {
+        // console.log('outer worker recv:', e.data)
+
+        //dataRecv
+        let dataRecv = e.data
+
+        //emit
+        ev.emit(dataRecv.id, dataRecv)
+
+    }
+
+    return {
+        aaa,
+        bbb,
+        ccc,
+    }
+}
+let w=wrapWebWorker()
+
+w.aaa(1)
+    .then((res)=>{
+        console.log('w.aaa(1) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.aaa(1) catch',err)
+    })
+
+w.bbb(1,2)
+    .then((res)=>{
+        console.log('w.bbb(1,2) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.bbb(1,2) catch',err)
+    })
+
+w.bbb(5,3)
+    .then((res)=>{
+        console.log('w.bbb(5,3) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.bbb(5,3) catch',err)
+    })
+
+w.ccc(300000000) //運算量大但會於web worker內執行, 不會堵塞主執行緒
+    .then((res)=>{
+        console.log('w.ccc(n) then',res)
+    })
+    .catch((err)=>{
+        console.log('w.ccc(n) catch',err)
+    })
+
+        </script>
+
+    </head>
+
+    <body>
+        See console.log
+    </body>
+
+</html>

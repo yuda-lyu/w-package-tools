@@ -1,0 +1,1 @@
+async function n(){let n={a:1,b:2.2,c:"xyz"},e=()=>({m:n.a,n:n.b});return new Promise(((o,a)=>{setTimeout((()=>{console.log("gAsync1 data=",n),console.log("gAsync1 f()=",e()),o({name:"gAsync1",data:n,fr:e()})}),300)}))}export default n;

@@ -4,7 +4,6 @@ import rollupFile from './src/rollupFile.mjs'
 
 let fdSrc = './test-code-in'
 let fdTar = './test-code-out'
-// let fdTarCp = './test-code-out-cp'
 
 w.fsCleanFolder(fdTar)
 
@@ -85,7 +84,20 @@ async function core() {
         })
 
     await rollupFile({
-        fn: 'gWebWorker1.mjs',
+        fn: 'gWebWorker1_EnvSelf.mjs',
+        fdSrc,
+        fdTar,
+        format: 'es',
+        targets: 'new',
+        bSourcemap: false,
+        bMinify: false,
+    })
+        .catch((err) => {
+            console.log(err)
+        })
+
+    await rollupFile({
+        fn: 'gWebWorker2_Obj.mjs',
         fdSrc,
         fdTar,
         format: 'es',

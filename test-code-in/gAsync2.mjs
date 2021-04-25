@@ -12,10 +12,10 @@ async function gAsync2() {
     }
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            console.log('gAsync1 data=', data)
-            console.log('gAsync1 f()=', f())
+            console.log('gAsync2 data=', data)
+            console.log('gAsync2 f()=', f())
             resolve({
-                name: 'gAsync1',
+                name: 'gAsync2',
                 data,
                 fr: f(),
             })

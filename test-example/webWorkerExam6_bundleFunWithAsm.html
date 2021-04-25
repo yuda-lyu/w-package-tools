@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>web-worker bundle function with WebAssembly</title>
+
+        <script src="../test-code-out-ww/gWebWorker4_FunAsm.ww.umd.js"></script>
+
+        <script>
+            
+            let w=window.gWebWorker4_FunAsm(1.234,'xyz')
+            // console.log(w)
+
+            w.on('ev-ddd',(msg)=>{
+                console.log('w.ev-ddd',msg)
+            })
+            w.on('error',(msg)=>{
+                console.log('w.error',msg)
+            })
+
+            w.aaa(1)
+                .then((res)=>{
+                    console.log('w.aaa(1) then',res)
+                })
+                .catch((err)=>{
+                    console.log('w.aaa(1) catch',err)
+                })
+
+            w.bbb(1,2)
+                .then((res)=>{
+                    console.log('w.bbb(1,2) then',res)
+                })
+                .catch((err)=>{
+                    console.log('w.bbb(1,2) catch',err)
+                })
+
+            w.bbb(5,3)
+                .then((res)=>{
+                    console.log('w.bbb(5,3) then',res)
+                })
+                .catch((err)=>{
+                    console.log('w.bbb(5,3) catch',err)
+                })
+
+            //執行超大迴圈, 確定可執行於web worker而不佔用主執行緒
+            w.ccc(300000000)
+                .then((res)=>{
+                    console.log('w.ccc(n) then',res)
+                })
+                .catch((err)=>{
+                    console.log('w.ccc(n) catch',err)
+                })
+
+            w.ddd(4.56,'mnop')
+                .then((res)=>{
+                    console.log('w.ddd(4.56,\'mnop\') then',res)
+                })
+                .catch((err)=>{
+                    console.log('w.ddd(4.56,\'mnop\') catch',err)
+                })
+
+            //w-distributions核心有使用cephes, 於前端會自解WebAssembly二進位程式碼執行, 確定可於web worker內執行
+            w.eee(34,0.95) //1.6909242551868549
+                .then((res)=>{
+                    console.log('w.eee(34,0.95) then',res)
+                })
+                .catch((err)=>{
+                    console.log('w.eee(34,0.95) catch',err)
+                })
+
+        </script>
+
+    </head>
+
+    <body>
+        See console.log
+    </body>
+
+</html>
