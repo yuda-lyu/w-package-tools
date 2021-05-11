@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWebWorker">rollupWebWorker</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
 </nav>
 
 <div id="main">
@@ -1590,6 +1590,659 @@
 
     
 
+    <h4 class="name" id="rollupCode"><span class="type-signature">(async) </span>rollupCode<span class="signature">(codeSrc, opt)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line25">line 25</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>使用rollup編譯程式碼</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>codeSrc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>輸入程式碼字串</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>輸入設定物件</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入模組名稱字串</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>formatIn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'js'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入待編譯程式碼格式字串，可選'js'、'mjs'，預設'js'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>formatOut</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'umd'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>targets</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'old'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'old'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bBanner</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bNodePolyfill</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bMinify</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepFnames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mangleReserved</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內外模組的關聯性物件，預設{}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>external</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bLog</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否顯示預設log布林值，預設true</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="rollupFile"><span class="type-signature">(async) </span>rollupFile<span class="signature">(opt)</span><span class="type-signature"></span></h4>
 
     
@@ -1602,7 +2255,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line42">line 42</a>
+        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line44">line 44</a>
     </li></ul></dd>
     
 
@@ -1776,6 +2429,8 @@
             
                 <td class="attributes">
                 
+                    &lt;optional><br>
+                
 
                 
 
@@ -1786,10 +2441,12 @@
             
                 <td class="default">
                 
+                    <code>'./'</code>
+                
                 </td>
             
 
-            <td class="description last"><p>輸入原始碼檔案所在資料夾字串</p></td>
+            <td class="description last"><p>輸入原始碼檔案所在資料夾字串，預設'./'</p></td>
         </tr>
 
     
@@ -1811,6 +2468,8 @@
             
                 <td class="attributes">
                 
+                    &lt;optional><br>
+                
 
                 
 
@@ -1821,10 +2480,12 @@
             
                 <td class="default">
                 
+                    <code>''</code>
+                
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案至儲存資料夾字串</p></td>
+            <td class="description last"><p>輸入編譯檔案至儲存資料夾字串，預設''</p></td>
         </tr>
 
     
@@ -1863,7 +2524,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設為''</p></td>
+            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -1902,7 +2563,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設為null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -1941,7 +2602,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯格式字串，可選'umd'、'iife'，預設為'umd'</p></td>
+            <td class="description last"><p>輸入編譯格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
         </tr>
 
     
@@ -1975,12 +2636,12 @@
             
                 <td class="default">
                 
-                    <code>'ie11'</code>
+                    <code>'old'</code>
                 
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'ie11'、'last'，預設為'ie11'</p></td>
+            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'old'</p></td>
         </tr>
 
     
@@ -2019,7 +2680,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設為'js'</p></td>
+            <td class="description last"><p>輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設'js'</p></td>
         </tr>
 
     
@@ -2058,7 +2719,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否提供sourcemap布林值，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否提供sourcemap布林值，預設true</p></td>
         </tr>
 
     
@@ -2097,7 +2758,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設true</p></td>
         </tr>
 
     
@@ -2136,7 +2797,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
         </tr>
 
     
@@ -2175,7 +2836,163 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepFnames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mangleReserved</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內外模組的關聯性物件，預設{}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>external</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
         </tr>
 
     
@@ -2214,77 +3031,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入是否顯示預設log布林值，預設為true</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>globals</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入指定內外模組的關聯性物件</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>external</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列</p></td>
+            <td class="description last"><p>輸入是否顯示預設log布林值，預設true</p></td>
         </tr>
 
     
@@ -2333,7 +3080,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFiles.mjs.html">rollupFiles.mjs</a>, <a href="rollupFiles.mjs.html#line24">line 24</a>
+        <a href="rollupFiles.mjs.html">rollupFiles.mjs</a>, <a href="rollupFiles.mjs.html#line28">line 28</a>
     </li></ul></dd>
     
 
@@ -2463,6 +3210,9 @@
             <td class="type">
             
                 
+<span class="param-type">String</span>
+|
+
 <span class="param-type">Array</span>
 
 
@@ -2507,6 +3257,8 @@
             
                 <td class="attributes">
                 
+                    &lt;optional><br>
+                
 
                 
 
@@ -2517,10 +3269,12 @@
             
                 <td class="default">
                 
+                    <code>'./'</code>
+                
                 </td>
             
 
-            <td class="description last"><p>輸入原始碼檔案所在資料夾字串</p></td>
+            <td class="description last"><p>輸入原始碼檔案所在資料夾字串，預設'./'</p></td>
         </tr>
 
     
@@ -2542,6 +3296,8 @@
             
                 <td class="attributes">
                 
+                    &lt;optional><br>
+                
 
                 
 
@@ -2552,10 +3308,12 @@
             
                 <td class="default">
                 
+                    <code>''</code>
+                
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案至儲存資料夾字串</p></td>
+            <td class="description last"><p>輸入編譯檔案至儲存資料夾字串，預設''</p></td>
         </tr>
 
     
@@ -2594,7 +3352,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，預設為''，可選'kebabCase'</p></td>
+            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -2633,7 +3391,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設為null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -2672,7 +3430,85 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯格式字串，預設為'umd'，可選'umd','iife'</p></td>
+            <td class="description last"><p>輸入編譯格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>targets</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'old'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'old'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>ext</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'js'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設'js'</p></td>
         </tr>
 
     
@@ -2711,7 +3547,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否提供sourcemap布林值，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否提供sourcemap布林值，預設true</p></td>
         </tr>
 
     
@@ -2750,7 +3586,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設true</p></td>
         </tr>
 
     
@@ -2789,7 +3625,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
         </tr>
 
     
@@ -2828,7 +3664,163 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設為true</p></td>
+            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepFnames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mangleReserved</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內外模組的關聯性物件，預設{}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>external</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
         </tr>
 
     
@@ -2867,77 +3859,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入是否顯示預設log布林值，預設為true</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>globals</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入指定內外模組的關聯性物件</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>external</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列</p></td>
+            <td class="description last"><p>輸入是否顯示預設log布林值，預設true</p></td>
         </tr>
 
     
@@ -3370,7 +4292,7 @@
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">Array</span>
 
 
             
@@ -3436,6 +4358,702 @@
             
 
             <td class="description last"><p>輸入rollup不打包套件清單陣列，預設[]</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="rollupWebWorker"><span class="type-signature">(async) </span>rollupWebWorker<span class="signature">(opt)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="rollupWebWorker.mjs.html">rollupWebWorker.mjs</a>, <a href="rollupWebWorker.mjs.html#line469">line 469</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>使用rollup編譯檔案，並封裝至前端web worker內</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>opt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>輸入設定物件</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入模組名稱字串，將來會掛於winodw下</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'object'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入模組類型字串，可選'object'、'function'，預設'object'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>funNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入模組可被呼叫的函數名稱陣列</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>evNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入模組可監聽的函數名稱陣列，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fpSrc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入原始碼檔案位置字串</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fpTar</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯完程式碼檔案儲存位置字串</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>formatOut</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'es'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>targets</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'new'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'new'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>execObjectFunsByInstance</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入若模組類型為物件「type='object'」時，各函式使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bNodePolyfill</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bMinify</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepFnames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mangleReserved</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bLog</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否顯示預設log布林值，預設true</p></td>
         </tr>
 
     
@@ -3678,7 +5296,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Sun Apr 25 2021 19:10:51 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Tue May 11 2021 18:53:09 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
