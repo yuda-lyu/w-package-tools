@@ -1,5 +1,6 @@
 import trim from 'lodash/trim'
 
+
 async function aaa(p1) {
     return 'aaaRes p [' + p1 + '] p' + trim(' [trim] ')
 }

@@ -17,10 +17,15 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 > **Note:** w-package-tools is mainly dependent on `@rollup`, `@babel`, `core-js`, `eslint`, etc.
 
 ```alias
+
 npm i w-package-tools
 
 import rollupCode from 'w-package-tools/src/rollupCode.mjs'
-
 let opt={}
 console.log(rollupCode(opt))
+
+import rollupWebWorker from 'w-package-tools/src/rollupWebWorker.mjs'
+let opt={}
+console.log(rollupWebWorker(opt))
+
 ```

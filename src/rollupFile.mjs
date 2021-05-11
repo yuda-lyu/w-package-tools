@@ -24,20 +24,22 @@ let babelForJs = babel
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.fn 輸入原始碼檔案名稱字串，檔案需含副檔名，不含所在資料夾
- * @param {String} opt.fdSrc 輸入原始碼檔案所在資料夾字串
- * @param {String} opt.fdTar 輸入編譯檔案至儲存資料夾字串
- * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設為''
- * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設為null，會複寫nameDistType之處理結果
- * @param {String} [opt.format='umd'] 輸入編譯格式字串，可選'umd'、'iife'，預設為'umd'
- * @param {String} [opt.targets='ie11'] 輸入編譯等級字串，可選'ie11'、'last'，預設為'ie11'
- * @param {String} [opt.ext='js'] 輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設為'js'
- * @param {Boolean} [opt.bSourcemap=true] 輸入編譯檔案是否提供sourcemap布林值，預設為true
- * @param {Boolean} [opt.bBanner=true] 輸入編譯檔案是否帶有開頭banner布林值，預設為true
- * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設為true
- * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設為true
- * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設為true
- * @param {Object} opt.globals 輸入指定內外模組的關聯性物件
- * @param {Array} opt.external 輸入指定內部模組需引用外部模組陣列
+ * @param {String} [opt.fdSrc='./'] 輸入原始碼檔案所在資料夾字串，預設'./'
+ * @param {String} [opt.fdTar=''] 輸入編譯檔案至儲存資料夾字串，預設''
+ * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''
+ * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
+ * @param {String} [opt.format='umd'] 輸入編譯格式字串，可選'umd'、'iife'、'es'，預設'umd'
+ * @param {String} [opt.targets='old'] 輸入編譯等級字串，可選'new'、'old'，預設'old'
+ * @param {String} [opt.ext='js'] 輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設'js'
+ * @param {Boolean} [opt.bSourcemap=true] 輸入編譯檔案是否提供sourcemap布林值，預設true
+ * @param {Boolean} [opt.bBanner=true] 輸入編譯檔案是否帶有開頭banner布林值，預設true
+ * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
+ * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
+ * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
+ * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
+ * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
+ * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupFile(opt = {}) {
 
@@ -54,7 +56,7 @@ async function rollupFile(opt = {}) {
     //fdSrc
     let fdSrc = opt.fdSrc
     if (!w.fsIsFolder(fdSrc)) {
-        fdSrc = ''
+        fdSrc = './'
     }
 
     //fdTar
@@ -77,7 +79,7 @@ async function rollupFile(opt = {}) {
 
     //console
     if (bLog) {
-        console.log('compiling: ' + w.getFileName(fpIn))
+        console.log('transpiling: ' + w.getFileName(fpIn))
     }
 
     //extIn
@@ -140,19 +142,37 @@ async function rollupFile(opt = {}) {
     }
     let banner = cbanner
 
+    //bNodePolyfill, 提供使用node用api的編譯
+    let bNodePolyfill = opt.bNodePolyfill
+    bNodePolyfill = bNodePolyfill === true
+
     //minify
     let bMinify = opt.bMinify
     bMinify = bMinify !== false
 
+    //keepFnames
+    let keepFnames = opt.keepFnames
+    if (!w.isbol(keepFnames)) {
+        keepFnames = false
+    }
+
+    //mangleReserved
+    let mangleReserved = opt.mangleReserved
+    if (!w.isarr(mangleReserved)) {
+        mangleReserved = []
+    }
+
     //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
-    let globals = _.get(opt, 'globals', [])
+    let globals = _.get(opt, 'globals', null)
+    if (!w.isobj(globals)) {
+        globals = {}
+    }
 
     //external, 提供字串需解析成陣列, 指定哪些內部模組需引用外部模組
-    let external = _.get(opt, 'external', [])
-
-    //bNodePolyfill, 提供使用node用api的編譯
-    let bNodePolyfill = opt.bNodePolyfill
-    bNodePolyfill = bNodePolyfill === true
+    let external = _.get(opt, 'external', null)
+    if (!w.isarr(external)) {
+        external = []
+    }
 
     //plugins
     let plugins = []
@@ -222,7 +242,12 @@ async function rollupFile(opt = {}) {
         //         comments: false, //default
         //     },
         // }))
-        plugins.push(terser())
+        plugins.push(terser({
+            keep_fnames: keepFnames,
+            mangle: {
+                reserved: mangleReserved
+            }
+        }))
     }
 
     //fpOut, 編譯後檔案

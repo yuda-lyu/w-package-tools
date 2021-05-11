@@ -1,6 +1,8 @@
 import trim from 'lodash/trim'
 import EventEmitter from 'eventemitter3'
-import wd from 'w-distributions'
+// import wd from 'w-distributions'
+import wd from './w-distributions.umd.js'
+
 
 function evem() {
     return new EventEmitter()

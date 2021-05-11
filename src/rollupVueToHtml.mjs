@@ -14,7 +14,7 @@ import rollupFiles from './rollupFiles.mjs'
  * @param {String} [opt.title=''] 輸入標題字串，預設''
  * @param {String} [opt.head=''] 輸入head內額外html字串，預設''
  * @param {String} [opt.newVue=''] 輸入初始化(new Vue)內額外設定字串，預設''
- * @param {Object} [opt.globals={}] 輸入rollup不打包套件時內外部套件關聯性設定物件，預設{}
+ * @param {Array} [opt.globals={}] 輸入rollup不打包套件時內外部套件關聯性設定物件，預設{}
  * @param {Array} [opt.external=[]] 輸入rollup不打包套件清單陣列，預設[]
  */
 async function rollupVueToHtml(src = './src/App.vue', tar = './docs/examples/app.html', opt = {}) {

@@ -1,6 +1,7 @@
 import trim from 'lodash/trim'
 import EventEmitter from 'eventemitter3'
 
+
 function evem() {
     return new EventEmitter()
 }

@@ -5,27 +5,11 @@ import rollupWebWorker from './src/rollupWebWorker.mjs'
 import gWebWorker2_Obj from './test-code-in/gWebWorker2_Obj.mjs'
 import gWebWorker3_Fun from './test-code-in/gWebWorker3_Fun.mjs'
 import gWebWorker4_FunAsm from './test-code-in/gWebWorker4_FunAsm.mjs'
+import gWebWorker5_ObjStream from './test-code-in/gWebWorker5_ObjStream.mjs'
 
 
 let fdSrc = './test-code-in'
 let fdTar = './test-code-out-ww'
-
-let funNames2_Obj = _.keys(gWebWorker2_Obj)
-//console.log('funNames2_Obj', funNames2_Obj)
-
-let funNames3_Fun = _.keys(gWebWorker3_Fun()) //要初始化函數才能取得可提供外部呼叫之函數
-funNames3_Fun = _.filter(funNames3_Fun, (v) => {
-    return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
-})
-//console.log('funNames3_Fun', funNames3_Fun)
-let evNames3_Fun = ['ev-ddd'] //由內部emit外部的函數得手動提供
-
-let funNames4_FunAsm = _.keys(gWebWorker4_FunAsm()) //要初始化函數才能取得可提供外部呼叫之函數
-funNames4_FunAsm = _.filter(funNames4_FunAsm, (v) => {
-    return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
-})
-//console.log('funNames4_FunAsm', funNames4_FunAsm)
-let evNames4_FunAsm = ['ev-ddd'] //由內部emit外部的函數得手動提供
 
 w.fsCleanFolder(fdTar)
 
@@ -35,7 +19,7 @@ async function core() {
     await rollupWebWorker({
         name: 'gWebWorker2_Obj', //原模組名稱, 將來會掛於winodw下
         type: 'object', //原模組輸出為物件
-        funNames: funNames2_Obj,
+        funNames: _.keys(gWebWorker2_Obj),
         fpSrc: path.resolve(fdSrc, 'gWebWorker2_Obj.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWebWorker2_Obj.ww.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
@@ -47,8 +31,10 @@ async function core() {
     await rollupWebWorker({
         name: 'gWebWorker3_Fun', //原模組名稱, 將來會掛於winodw下
         type: 'function', //原模組輸出為函數, 可傳入參數初始化, 回傳需為繼承eventemitter3物件
-        funNames: funNames3_Fun,
-        evNames: evNames3_Fun,
+        funNames: _.filter(_.keys(gWebWorker3_Fun()), (v) => { //要初始化函數才能取得可提供外部呼叫之函數
+            return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
+        }),
+        evNames: ['ev-ddd'], //由內部emit外部的函數得手動提供,
         fpSrc: path.resolve(fdSrc, 'gWebWorker3_Fun.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWebWorker3_Fun.ww.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
@@ -60,11 +46,27 @@ async function core() {
     await rollupWebWorker({
         name: 'gWebWorker4_FunAsm', //原模組名稱, 將來會掛於winodw下
         type: 'function', //原模組輸出為函數, 可傳入參數初始化, 回傳需為繼承eventemitter3物件
-        funNames: funNames4_FunAsm,
-        evNames: evNames4_FunAsm,
+        funNames: _.filter(_.keys(gWebWorker4_FunAsm()), (v) => { //要初始化函數才能取得可提供外部呼叫之函數
+            return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
+        }),
+        evNames: ['ev-ddd'], //由內部emit外部的函數得手動提供,
         fpSrc: path.resolve(fdSrc, 'gWebWorker4_FunAsm.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWebWorker4_FunAsm.ww.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
+    })
+        .catch((err) => {
+            console.log(err)
+        })
+
+    await rollupWebWorker({
+        name: 'gWebWorker5_ObjStream', //原模組名稱, 將來會掛於winodw下
+        type: 'object', //原模組輸出為物件
+        funNames: _.keys(gWebWorker5_ObjStream),
+        fpSrc: path.resolve(fdSrc, 'gWebWorker5_ObjStream.mjs'), //原始檔案路徑
+        fpTar: path.resolve(fdTar, 'gWebWorker5_ObjStream.ww.umd.js'), //檔案輸出路徑
+        formatOut: 'umd',
+        // execObjectFunsByInstance: true, //模組為物件時會自動將各函數使用獨立實體執行
+        // bNodePolyfill: true, //WJson編譯成umd時已添加node polyfill
     })
         .catch((err) => {
             console.log(err)

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>web-worker bundle object with stream</title>
+
+        <script src="../test-code-in/w-json.umd.js"></script>
+
+        <script src="../test-code-out-ww/gWebWorker5_ObjStream.ww.umd.js"></script>
+
+        <script>
+            
+            let json=window['w-json']
+            console.log(json)
+
+            let w=window.gWebWorker5_ObjStream
+            console.log(w)
+
+            //編譯時, 模組為object類型會自動開啟execObjectFunsByInstance, 此時不會通過onError接收模組初始化(init)時的錯誤訊息
+            // w.on('error',(msg)=>{
+            //     console.log('w.error',msg)
+            // })
+
+            // 測試結果：
+
+            // 使用execObjectFunsByInstance=false時：
+            // 執行stringify(arr): 2.5s(arr)
+            // 執行stringify(obj): 0.8s(obj)
+            // 執行stringify(arr)+stringify(obj): 3.5s(arr), 1.7s(obj) //各函式共用同一個實體, 因共同依賴底層佇列系統導致競爭降速
+
+            // 使用execObjectFunsByInstance=true時：
+            // 執行stringify(arr): 2.5s(arr)
+            // 執行stringify(obj): 0.8s(obj)
+            // 執行stringify(arr)+stringify(obj): 2.6s(arr), 0.9s(obj) //各函式獨立實體執行, 代表各自運行於獨立web worker當中, 可避免競爭
+
+            let n = 10000
+
+            let carr = ''
+            let arr = []
+            for(let i=1;i<=n;i++){
+                arr.push({
+                    key: 'k'+i,
+                    value: i,
+                })
+            }
+            let cobj = ''
+            let obj = {}
+            for(let i=1;i<=n;i++){
+                obj['k'+i]=i
+            }
+
+            try{
+                let res = JSON.stringify(arr)
+                console.log('JSON.stringify(arr)',res.length,res.substr(0, 200)+'...')
+            }
+            catch(err){
+                console.log('JSON.stringify(arr) catch',err)
+            }
+
+            try{
+                let res = JSON.stringify(obj)
+                console.log('JSON.stringify(obj)',res.length,res.substr(0, 200)+'...')
+            }
+            catch(err){
+                console.log('JSON.stringify(obj) catch',err)
+            }
+
+            if(true){
+
+                json.stringify(arr)
+                    .then((res)=>{
+                        console.log('json.stringify(arr) then',res.length,res.substr(0, 200)+'...')
+                        carr = res
+                    })
+                    .catch((err)=>{
+                        console.log('json.stringify(arr) catch',err)
+                    })
+
+                json.stringify(obj)
+                    .then((res)=>{
+                        console.log('json.stringify(obj) then',res.length,res.substr(0, 200)+'...')
+                        carr = res
+                    })
+                    .catch((err)=>{
+                        console.log('json.stringify(obj) catch',err)
+                    })
+
+            }
+            
+            let pmArr = w.stringify(arr)
+                .then((res)=>{
+                    console.log('w.stringify(arr) then',res.length,res.substr(0, 200)+'...')
+                    carr = res
+                })
+                .catch((err)=>{
+                    console.log('w.stringify(arr) catch',err)
+                })
+
+            let pmObj = w.stringify(obj)
+                .then((res)=>{
+                    console.log('w.stringify(obj) then',res.length,res.substr(0, 200)+'...')
+                    cobj = res
+                })
+                .catch((err)=>{
+                    console.log('w.stringify(obj) catch',err)
+                })
+
+            Promise.all([pmArr,pmObj])
+                .then(()=>{
+        
+                    w.parse(carr)
+                        .then((res)=>{
+                            console.log('w.parse(carr) then',res)
+                        })
+                        .catch((err)=>{
+                            console.log('w.parse(carr) catch',err)
+                        })
+
+                    w.parse(cobj)
+                        .then((res)=>{
+                            console.log('w.parse(cobj) then',res)
+                        })
+                        .catch((err)=>{
+                            console.log('w.parse(cobj) catch',err)
+                        })
+
+                })
+                .catch((err)=>{
+                    console.log(err)
+                })
+                
+        </script>
+
+    </head>
+
+    <body>
+        See console.log
+    </body>
+
+</html>

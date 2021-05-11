@@ -1,4 +1,3 @@
-
 //sendMessage
 function sendMessage(data) {
     self.postMessage(data)
