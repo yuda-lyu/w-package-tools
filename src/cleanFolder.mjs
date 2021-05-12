@@ -1,4 +1,4 @@
-import * as w from './wsemip.es.mjs' //因mocha無法識別得用*轉出default
+import w from './wsemip.umd.js'
 
 
 function cleanFolder(fd) {

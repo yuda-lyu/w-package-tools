@@ -1,5 +1,5 @@
 import fs from 'fs'
-import * as w from './src/wsemip.es.mjs' //因mocha無法識別得用*轉出default
+import * as w from './src/wsemip.umd.js'
 import rollupCode from './src/rollupCode.mjs'
 
 

@@ -1,6 +1,6 @@
 import path from 'path'
 import _ from 'lodash'
-import * as w from './src/wsemip.es.mjs' //因mocha無法識別得用*轉出default
+import * as w from './src/wsemip.umd.js'
 import rollupWebWorker from './src/rollupWebWorker.mjs'
 import gWebWorker2_Obj from './test-code-in/gWebWorker2_Obj.mjs'
 import gWebWorker3_Fun from './test-code-in/gWebWorker3_Fun.mjs'
