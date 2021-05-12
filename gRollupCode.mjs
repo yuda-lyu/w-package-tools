@@ -1,5 +1,5 @@
 import fs from 'fs'
-import * as w from './src/wsemip.umd.js'
+import w from './src/wsemip.umd.js'
 import rollupCode from './src/rollupCode.mjs'
 
 

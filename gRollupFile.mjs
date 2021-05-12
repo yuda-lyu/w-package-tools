@@ -1,4 +1,4 @@
-import * as w from './src/wsemip.umd.js'
+import w from './src/wsemip.umd.js'
 import rollupFile from './src/rollupFile.mjs'
 
 

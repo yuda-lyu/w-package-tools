@@ -10,8 +10,15 @@ function str2b64(str) {
 }
 
 
-function clearExportDefault(code, name) {
-    return code.replace(`export default ${name};`, '')
+function clearExportDefault(code) {
+    let s = _.split(code, 'export default ')
+    if (_.size(s) < 2) {
+        console.log('找不到 export default')
+    }
+    else if (_.size(s) > 2) {
+        console.log('出現多個 export default')
+    }
+    return _.get(s, 0)
 }
 
 
@@ -609,7 +616,7 @@ async function rollupWebWorker(opt = {}) {
     })
 
     //clearExportDefault
-    let codeTrans = clearExportDefault(codeTransOri, name)
+    let codeTrans = clearExportDefault(codeTransOri)
 
     //addInnerWebWorkerCode
     let codeTransAdd = addInnerWebWorkerCode(codeTrans, name, evNames)
