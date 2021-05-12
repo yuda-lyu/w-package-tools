@@ -457,6 +457,8 @@ export default ww
  * @param {Array} [opt.evNames=[]] 輸入模組可監聽的函數名稱陣列，預設[]
  * @param {String} opt.fpSrc 輸入原始碼檔案位置字串
  * @param {String} opt.fpTar 輸入編譯完程式碼檔案儲存位置字串
+ * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''
+ * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
  * @param {String} [opt.formatOut='es'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'
  * @param {String} [opt.targets='new'] 輸入編譯等級字串，可選'new'、'old'，預設'new'
  * @param {Boolean} [opt.execObjectFunsByInstance=true] 輸入若模組類型為物件「type='object'」時，各函式使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true
@@ -498,12 +500,29 @@ async function rollupWebWorker(opt = {}) {
         return Promise.reject('opt.fpSrc is not file')
     }
 
+    //fn
+    let fn = w.getFileName(fpSrc)
+
     //fpTar
     let fpTar = _.get(opt, 'fpTar', null)
     if (!w.isestr(fpTar)) {
         return Promise.reject('invalid opt.fpTar')
     }
 
+    //nameDistType
+    let nameDistType = _.get(opt, 'nameDistType', null)
+
+    //nameDist
+    let nameDist = name //nameTrue
+    if (nameDistType === 'kebabCase') {
+        nameDist = _.kebabCase(name)
+    }
+
+    //hookNameDist
+    let hookNameDist = _.get(opt, 'hookNameDist', null)
+    if (_.isFunction(hookNameDist)) {
+        nameDist = hookNameDist(nameDist, name, fn)
+    }
     //formatOut, umd為瀏覽器端直接使用, es為供vue-cli或webpack使用
     let formatOut = _.get(opt, 'formatOut', null)
     if (!formatOut) {
@@ -546,6 +565,7 @@ async function rollupWebWorker(opt = {}) {
         mangleReserved = []
     }
 
+
     // //globals, inner必須有完整依賴程式碼且outer無依賴
     // let globals = _.get(opt, 'globals', null)
     // if (!w.isobj(globals)) {
@@ -572,7 +592,7 @@ async function rollupWebWorker(opt = {}) {
     //rollupFile, 預處理, 把code內的關聯都打包出來, 故需用es, 程式碼之後還會編譯故targets使用new, 此處要用rollupFile對原檔案打包, 才能正確引入相關模組與套件
     let codeTransOri = await rollupFile({
         // name, //打包成es不需要name
-        fn: w.getFileName(fpSrc), //rollupFile會偵測副檔名作為formatIn
+        fn, //rollupFile會偵測副檔名作為formatIn
         fdSrc: w.getDirName(fpSrc),
         // fdTar: '', //沒給代表回傳程式碼
         format: 'es', //輸出formatOut
@@ -600,7 +620,7 @@ async function rollupWebWorker(opt = {}) {
 
     //rollupCode
     let codeRes = await rollupCode(codeMerge, {
-        name,
+        name: nameDist,
         formatOut,
         targets,
         // bSourcemap: false, //rollupCode不提供sourcemap

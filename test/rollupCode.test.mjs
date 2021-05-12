@@ -11,7 +11,7 @@ describe('rollupCode', function() {
         let name = 'gBase1'
         let fnIn = `${name}.js`
         let fnOut = `${name}.umd.js`
-        it(`should be equal to ${fnOut} when run ${fnIn}'`, async function() {
+        it(`should be ok when run ${name}'`, async function() {
             let cNow = await rollupCode(fs.readFileSync(`${fdSrc}/${fnIn}`, 'utf8'), {
                 name
             })
@@ -24,7 +24,7 @@ describe('rollupCode', function() {
         let name = 'gBase2'
         let fnIn = `${name}.js`
         let fnOut = `${name}.umd.js`
-        it(`should be equal to ${fnOut} when run ${fnIn}'`, async function() {
+        it(`should be ok when run ${name}'`, async function() {
             let cNow = await rollupCode(fs.readFileSync(`${fdSrc}/${fnIn}`, 'utf8'), {
                 name
             })
@@ -37,7 +37,7 @@ describe('rollupCode', function() {
         let name = 'gVue1'
         let fnIn = `${name}.vue`
         let fnOut = `${name}.umd.js`
-        it(`should be equal to ${fnOut} when run ${fnIn}'`, async function() {
+        it(`should be ok when run ${name}'`, async function() {
             let cNow = await rollupCode(fs.readFileSync(`${fdSrc}/${fnIn}`, 'utf8'), {
                 name,
                 formatIn: 'vue'
@@ -51,7 +51,7 @@ describe('rollupCode', function() {
         let name = 'gAsync1'
         let fnIn = `${name}.mjs`
         let fnOut = `${name}.es.js`
-        it(`should be equal to ${fnOut} when run ${fnIn}'`, async function() {
+        it(`should be ok when run ${name}'`, async function() {
             let cNow = await rollupCode(fs.readFileSync(`${fdSrc}/${fnIn}`, 'utf8'), {
                 name,
                 formatOut: 'es',
@@ -66,7 +66,7 @@ describe('rollupCode', function() {
         let name = 'gAsync2'
         let fnIn = `${name}.mjs`
         let fnOut = `${name}.es.js`
-        it(`should be equal to ${fnOut} when run ${fnIn}'`, async function() {
+        it(`should be ok when run ${name}'`, async function() {
             let cNow = await rollupCode(fs.readFileSync(`${fdSrc}/${fnIn}`, 'utf8'), {
                 name,
                 formatOut: 'es',
