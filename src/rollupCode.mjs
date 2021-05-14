@@ -96,16 +96,20 @@ async function rollupCode(codeSrc, opt = {}) {
         bLog = true
     }
 
-    //fpIn
-    let fpIn = `./${name}.${formatIn}`
+    //fpSrc
+    let fpSrc = `./temp-${w.genID()}-${name}.${formatIn}`
 
     //把欲轉換之程式碼寫入檔案
-    fs.writeFileSync(fpIn, codeSrc, 'utf8')
+    fs.writeFileSync(fpSrc, codeSrc, 'utf8')
 
     //opt
-    opt.fdSrc = ''
+    // opt.fdSrc = ''
     opt.fdTar = '' //不給輸出資料夾則為回傳程式碼
-    opt.fn = fpIn
+    // opt.fn = fpSrc
+    opt.fpSrc = fpSrc //直接給含隨機字串檔名
+    opt.hookNameDist = () => {
+        return name //直接給模組名
+    }
     opt.format = formatOut
     opt.targets = targets
     opt.bBanner = bBanner
@@ -125,7 +129,7 @@ async function rollupCode(codeSrc, opt = {}) {
 
             //unlinkSync, 不論編譯成功失敗都刪除檔案
             try {
-                fs.unlinkSync(fpIn)
+                fs.unlinkSync(fpSrc)
             }
             catch (err) {
                 console.log(err)

@@ -44,8 +44,10 @@ let babelForJs = babel
 async function rollupFile(opt = {}) {
 
     //bLog
-    let bLog = opt.bLog
-    bLog = bLog !== false
+    let bLog = _.get(opt, 'log', null)
+    if (!w.isbol(bLog)) {
+        bLog = true
+    }
 
     //pkg
     let pkg = getPks()
@@ -54,42 +56,47 @@ async function rollupFile(opt = {}) {
     let env = process.env.NODE_ENV
 
     //fdSrc
-    let fdSrc = opt.fdSrc
+    let fdSrc = _.get(opt, 'fdSrc', null)
     if (!w.fsIsFolder(fdSrc)) {
         fdSrc = './'
     }
 
     //fdTar
-    let fdTar = opt.fdTar
+    let fdTar = _.get(opt, 'fdTar', null)
     if (!w.fsIsFolder(fdTar)) {
         fdTar = ''
     }
 
     //fn
-    let fn = opt.fn
+    let fn = _.get(opt, 'fn', '')
 
-    //fpIn, 欲編譯的檔案
-    let fpIn = path.resolve(fdSrc, fn)
-    // console.log('fpIn', fpIn)
+    //fpSrc, 欲編譯的檔案
+    let fpSrc = ''
+    if (w.isestr(_.get(opt, 'fpSrc', null))) {
+        fpSrc = opt.fpSrc
+    }
+    else {
+        fpSrc = path.resolve(fdSrc, fn)
+    }
 
     //check
-    if (!w.fsIsFile(fpIn)) {
-        return Promise.reject(`invalid fpIn: ${fpIn}`)
+    if (!w.fsIsFile(fpSrc)) {
+        return Promise.reject(`invalid fpSrc: ${fpSrc}`)
     }
 
     //console
     if (bLog) {
-        console.log('transpiling: ' + w.getFileName(fpIn))
+        console.log('transpiling: ' + w.getFileName(fpSrc))
     }
 
     //extIn
-    let extIn = _.toLower(w.strdelleft(path.extname(fpIn), 1))
+    let extIn = _.toLower(w.strdelleft(path.extname(fpSrc), 1))
 
     //nameTrue
-    let nameTrue = w.getFileTrueName(fpIn)
+    let nameTrue = w.getFileTrueName(fpSrc)
 
     //nameDistType
-    let nameDistType = opt.nameDistType
+    let nameDistType = _.get(opt, 'nameDistType', null)
 
     //nameDist
     let nameDist = nameTrue
@@ -98,19 +105,19 @@ async function rollupFile(opt = {}) {
     }
 
     //hookNameDist
-    let hookNameDist = opt.hookNameDist
+    let hookNameDist = _.get(opt, 'hookNameDist', null)
     if (_.isFunction(hookNameDist)) {
         nameDist = hookNameDist(nameDist, nameTrue, fn)
     }
 
     //formatOut
-    let formatOut = opt.format
-    if (!formatOut) {
+    let formatOut = _.get(opt, 'format', null)
+    if (!w.isestr(formatOut)) {
         formatOut = 'umd'
     }
 
     //targets
-    let targets = opt.targets
+    let targets = _.get(opt, 'targets', null)
     if (targets === 'new') {
         targets = 'last 2 Chrome versions'
     }
@@ -119,45 +126,56 @@ async function rollupFile(opt = {}) {
     }
 
     //extOut
-    let extOut = opt.ext
+    let extOut = _.get(opt, 'ext', null)
     if (extOut !== 'js' && extOut !== 'mjs') {
         extOut = 'js'
     }
 
     //license
-    let license = opt.license
-    if (!license) {
+    let license = _.get(opt, 'license', null)
+    if (!w.isestr(license)) {
         license = 'MIT'
     }
 
     //bSourcemap
-    let bSourcemap = opt.bSourcemap
-    bSourcemap = bSourcemap !== false
+    let bSourcemap = _.get(opt, 'bSourcemap', null)
+    if (!w.isbol(bSourcemap)) {
+        bSourcemap = true
+    }
 
     //banner
-    let bBanner = opt.bBanner
+    let bBanner = _.get(opt, 'bBanner', null)
+    if (!w.isbol(bBanner)) {
+        bBanner = true
+    }
+
+    //banner
     let cbanner = null
-    if (bBanner !== false) {
+    if (bBanner) {
         cbanner = `/*!\n * ${nameDist} v${pkg.version}\n * (c) 2018-2021 ${pkg.author}\n * Released under the ${license} License.\n */`
     }
     let banner = cbanner
 
     //bNodePolyfill, 提供使用node用api的編譯
-    let bNodePolyfill = opt.bNodePolyfill
-    bNodePolyfill = bNodePolyfill === true
+    let bNodePolyfill = _.get(opt, 'bNodePolyfill', null)
+    if (!w.isbol(bNodePolyfill)) {
+        bNodePolyfill = false
+    }
 
     //minify
-    let bMinify = opt.bMinify
-    bMinify = bMinify !== false
+    let bMinify = _.get(opt, 'bMinify', null)
+    if (!w.isbol(bMinify)) {
+        bMinify = true
+    }
 
     //keepFnames
-    let keepFnames = opt.keepFnames
+    let keepFnames = _.get(opt, 'keepFnames', null)
     if (!w.isbol(keepFnames)) {
         keepFnames = false
     }
 
     //mangleReserved
-    let mangleReserved = opt.mangleReserved
+    let mangleReserved = _.get(opt, 'mangleReserved', null)
     if (!w.isarr(mangleReserved)) {
         mangleReserved = []
     }
@@ -250,22 +268,22 @@ async function rollupFile(opt = {}) {
         }))
     }
 
-    //fpOut, 編譯後檔案
+    //fpTar, 編譯後檔案
     let returnCode = false
-    let fpOut = ''
+    let fpTar = ''
     if (w.fsIsFolder(fdTar)) {
-        fpOut = path.resolve(fdTar, `${nameDist}.${formatOut}.${extOut}`)
+        fpTar = path.resolve(fdTar, `${nameDist}.${formatOut}.${extOut}`)
     }
     else {
         returnCode = true
-        fpOut = `./temp-${w.genID()}`
+        fpTar = `./temp-${w.genID()}`
     }
-    // console.log('fpOut', fpOut)
+    // console.log('fpTar', fpTar)
 
     //inputOptions
     let inputOptions = {
         external,
-        input: fpIn,
+        input: fpSrc,
         // treeshake: false,
         plugins,
     }
@@ -276,7 +294,7 @@ async function rollupFile(opt = {}) {
         globals,
         format: formatOut,
         name: nameDist,
-        file: fpOut,
+        file: fpTar,
         sourcemap: bSourcemap,
         sourcemapExcludeSources: true,
     }
@@ -296,11 +314,11 @@ async function rollupFile(opt = {}) {
     if (returnCode) {
 
         //若編譯成功則讀取轉換後之程式碼
-        code = fs.readFileSync(fpOut, 'utf8')
+        code = fs.readFileSync(fpTar, 'utf8')
 
         //unlinkSync
         try {
-            fs.unlinkSync(fpOut)
+            fs.unlinkSync(fpTar)
         }
         catch (err) {
             console.log(err)
@@ -310,7 +328,7 @@ async function rollupFile(opt = {}) {
 
     //console
     if (bLog && !returnCode) {
-        console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpOut))
+        console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpTar))
     }
 
     if (returnCode) {
