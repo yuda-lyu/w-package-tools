@@ -459,7 +459,7 @@ export default ww
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下
- * @param {String} [opt.type='object'] 輸入模組類型字串，可選'object'、'function'，預設'object'
+ * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
  * @param {Array} opt.funNames 輸入模組可被呼叫的函數名稱陣列
  * @param {Array} [opt.evNames=[]] 輸入模組可監聽的函數名稱陣列，預設[]
  * @param {String} opt.fpSrc 輸入原始碼檔案位置字串
