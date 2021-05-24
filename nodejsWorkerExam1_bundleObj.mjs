@@ -1,4 +1,4 @@
-import wf from './test-code-out-wk/gWorker4_FunEv.wk.umd.js'
+import w from './test-code-out-wk/gWorker2_Obj.wk.umd.js'
 
 
 let n = 0
@@ -10,12 +10,6 @@ let t = setInterval(function() {
     }
 }, 200)
 
-let w = wf(1.234, 'xyz')
-// console.log(w)
-
-w.on('ev-ddd', (msg) => {
-    console.log('w.ev-ddd', msg)
-})
 w.on('error', (msg) => {
     console.log('w.error', msg)
 })
@@ -53,16 +47,4 @@ w.ccc(300000000)
         console.log('w.ccc(n) catch', err)
     })
 
-w.ddd(4.56, 'mnop')
-    .then((res) => {
-        console.log('w.ddd(4.56,\'mnop\') then', res)
-    })
-    .catch((err) => {
-        console.log('w.ddd(4.56,\'mnop\') catch', err)
-    })
-
-setTimeout(() => {
-    w.terminate()
-}, 3000)
-
-//node --experimental-modules --es-module-specifier-resolution=node g3_bundleFunEv.mjs
+//node --experimental-modules --es-module-specifier-resolution=node nodejsWorkerExam1_bundleObj.mjs

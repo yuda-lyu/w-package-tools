@@ -84,4 +84,4 @@ Promise.all([pmArr, pmObj])
         console.log(err)
     })
 
-//node --experimental-modules --es-module-specifier-resolution=node g5_bundleObjWithStream.mjs
+//node --experimental-modules --es-module-specifier-resolution=node nodejsWorkerExam5_bundleObjWithStream.mjs
