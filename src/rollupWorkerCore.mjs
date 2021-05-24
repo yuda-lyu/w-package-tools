@@ -637,7 +637,7 @@ export default ww
 
 
 /**
- * 使用rollup編譯檔案，並封裝至前端web worker內
+ * 使用rollup編譯檔案，並封裝至前端web worker內或後端nodejs worker內
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下
@@ -653,8 +653,8 @@ export default ww
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
  * @param {String} [opt.formatOut='es'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'
  * @param {String} [opt.targets='new'] 輸入編譯等級字串，可選'new'、'old'，預設'new'
- * @param {Boolean} [opt.bNode=false] 輸入編譯檔案是否運行於Nodejs布林值，預設false
- * @param {Boolean} [opt.bNodePolyfill=false] 輸入當bNode為true時，編譯是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
+ * @param {Boolean} [opt.bNode=false] 輸入是否運行於Nodejs布林值，預設false
+ * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設true
  * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
  * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
