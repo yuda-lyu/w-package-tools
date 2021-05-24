@@ -23,11 +23,11 @@ async function ccc(n) {
     return 'no.=' + n + ', r=' + r
 }
 
-let gWebWorker2_Obj = {
+let gWorker2_Obj = {
     aaa,
     bbb,
     ccc,
 }
 
 
-export default gWebWorker2_Obj
+export default gWorker2_Obj

@@ -44,7 +44,7 @@ let babelForJs = babel
 async function rollupFile(opt = {}) {
 
     //bLog
-    let bLog = _.get(opt, 'log', null)
+    let bLog = _.get(opt, 'bLog', null)
     if (!w.isbol(bLog)) {
         bLog = true
     }
@@ -127,6 +127,9 @@ async function rollupFile(opt = {}) {
 
     //extOut
     let extOut = _.get(opt, 'ext', null)
+    if (extOut === null && formatOut === 'es') {
+        extOut = 'mjs' //若使用es且沒指定ext就改副檔名為mjs
+    }
     if (extOut !== 'js' && extOut !== 'mjs') {
         extOut = 'js'
     }
@@ -269,13 +272,13 @@ async function rollupFile(opt = {}) {
     }
 
     //fpTar, 編譯後檔案
-    let returnCode = false
+    let bReturnCode = false
     let fpTar = ''
     if (w.fsIsFolder(fdTar)) {
         fpTar = path.resolve(fdTar, `${nameDist}.${formatOut}.${extOut}`)
     }
     else {
-        returnCode = true
+        bReturnCode = true
         fpTar = `./temp-${w.genID()}`
     }
     // console.log('fpTar', fpTar)
@@ -309,9 +312,9 @@ async function rollupFile(opt = {}) {
     //write
     await bundle.write(outputOptions)
 
-    //returnCode
+    //bReturnCode
     let code = ''
-    if (returnCode) {
+    if (bReturnCode) {
 
         //若編譯成功則讀取轉換後之程式碼
         code = fs.readFileSync(fpTar, 'utf8')
@@ -327,11 +330,11 @@ async function rollupFile(opt = {}) {
     }
 
     //console
-    if (bLog && !returnCode) {
+    if (bLog && !bReturnCode) {
         console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpTar))
     }
 
-    if (returnCode) {
+    if (bReturnCode) {
         return code
     }
     return 'finish'

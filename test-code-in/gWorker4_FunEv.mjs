@@ -6,7 +6,7 @@ function evem() {
     return new EventEmitter()
 }
 
-function gWebWorker3_Fun(inip1, inip2) {
+function gWorker4_FunEv(inip1, inip2) {
     let ev = evem()
 
     async function aaa(p1) {
@@ -48,4 +48,4 @@ function gWebWorker3_Fun(inip1, inip2) {
 }
 
 
-export default gWebWorker3_Fun
+export default gWorker4_FunEv

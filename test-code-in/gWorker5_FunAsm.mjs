@@ -14,7 +14,7 @@ async function get_t_test(df, p) {
     return r
 }
 
-function gWebWorker4_FunAsm(inip1, inip2) {
+function gWorker5_FunAsm(inip1, inip2) {
     let ev = evem()
 
     async function aaa(p1) {
@@ -61,4 +61,4 @@ function gWebWorker4_FunAsm(inip1, inip2) {
 }
 
 
-export default gWebWorker4_FunAsm
+export default gWorker5_FunAsm

@@ -3,7 +3,7 @@
 
     <head>
         <meta http-equiv="content-type" content="text/html charset=UTF-8" />
-        <title>web-worker hardcode for object</title>
+        <title>web-worker hardcode for function and retrun eventemitter</title>
 
         <script src="https://cdn.jsdelivr.net/npm/eventemitter3@4.0.7/index.min.js"></script>
 
@@ -53,35 +53,85 @@
                 let r = uuid.join('')
                 return r
             }
+                    </script>
+            
+                    <script>
             
             let code=`
-            
-async function aaa(p1) {
-    return 'aaaRes p ['+p1+'] p'
+
+importScripts('https://cdn.jsdelivr.net/npm/eventemitter3@4.0.7/index.min.js')
+
+function trim(c) {
+    return c.trim()
 }
 
-async function bbb(p1, p2) {
-    if (p1 <= p2) {
-        return 'bbbRes p1<=p2'
+function evem() {
+    return new EventEmitter()
+}
+
+function gWorker4_FunEv(inip1, inip2) {
+    let ev = evem()
+
+    async function aaa(p1) {
+        return 'aaaRes p [' + p1 + '] p' + trim(' [trim] ')
     }
-    return Promise.reject('bbbRes p1>p2')
-}
 
-async function ccc(n) {
-    let r = 1
-    for (let i = 0; i < n; i++) {
-        r += 1
-        r -= 1
-        r *= 5.5
-        r /= 5.5
+    async function bbb(p1, p2) {
+        if (p1 <= p2) {
+            return 'bbbRes p1<=p2'
+        }
+        return Promise.reject('bbbRes p1>p2')
     }
-    return 'no.=' + n + ', r=' + r
+
+    async function ccc(n) {
+        let r = 1
+        for (let i = 0; i < n; i++) {
+            r += 1
+            r -= 1
+            r *= 5.5
+            r /= 5.5
+        }
+        return 'no.=' + n + ', r=' + r
+    }
+
+    async function ddd(p1, p2) {
+        ev.emit('ev-ddd', 'emit data p1='+p1+', p2='+p2)
+        return 'dddRes emit-event'
+    }
+
+    setTimeout(() => {
+        ddd(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
+    }, 1000)
+
+    ev.aaa=aaa
+    ev.bbb=bbb
+    ev.ccc=ccc
+    ev.ddd=ddd
+    return ev
 }
 
-let funcs={
-    aaa,
-    bbb,
-    ccc,
+let instance = null
+function init(input){
+
+    //init
+    let r=gWorker4_FunEv(...input)
+
+    //on
+    r.on('ev-ddd',(msg) => {
+
+        //sendMessage
+        let res={
+            mode:'emit',
+            evName:'ev-ddd',
+            msg,
+        }
+        sendMessage(res)
+
+    })
+
+    //save
+    instance=r
+
 }
 
 function sendMessage(data) {
@@ -91,33 +141,53 @@ function sendMessage(data) {
 async function run(data) {
     // console.log('inner worker run',data)
 
-    //fun
-    let fun=funcs[data.fun]
+    //mode
+    let mode=data.mode
 
-    //input
-    let input=data.input
+    //init
+    if(mode==='init'){
+        
+        //input
+        let input=data.input
 
-    //exec
-    let state=''
-    let msg=null
-    await fun(...input)
-        .then((suc) => {
-            state='success'
-            msg=suc
-        })
-        .catch((err) => {
-            state='error'
-            msg=err
-        })
+        //instance
+        init(...input)
 
-    //sendMessage
-    let res={
-        id:data.id,
-        fun:data.fun,
-        state,
-        msg,
     }
-    sendMessage(res)
+
+    //call
+    if(mode==='call'){
+        
+        //fun
+        let fun=instance[data.fun]
+
+        //input
+        let input=data.input
+
+        //exec
+        let state=''
+        let msg=null
+        await fun(...input)
+            .then((suc) => {
+                state='success'
+                msg=suc
+            })
+            .catch((err) => {
+                state='error'
+                msg=err
+            })
+
+        //sendMessage
+        let res={
+            mode:'return',
+            id:data.id,
+            fun:data.fun,
+            state,
+            msg,
+        }
+        sendMessage(res)
+
+    }
 
 }
 
@@ -131,36 +201,57 @@ self.onmessage = function (e) {
     run(dataRecv)
 
 }
-
+            
             `
             
-            async function _aaa(p1) {
-                return 'aaaRes p ['+p1+'] p'
-            }
+            function _m(inip1,inip2){
+                let ev = evem()
             
-            async function _bbb(p1, p2) {
-                if (p1 <= p2) {
-                    return 'bbbRes p1<=p2'
+                async function aaa(p1) {
+                    return 'aaaRes p ['+p1+'] p'
                 }
-                return Promise.reject('bbbRes p1>p2')
-            }
             
-            async function _ccc(n) {
-                let r = 1
-                for (let i = 0; i < n; i++) {
-                    r += 1
-                    r -= 1
-                    r *= 5.5
-                    r /= 5.5
+                async function bbb(p1, p2) {
+                    if (p1 <= p2) {
+                        return 'bbbRes p1<=p2'
+                    }
+                    return Promise.reject('bbbRes p1>p2')
                 }
-                return 'no.=' + n + ', r=' + r
+            
+                async function ccc(n) {
+                    let r = 1
+                    for (let i = 0; i < n; i++) {
+                        r += 1
+                        r -= 1
+                        r *= 5.5
+                        r /= 5.5
+                    }
+                    return 'no.=' + n + ', r=' + r
+                }
+            
+                async function ddd(p1, p2) {
+                    ev.emit('ev-ddd', 'emit data p1='+p1+', p2='+p2)
+                    return 'dddRes emit-event'
+                }
+            
+                setTimeout(() => {
+                    ddd(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
+                }, 1000)
+            
+                ev.aaa=aaa
+                ev.bbb=bbb
+                ev.ccc=ccc
+                ev.ddd=ddd
+                return ev
             }
             
-            let m={
-                aaa:_aaa,
-                bbb:_bbb,
-                ccc:_ccc,
-            }
+            let m=_m(1.234,'xyz')
+            m.on('ev-ddd',(msg) => {
+                console.log('m.ev-ddd',msg)
+            })
+            m.on('error',(msg) => {
+                console.log('m.error',msg)
+            })
             
             m.aaa(1)
                 .then((res) => {
@@ -192,6 +283,14 @@ self.onmessage = function (e) {
                 })
                 .catch((err) => {
                     console.log('m.ccc(n) catch',err)
+                })
+            
+            m.ddd(4.56,'mnop')
+                .then((res) => {
+                    console.log('m.ddd(4.56,\'mnop\') then',res)
+                })
+                .catch((err) => {
+                    console.log('m.ddd(4.56,\'mnop\') catch',err)
                 })
             
             function wrapWorker() {
@@ -227,6 +326,19 @@ self.onmessage = function (e) {
                 //evem
                 let ev = evem()
             
+                function init(){
+            
+                    //dataSend
+                    let dataSend={
+                        mode:'init',
+                        input: [...arguments], //若直接用arguments會無法編譯
+                    }
+            
+                    //postMessage
+                    wk.postMessage(dataSend)
+            
+                }
+            
                 function aaa(){
             
                     //pm
@@ -237,6 +349,7 @@ self.onmessage = function (e) {
             
                     //dataSend
                     let dataSend={
+                        mode:'call',
                         id,
                         fun: 'aaa',
                         input: [...arguments], //若直接用arguments會無法編譯
@@ -268,6 +381,7 @@ self.onmessage = function (e) {
             
                     //dataSend
                     let dataSend={
+                        mode:'call',
                         id,
                         fun: 'bbb',
                         input: [...arguments], //若直接用arguments會無法編譯
@@ -299,6 +413,7 @@ self.onmessage = function (e) {
             
                     //dataSend
                     let dataSend={
+                        mode:'call',
                         id,
                         fun: 'ccc',
                         input: [...arguments], //若直接用arguments會無法編譯
@@ -318,7 +433,39 @@ self.onmessage = function (e) {
                     })
             
                     return pm
+                }
+            
+                function ddd(){
+            
+                    //pm
+                    let pm = genPm()
+            
+                    //id
+                    let id = genID()
+            
+                    //dataSend
+                    let dataSend={
+                        mode:'call',
+                        id,
+                        fun: 'ddd',
+                        input: [...arguments], //若直接用arguments會無法編譯
                     }
+            
+                    //postMessage
+                    wk.postMessage(dataSend)
+            
+                    //once
+                    ev.once(id, (res) => {
+                        if (res.state === 'success') {
+                            pm.resolve(res.msg)
+                        }
+                        else {
+                            pm.reject(res.msg)
+                        }
+                    })
+            
+                    return pm
+                }
             
                 //onmessage
                 wk.onmessage = function (e) {
@@ -327,18 +474,43 @@ self.onmessage = function (e) {
                     //dataRecv
                     let dataRecv = e.data
             
+                    //mode
+                    let mode=dataRecv.mode
+            
                     //emit
-                    ev.emit(dataRecv.id, dataRecv)
+                    if(mode==='emit'){
+            
+                        //emit
+                        ev.emit(dataRecv.evName, dataRecv.msg)
+            
+                    }
+            
+                    //return
+                    if(mode==='return'){
+            
+                        //emit
+                        ev.emit(dataRecv.id, dataRecv)
+            
+                    }
             
                 }
             
-                return {
-                    aaa,
-                    bbb,
-                    ccc,
-                }
+                //init
+                init([...arguments])
+            
+                ev.aaa=aaa
+                ev.bbb=bbb
+                ev.ccc=ccc
+                ev.ddd=ddd
+                return ev
             }
-            let w = wrapWorker()
+            let w = wrapWorker(1.234,'xyz')
+            w.on('ev-ddd',(msg) => {
+                console.log('w.ev-ddd',msg)
+            })
+            w.on('error',(msg) => {
+                console.log('w.error',msg)
+            })
             
             w.aaa(1)
                 .then((res) => {
@@ -371,7 +543,15 @@ self.onmessage = function (e) {
                 .catch((err) => {
                     console.log('w.ccc(n) catch',err)
                 })
-                
+            
+            w.ddd(4.56,'mnop')
+                .then((res) => {
+                    console.log('w.ddd(4.56,\'mnop\') then',res)
+                })
+                .catch((err) => {
+                    console.log('w.ddd(4.56,\'mnop\') catch',err)
+                })
+            
         </script>
     
     </body>

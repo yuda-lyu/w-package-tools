@@ -1,5 +1,5 @@
 /*!
- * gBase1 v1.0.49
+ * gBase1 v1.0.55
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */

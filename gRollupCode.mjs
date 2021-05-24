@@ -83,8 +83,8 @@ async function core() {
             console.log(err)
         })
 
-    await rollupCode(fs.readFileSync(`${fdSrc}/gWebWorker1_EnvSelf.mjs`, 'utf8'), {
-        name: 'gWebWorker1_EnvSelf',
+    await rollupCode(fs.readFileSync(`${fdSrc}/gWorker1_EnvSelf.mjs`, 'utf8'), {
+        name: 'gWorker1_EnvSelf',
         formatIn: 'mjs',
         formatOut: 'es',
         targets: 'new',
@@ -92,14 +92,14 @@ async function core() {
     })
         .then((code) => {
             //console.log(code)
-            fs.writeFileSync(`${fdTar}/gWebWorker1_EnvSelf.es.js`, code, 'utf8')
+            fs.writeFileSync(`${fdTar}/gWorker1_EnvSelf.es.js`, code, 'utf8')
         })
         .catch((err) => {
             console.log(err)
         })
 
-    await rollupCode(fs.readFileSync(`${fdSrc}/gWebWorker2_Obj.mjs`, 'utf8'), {
-        name: 'gWebWorker2_Obj',
+    await rollupCode(fs.readFileSync(`${fdSrc}/gWorker2_Obj.mjs`, 'utf8'), {
+        name: 'gWorker2_Obj',
         formatIn: 'mjs',
         formatOut: 'es',
         targets: 'new',
@@ -107,7 +107,7 @@ async function core() {
     })
         .then((code) => {
             //console.log(code)
-            fs.writeFileSync(`${fdTar}/gWebWorker2_Obj.es.js`, code, 'utf8')
+            fs.writeFileSync(`${fdTar}/gWorker2_Obj.es.js`, code, 'utf8')
         })
         .catch((err) => {
             console.log(err)

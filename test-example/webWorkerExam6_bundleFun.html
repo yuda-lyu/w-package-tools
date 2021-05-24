@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>web-worker bundle function</title>
+
+        <script src="../test-code-out-wk/gWorker3_Fun.wk.umd.js"></script>
+
+    </head>
+
+    <body>
+
+        See console.log
+        
+        <div id="msg"></div>
+
+        <script>
+            let n = 0
+            let t = setInterval(function() {
+                n++
+                document.querySelector('#msg').innerHTML = n*50
+                if(n>=60){
+                    clearInterval(t)
+                }
+            },50)
+        </script>
+
+        <script>
+
+            let w = window.gWorker3_Fun
+            // console.log(w)
+            
+            w(1.234,'xyz')
+                .then((res) => {
+                    console.log('w(1.234,\'xyz\') then',res)
+                })
+                .catch((err) => {
+                    console.log('w(1.234,\'xyz\') catch',err)
+                })
+            
+        </script>
+
+    </body>
+
+</html>

@@ -1,5 +1,5 @@
 /*!
- * gWebWorker2_Obj v1.0.49
+ * gWorker2_Obj v1.0.55
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
@@ -665,10 +665,10 @@ async function ccc(n) {
   return 'no.=' + n + ', r=' + r;
 }
 
-let gWebWorker2_Obj = {
+let gWorker2_Obj = {
   aaa,
   bbb,
   ccc
 };
 
-export default gWebWorker2_Obj;
+export default gWorker2_Obj;

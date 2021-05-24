@@ -84,7 +84,7 @@ async function core() {
         })
 
     await rollupFile({
-        fn: 'gWebWorker1_EnvSelf.mjs',
+        fn: 'gWorker1_EnvSelf.mjs',
         fdSrc,
         fdTar,
         format: 'es',
@@ -97,7 +97,7 @@ async function core() {
         })
 
     await rollupFile({
-        fn: 'gWebWorker2_Obj.mjs',
+        fn: 'gWorker2_Obj.mjs',
         fdSrc,
         fdTar,
         format: 'es',
