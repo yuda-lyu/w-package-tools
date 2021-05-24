@@ -21,11 +21,9 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 npm i w-package-tools
 
 import rollupCode from 'w-package-tools/src/rollupCode.mjs'
-let opt={}
-console.log(rollupCode(opt))
+rollupCode({...})
 
-import rollupWebWorker from 'w-package-tools/src/rollupWebWorker.mjs'
-let opt={}
-console.log(rollupWebWorker(opt))
+import rollupWorker from 'w-package-tools/src/rollupWorker.mjs'
+rollupWorker({...})
 
 ```
