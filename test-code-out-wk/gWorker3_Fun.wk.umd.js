@@ -1,1 +1,2787 @@
-!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e(require("worker_threads")):"function"==typeof define&&define.amd?define(["worker_threads"],e):(t="undefined"!=typeof globalThis?globalThis:t||self).gWorker3_Fun=e(t.worker_threads)}(this,(function(t){"use strict";function e(t){return t&&"object"==typeof t&&"default"in t?t:{default:t}}var n=e(t);function r(t){return(r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t})(t)}"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self&&self;function o(t){var e={exports:{}};return t(e,e.exports),e.exports}var i=o((function(t,e){t.exports=function(t){function e(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,r=new Array(e);n<e;n++)r[n]=t[n];return r}function n(t){return function(t){if(Array.isArray(t))return e(t)}(t)||function(t){if("undefined"!=typeof Symbol&&null!=t[Symbol.iterator]||null!=t["@@iterator"])return Array.from(t)}(t)||function(t,n){if(t){if("string"==typeof t)return e(t,n);var r=Object.prototype.toString.call(t).slice(8,-1);return"Object"===r&&t.constructor&&(r=t.constructor.name),"Map"===r||"Set"===r?Array.from(t):"Arguments"===r||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(r)?e(t,n):void 0}}(t)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function o(t,e,n,r,o,i,g){try{var c=t[i](g),a=c.value}catch(t){return void n(t)}c.done?e(a):Promise.resolve(a).then(r,o)}function i(t){return(i="function"==typeof Symbol&&"symbol"==r(Symbol.iterator)?function(t){return r(t)}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":r(t)})(t)}function g(t){var e={exports:{}};return t(e,e.exports),e.exports}var c,a=g((function(t){var e=function(t){var e,n=Object.prototype,r=n.hasOwnProperty,o="function"==typeof Symbol?Symbol:{},g=o.iterator||"@@iterator",c=o.asyncIterator||"@@asyncIterator",a=o.toStringTag||"@@toStringTag";function u(t,e,n){return Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{u({},"")}catch(t){u=function(t,e,n){return t[e]=n}}function I(t,e,n,r){var o=e&&e.prototype instanceof p?e:p,i=Object.create(o.prototype),g=new Y(r||[]);return i._invoke=function(t,e,n){var r=A;return function(o,i){if(r===s)throw new Error("Generator is already running");if(r===f){if("throw"===o)throw i;return X()}for(n.method=o,n.arg=i;;){var g=n.delegate;if(g){var c=Z(g,n);if(c){if(c===h)continue;return c}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(r===A)throw r=f,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);r=s;var a=C(t,e,n);if("normal"===a.type){if(r=n.done?f:l,a.arg===h)continue;return{value:a.arg,done:n.done}}"throw"===a.type&&(r=f,n.method="throw",n.arg=a.arg)}}}(t,n,g),i}function C(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}t.wrap=I;var A="suspendedStart",l="suspendedYield",s="executing",f="completed",h={};function p(){}function y(){}function v(){}var d={};d[g]=function(){return this};var m=Object.getPrototypeOf,b=m&&m(m(N([])));b&&b!==n&&r.call(b,g)&&(d=b);var w=v.prototype=p.prototype=Object.create(d);function G(t){["next","throw","return"].forEach((function(e){u(t,e,(function(t){return this._invoke(e,t)}))}))}function K(t,e){function n(o,g,c,a){var u=C(t[o],t,g);if("throw"!==u.type){var I=u.arg,A=I.value;return A&&"object"===i(A)&&r.call(A,"__await")?e.resolve(A.__await).then((function(t){n("next",t,c,a)}),(function(t){n("throw",t,c,a)})):e.resolve(A).then((function(t){I.value=t,c(I)}),(function(t){return n("throw",t,c,a)}))}a(u.arg)}var o;this._invoke=function(t,r){function i(){return new e((function(e,o){n(t,r,e,o)}))}return o=o?o.then(i,i):i()}}function Z(t,n){var r=t.iterator[n.method];if(r===e){if(n.delegate=null,"throw"===n.method){if(t.iterator.return&&(n.method="return",n.arg=e,Z(t,n),"throw"===n.method))return h;n.method="throw",n.arg=new TypeError("The iterator does not provide a 'throw' method")}return h}var o=C(r,t.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,h;var i=o.arg;return i?i.done?(n[t.resultName]=i.value,n.next=t.nextLoc,"return"!==n.method&&(n.method="next",n.arg=e),n.delegate=null,h):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,h)}function L(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function x(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function Y(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(L,this),this.reset(!0)}function N(t){if(t){var n=t[g];if(n)return n.call(t);if("function"==typeof t.next)return t;if(!isNaN(t.length)){var o=-1,i=function n(){for(;++o<t.length;)if(r.call(t,o))return n.value=t[o],n.done=!1,n;return n.value=e,n.done=!0,n};return i.next=i}}return{next:X}}function X(){return{value:e,done:!0}}return y.prototype=w.constructor=v,v.constructor=y,y.displayName=u(v,a,"GeneratorFunction"),t.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===y||"GeneratorFunction"===(e.displayName||e.name))},t.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,v):(t.__proto__=v,u(t,a,"GeneratorFunction")),t.prototype=Object.create(w),t},t.awrap=function(t){return{__await:t}},G(K.prototype),K.prototype[c]=function(){return this},t.AsyncIterator=K,t.async=function(e,n,r,o,i){void 0===i&&(i=Promise);var g=new K(I(e,n,r,o),i);return t.isGeneratorFunction(n)?g:g.next().then((function(t){return t.done?t.value:g.next()}))},G(w),u(w,a,"Generator"),w[g]=function(){return this},w.toString=function(){return"[object Generator]"},t.keys=function(t){var e=[];for(var n in t)e.push(n);return e.reverse(),function n(){for(;e.length;){var r=e.pop();if(r in t)return n.value=r,n.done=!1,n}return n.done=!0,n}},t.values=N,Y.prototype={constructor:Y,reset:function(t){if(this.prev=0,this.next=0,this.sent=this._sent=e,this.done=!1,this.delegate=null,this.method="next",this.arg=e,this.tryEntries.forEach(x),!t)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=e)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(t){if(this.done)throw t;var n=this;function o(r,o){return c.type="throw",c.arg=t,n.next=r,o&&(n.method="next",n.arg=e),!!o}for(var i=this.tryEntries.length-1;i>=0;--i){var g=this.tryEntries[i],c=g.completion;if("root"===g.tryLoc)return o("end");if(g.tryLoc<=this.prev){var a=r.call(g,"catchLoc"),u=r.call(g,"finallyLoc");if(a&&u){if(this.prev<g.catchLoc)return o(g.catchLoc,!0);if(this.prev<g.finallyLoc)return o(g.finallyLoc)}else if(a){if(this.prev<g.catchLoc)return o(g.catchLoc,!0)}else{if(!u)throw new Error("try statement without catch or finally");if(this.prev<g.finallyLoc)return o(g.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var o=this.tryEntries[n];if(o.tryLoc<=this.prev&&r.call(o,"finallyLoc")&&this.prev<o.finallyLoc){var i=o;break}}i&&("break"===t||"continue"===t)&&i.tryLoc<=e&&e<=i.finallyLoc&&(i=null);var g=i?i.completion:{};return g.type=t,g.arg=e,i?(this.method="next",this.next=i.finallyLoc,h):this.complete(g)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),h},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),x(n),h}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var o=r.arg;x(n)}return o}}throw new Error("illegal catch attempt")},delegateYield:function(t,n,r){return this.delegate={iterator:N(t),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=e),h}},t}(t.exports);try{regeneratorRuntime=e}catch(t){Function("r","regeneratorRuntime = r")(e)}})),u=g((function(t){var e=Object.prototype.hasOwnProperty,n="~";function r(){}function o(t,e,n){this.fn=t,this.context=e,this.once=n||!1}function i(t,e,r,i,g){if("function"!=typeof r)throw new TypeError("The listener must be a function");var c=new o(r,i||t,g),a=n?n+e:e;return t._events[a]?t._events[a].fn?t._events[a]=[t._events[a],c]:t._events[a].push(c):(t._events[a]=c,t._eventsCount++),t}function g(t,e){0==--t._eventsCount?t._events=new r:delete t._events[e]}function c(){this._events=new r,this._eventsCount=0}Object.create&&(r.prototype=Object.create(null),(new r).__proto__||(n=!1)),c.prototype.eventNames=function(){var t,r,o=[];if(0===this._eventsCount)return o;for(r in t=this._events)e.call(t,r)&&o.push(n?r.slice(1):r);return Object.getOwnPropertySymbols?o.concat(Object.getOwnPropertySymbols(t)):o},c.prototype.listeners=function(t){var e=n?n+t:t,r=this._events[e];if(!r)return[];if(r.fn)return[r.fn];for(var o=0,i=r.length,g=new Array(i);o<i;o++)g[o]=r[o].fn;return g},c.prototype.listenerCount=function(t){var e=n?n+t:t,r=this._events[e];return r?r.fn?1:r.length:0},c.prototype.emit=function(t,e,r,o,i,g){var c=n?n+t:t;if(!this._events[c])return!1;var a,u,I=this._events[c],C=arguments.length;if(I.fn){switch(I.once&&this.removeListener(t,I.fn,void 0,!0),C){case 1:return I.fn.call(I.context),!0;case 2:return I.fn.call(I.context,e),!0;case 3:return I.fn.call(I.context,e,r),!0;case 4:return I.fn.call(I.context,e,r,o),!0;case 5:return I.fn.call(I.context,e,r,o,i),!0;case 6:return I.fn.call(I.context,e,r,o,i,g),!0}for(u=1,a=new Array(C-1);u<C;u++)a[u-1]=arguments[u];I.fn.apply(I.context,a)}else{var A,l=I.length;for(u=0;u<l;u++)switch(I[u].once&&this.removeListener(t,I[u].fn,void 0,!0),C){case 1:I[u].fn.call(I[u].context);break;case 2:I[u].fn.call(I[u].context,e);break;case 3:I[u].fn.call(I[u].context,e,r);break;case 4:I[u].fn.call(I[u].context,e,r,o);break;default:if(!a)for(A=1,a=new Array(C-1);A<C;A++)a[A-1]=arguments[A];I[u].fn.apply(I[u].context,a)}}return!0},c.prototype.on=function(t,e,n){return i(this,t,e,n,!1)},c.prototype.once=function(t,e,n){return i(this,t,e,n,!0)},c.prototype.removeListener=function(t,e,r,o){var i=n?n+t:t;if(!this._events[i])return this;if(!e)return g(this,i),this;var c=this._events[i];if(c.fn)c.fn!==e||o&&!c.once||r&&c.context!==r||g(this,i);else{for(var a=0,u=[],I=c.length;a<I;a++)(c[a].fn!==e||o&&!c[a].once||r&&c[a].context!==r)&&u.push(c[a]);u.length?this._events[i]=1===u.length?u[0]:u:g(this,i)}return this},c.prototype.removeAllListeners=function(t){var e;return t?(e=n?n+t:t,this._events[e]&&g(this,e)):(this._events=new r,this._eventsCount=0),this},c.prototype.off=c.prototype.removeListener,c.prototype.addListener=c.prototype.on,c.prefixed=n,c.EventEmitter=c,t.exports=c}));return function(){if("nodejs"!=("undefined"!=typeof window&&void 0!==window.document?"browser":"nodejs"))return null;function e(){return new u}function r(){var t,e,n=new Promise((function(){t=arguments[0],e=arguments[1]}));return n.resolve=t,n.reject=e,n}function i(){for(var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:10,e=[],n="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(""),r=n.length,o=0;o<t;o++)e[o]=n[0|Math.random()*r];return e.join("")}var g,I=(g="CgogICAgICAgIGxldCB7IHBhcmVudFBvcnQgfSA9IHJlcXVpcmUoJ3dvcmtlcl90aHJlYWRzJykKICAgICAgICAKCmFzeW5jIGZ1bmN0aW9uIGdXb3JrZXIzX0Z1bihuLHQpe3JldHVybiJwMToiK24rIiwgcDI6Iit0fQoKbGV0IGluc3RhbmNlID0gbnVsbApmdW5jdGlvbiBpbml0KGlucHV0KXsKCiAgICAvL2luaXQKICAgIGxldCByCiAgICAKICAgICAgICByID0gewogICAgICAgICAgICBtYWluOiBnV29ya2VyM19GdW4KICAgICAgICB9CiAgICAgICAgCgogICAgLy9vbgogICAgCgogICAgLy9zYXZlCiAgICBpbnN0YW5jZSA9IHIKCn0KCmZ1bmN0aW9uIHNlbmRNZXNzYWdlKGRhdGEpIHsKICAgIAogICAgICAgIHBhcmVudFBvcnQucG9zdE1lc3NhZ2UoZGF0YSkKICAgICAgICAKfQoKYXN5bmMgZnVuY3Rpb24gcnVuKGRhdGEpIHsKICAgIC8vIGNvbnNvbGUubG9nKCdpbm5lciB3b3JrZXIgcnVuJyxkYXRhKQoKICAgIC8vbW9kZQogICAgbGV0IG1vZGUgPSBkYXRhLm1vZGUKCiAgICAvL2NoZWNrCiAgICBpZihtb2RlICE9PSAnaW5pdCcgJiYgbW9kZSAhPT0gJ2NhbGwnKXsKICAgICAgICByZXR1cm4KICAgIH0KCiAgICAvL2luaXQKICAgIGlmKG1vZGUgPT09ICdpbml0Jyl7CiAgICAgICAgCiAgICAgICAgdHJ5ewoKICAgICAgICAgICAgLy90eXBlCiAgICAgICAgICAgIGxldCB0eXBlID0gZGF0YS50eXBlCgogICAgICAgICAgICAvL2lucHV0CiAgICAgICAgICAgIGxldCBpbnB1dCA9IGRhdGEuaW5wdXQKICAgIAogICAgICAgICAgICAvL2luc3RhbmNlCiAgICAgICAgICAgIGlmKHR5cGUgPT09ICdmdW5jdGlvbicpewogICAgICAgICAgICAgICAgaW5pdCguLi5pbnB1dCkKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlIGlmKHR5cGUgPT09ICdvYmplY3QnKXsKICAgICAgICAgICAgICAgIGluc3RhbmNlID0gZ1dvcmtlcjNfRnVuCiAgICAgICAgICAgIH0KCiAgICAgICAgfQogICAgICAgIGNhdGNoKGVycil7CiAgICAgICAgCiAgICAgICAgICAgIC8vc2VuZE1lc3NhZ2UKICAgICAgICAgICAgbGV0IHJlcyA9IHsKICAgICAgICAgICAgICAgIG1vZGU6ICdlbWl0JywKICAgICAgICAgICAgICAgIGV2TmFtZTogJ2Vycm9yJywKICAgICAgICAgICAgICAgIG1zZzogZXJyLAogICAgICAgICAgICB9CiAgICAgICAgICAgIHNlbmRNZXNzYWdlKHJlcykKCiAgICAgICAgfQogICAgICAgICAgICAKICAgIH0KCiAgICAvL2NoZWNrCiAgICBpZihtb2RlID09PSAnY2FsbCcpewogICAgICAgIGxldCBzdGF0ZSA9ICcnCiAgICAgICAgbGV0IG1zZyA9IG51bGwKCiAgICAgICAgdHJ5ewoKICAgICAgICAgICAgLy9mdW4KICAgICAgICAgICAgbGV0IGZ1biA9IGluc3RhbmNlW2RhdGEuZnVuXQoKICAgICAgICAgICAgLy9pbnB1dAogICAgICAgICAgICBsZXQgaW5wdXQgPSBkYXRhLmlucHV0CgogICAgICAgICAgICAvL2V4ZWMKICAgICAgICAgICAgYXdhaXQgZnVuKC4uLmlucHV0KQogICAgICAgICAgICAgICAgLnRoZW4oKHN1YykgPT4gewogICAgICAgICAgICAgICAgICAgIHN0YXRlPSdzdWNjZXNzJwogICAgICAgICAgICAgICAgICAgIG1zZz1zdWMKICAgICAgICAgICAgICAgIH0pCiAgICAgICAgICAgICAgICAuY2F0Y2goKGVycikgPT4gewogICAgICAgICAgICAgICAgICAgIHN0YXRlPSdlcnJvcicKICAgICAgICAgICAgICAgICAgICBtc2c9ZXJyCiAgICAgICAgICAgICAgICB9KQoKICAgICAgICB9CiAgICAgICAgY2F0Y2goZXJyKXsKICAgICAgICAgICAgc3RhdGUgPSAnZXJyb3InCiAgICAgICAgICAgIG1zZyA9IGVycgogICAgICAgIH0KICAgICAgICAKICAgICAgICAvL3NlbmRNZXNzYWdlCiAgICAgICAgbGV0IHJlcyA9IHsKICAgICAgICAgICAgbW9kZTogJ3JldHVybicsCiAgICAgICAgICAgIGlkOiBkYXRhLmlkLAogICAgICAgICAgICBmdW46IGRhdGEuZnVuLAogICAgICAgICAgICBzdGF0ZSwKICAgICAgICAgICAgbXNnLAogICAgICAgIH0KICAgICAgICBzZW5kTWVzc2FnZShyZXMpCgogICAgfQoKfQoKZnVuY3Rpb24gcmVjdk1lc3NhZ2UoZGF0YSkgewogICAgLy8gY29uc29sZS5sb2coJ2lubmVyIHdvcmtlciByZWN2OicsIGRhdGEpCgogICAgLy9kYXRhUmVjdgogICAgbGV0IGRhdGFSZWN2ID0gZGF0YQoKICAgIC8vcnVuCiAgICBydW4oZGF0YVJlY3YpCgp9CgoKICAgICAgICBwYXJlbnRQb3J0Lm9uKCdtZXNzYWdlJywgcmVjdk1lc3NhZ2UpCiAgICAgICAgCgo=",Buffer.from(g,"base64").toString("ascii"));function C(){var n=e();function o(e){try{return new t.Worker(e,{eval:!0})}catch(t){A(t)}}var g=o(I);if(!g)return A("invalid worker"),null;function c(){g?(g.terminate(),g=void 0):A("worker has been terminated")}function a(){var t={mode:"init",type:"function",input:Array.prototype.slice.call(arguments)};g.postMessage(t)}function u(){var t=r(),e=i(),o={mode:"call",id:e,fun:"main",input:Array.prototype.slice.call(arguments)};return g.postMessage(o),n.once(e,(function(e){"success"===e.state?t.resolve(e.msg):t.reject(e.msg)})),t}function C(t){var e=t,r=e.mode;"emit"!==r&&"return"!==r||("emit"===r&&n.emit(e.evName,e.msg),"return"===r&&n.emit(e.id,e))}function A(t){n.emit("error",t)}return g.on("message",C),g.on("error",A),a(Array.prototype.slice.call(arguments)),n.main=u,n.main=u,n.terminate=c,n}c=function(){var t,e=(t=a.mark((function t(){var e,r,o,i=arguments;return a.wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return e=Array.prototype.slice.call(i),r=C(),t.next=4,r.main.apply(r,n(e)).finally((function(){r.terminate()}));case 4:return o=t.sent,t.abrupt("return",o);case 6:case"end":return t.stop()}}),t)})),function(){var e=this,n=arguments;return new Promise((function(r,i){var g=t.apply(e,n);function c(t){o(g,r,i,c,a,"next",t)}function a(t){o(g,r,i,c,a,"throw",t)}c(void 0)}))});return function(){return e.apply(this,arguments)}}()}(),c}(n.default)})),g=o((function(t,e){t.exports=function(){function t(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,r=new Array(e);n<e;n++)r[n]=t[n];return r}function e(e){return function(e){if(Array.isArray(e))return t(e)}(e)||function(t){if("undefined"!=typeof Symbol&&null!=t[Symbol.iterator]||null!=t["@@iterator"])return Array.from(t)}(e)||function(e,n){if(e){if("string"==typeof e)return t(e,n);var r=Object.prototype.toString.call(e).slice(8,-1);return"Object"===r&&e.constructor&&(r=e.constructor.name),"Map"===r||"Set"===r?Array.from(e):"Arguments"===r||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(r)?t(e,n):void 0}}(e)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function n(t,e,n,r,o,i,g){try{var c=t[i](g),a=c.value}catch(t){return void n(t)}c.done?e(a):Promise.resolve(a).then(r,o)}function o(t){return(o="function"==typeof Symbol&&"symbol"==r(Symbol.iterator)?function(t){return r(t)}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":r(t)})(t)}function i(t){var e={exports:{}};return t(e,e.exports),e.exports}var g,c=i((function(t){var e=function(t){var e,n=Object.prototype,r=n.hasOwnProperty,i="function"==typeof Symbol?Symbol:{},g=i.iterator||"@@iterator",c=i.asyncIterator||"@@asyncIterator",a=i.toStringTag||"@@toStringTag";function u(t,e,n){return Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{u({},"")}catch(t){u=function(t,e,n){return t[e]=n}}function I(t,e,n,r){var o=e&&e.prototype instanceof p?e:p,i=Object.create(o.prototype),g=new Y(r||[]);return i._invoke=function(t,e,n){var r=A;return function(o,i){if(r===s)throw new Error("Generator is already running");if(r===f){if("throw"===o)throw i;return X()}for(n.method=o,n.arg=i;;){var g=n.delegate;if(g){var c=Z(g,n);if(c){if(c===h)continue;return c}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(r===A)throw r=f,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);r=s;var a=C(t,e,n);if("normal"===a.type){if(r=n.done?f:l,a.arg===h)continue;return{value:a.arg,done:n.done}}"throw"===a.type&&(r=f,n.method="throw",n.arg=a.arg)}}}(t,n,g),i}function C(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}t.wrap=I;var A="suspendedStart",l="suspendedYield",s="executing",f="completed",h={};function p(){}function y(){}function v(){}var d={};d[g]=function(){return this};var m=Object.getPrototypeOf,b=m&&m(m(N([])));b&&b!==n&&r.call(b,g)&&(d=b);var w=v.prototype=p.prototype=Object.create(d);function G(t){["next","throw","return"].forEach((function(e){u(t,e,(function(t){return this._invoke(e,t)}))}))}function K(t,e){function n(i,g,c,a){var u=C(t[i],t,g);if("throw"!==u.type){var I=u.arg,A=I.value;return A&&"object"===o(A)&&r.call(A,"__await")?e.resolve(A.__await).then((function(t){n("next",t,c,a)}),(function(t){n("throw",t,c,a)})):e.resolve(A).then((function(t){I.value=t,c(I)}),(function(t){return n("throw",t,c,a)}))}a(u.arg)}var i;this._invoke=function(t,r){function o(){return new e((function(e,o){n(t,r,e,o)}))}return i=i?i.then(o,o):o()}}function Z(t,n){var r=t.iterator[n.method];if(r===e){if(n.delegate=null,"throw"===n.method){if(t.iterator.return&&(n.method="return",n.arg=e,Z(t,n),"throw"===n.method))return h;n.method="throw",n.arg=new TypeError("The iterator does not provide a 'throw' method")}return h}var o=C(r,t.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,h;var i=o.arg;return i?i.done?(n[t.resultName]=i.value,n.next=t.nextLoc,"return"!==n.method&&(n.method="next",n.arg=e),n.delegate=null,h):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,h)}function L(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function x(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function Y(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(L,this),this.reset(!0)}function N(t){if(t){var n=t[g];if(n)return n.call(t);if("function"==typeof t.next)return t;if(!isNaN(t.length)){var o=-1,i=function n(){for(;++o<t.length;)if(r.call(t,o))return n.value=t[o],n.done=!1,n;return n.value=e,n.done=!0,n};return i.next=i}}return{next:X}}function X(){return{value:e,done:!0}}return y.prototype=w.constructor=v,v.constructor=y,y.displayName=u(v,a,"GeneratorFunction"),t.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===y||"GeneratorFunction"===(e.displayName||e.name))},t.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,v):(t.__proto__=v,u(t,a,"GeneratorFunction")),t.prototype=Object.create(w),t},t.awrap=function(t){return{__await:t}},G(K.prototype),K.prototype[c]=function(){return this},t.AsyncIterator=K,t.async=function(e,n,r,o,i){void 0===i&&(i=Promise);var g=new K(I(e,n,r,o),i);return t.isGeneratorFunction(n)?g:g.next().then((function(t){return t.done?t.value:g.next()}))},G(w),u(w,a,"Generator"),w[g]=function(){return this},w.toString=function(){return"[object Generator]"},t.keys=function(t){var e=[];for(var n in t)e.push(n);return e.reverse(),function n(){for(;e.length;){var r=e.pop();if(r in t)return n.value=r,n.done=!1,n}return n.done=!0,n}},t.values=N,Y.prototype={constructor:Y,reset:function(t){if(this.prev=0,this.next=0,this.sent=this._sent=e,this.done=!1,this.delegate=null,this.method="next",this.arg=e,this.tryEntries.forEach(x),!t)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=e)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(t){if(this.done)throw t;var n=this;function o(r,o){return c.type="throw",c.arg=t,n.next=r,o&&(n.method="next",n.arg=e),!!o}for(var i=this.tryEntries.length-1;i>=0;--i){var g=this.tryEntries[i],c=g.completion;if("root"===g.tryLoc)return o("end");if(g.tryLoc<=this.prev){var a=r.call(g,"catchLoc"),u=r.call(g,"finallyLoc");if(a&&u){if(this.prev<g.catchLoc)return o(g.catchLoc,!0);if(this.prev<g.finallyLoc)return o(g.finallyLoc)}else if(a){if(this.prev<g.catchLoc)return o(g.catchLoc,!0)}else{if(!u)throw new Error("try statement without catch or finally");if(this.prev<g.finallyLoc)return o(g.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var o=this.tryEntries[n];if(o.tryLoc<=this.prev&&r.call(o,"finallyLoc")&&this.prev<o.finallyLoc){var i=o;break}}i&&("break"===t||"continue"===t)&&i.tryLoc<=e&&e<=i.finallyLoc&&(i=null);var g=i?i.completion:{};return g.type=t,g.arg=e,i?(this.method="next",this.next=i.finallyLoc,h):this.complete(g)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),h},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),x(n),h}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var o=r.arg;x(n)}return o}}throw new Error("illegal catch attempt")},delegateYield:function(t,n,r){return this.delegate={iterator:N(t),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=e),h}},t}(t.exports);try{regeneratorRuntime=e}catch(t){Function("r","regeneratorRuntime = r")(e)}})),a=i((function(t){var e=Object.prototype.hasOwnProperty,n="~";function r(){}function o(t,e,n){this.fn=t,this.context=e,this.once=n||!1}function i(t,e,r,i,g){if("function"!=typeof r)throw new TypeError("The listener must be a function");var c=new o(r,i||t,g),a=n?n+e:e;return t._events[a]?t._events[a].fn?t._events[a]=[t._events[a],c]:t._events[a].push(c):(t._events[a]=c,t._eventsCount++),t}function g(t,e){0==--t._eventsCount?t._events=new r:delete t._events[e]}function c(){this._events=new r,this._eventsCount=0}Object.create&&(r.prototype=Object.create(null),(new r).__proto__||(n=!1)),c.prototype.eventNames=function(){var t,r,o=[];if(0===this._eventsCount)return o;for(r in t=this._events)e.call(t,r)&&o.push(n?r.slice(1):r);return Object.getOwnPropertySymbols?o.concat(Object.getOwnPropertySymbols(t)):o},c.prototype.listeners=function(t){var e=n?n+t:t,r=this._events[e];if(!r)return[];if(r.fn)return[r.fn];for(var o=0,i=r.length,g=new Array(i);o<i;o++)g[o]=r[o].fn;return g},c.prototype.listenerCount=function(t){var e=n?n+t:t,r=this._events[e];return r?r.fn?1:r.length:0},c.prototype.emit=function(t,e,r,o,i,g){var c=n?n+t:t;if(!this._events[c])return!1;var a,u,I=this._events[c],C=arguments.length;if(I.fn){switch(I.once&&this.removeListener(t,I.fn,void 0,!0),C){case 1:return I.fn.call(I.context),!0;case 2:return I.fn.call(I.context,e),!0;case 3:return I.fn.call(I.context,e,r),!0;case 4:return I.fn.call(I.context,e,r,o),!0;case 5:return I.fn.call(I.context,e,r,o,i),!0;case 6:return I.fn.call(I.context,e,r,o,i,g),!0}for(u=1,a=new Array(C-1);u<C;u++)a[u-1]=arguments[u];I.fn.apply(I.context,a)}else{var A,l=I.length;for(u=0;u<l;u++)switch(I[u].once&&this.removeListener(t,I[u].fn,void 0,!0),C){case 1:I[u].fn.call(I[u].context);break;case 2:I[u].fn.call(I[u].context,e);break;case 3:I[u].fn.call(I[u].context,e,r);break;case 4:I[u].fn.call(I[u].context,e,r,o);break;default:if(!a)for(A=1,a=new Array(C-1);A<C;A++)a[A-1]=arguments[A];I[u].fn.apply(I[u].context,a)}}return!0},c.prototype.on=function(t,e,n){return i(this,t,e,n,!1)},c.prototype.once=function(t,e,n){return i(this,t,e,n,!0)},c.prototype.removeListener=function(t,e,r,o){var i=n?n+t:t;if(!this._events[i])return this;if(!e)return g(this,i),this;var c=this._events[i];if(c.fn)c.fn!==e||o&&!c.once||r&&c.context!==r||g(this,i);else{for(var a=0,u=[],I=c.length;a<I;a++)(c[a].fn!==e||o&&!c[a].once||r&&c[a].context!==r)&&u.push(c[a]);u.length?this._events[i]=1===u.length?u[0]:u:g(this,i)}return this},c.prototype.removeAllListeners=function(t){var e;return t?(e=n?n+t:t,this._events[e]&&g(this,e)):(this._events=new r,this._eventsCount=0),this},c.prototype.off=c.prototype.removeListener,c.prototype.addListener=c.prototype.on,c.prefixed=n,c.EventEmitter=c,t.exports=c}));return function(){if("browser"!=("undefined"!=typeof window&&void 0!==window.document?"browser":"nodejs"))return null;function t(){return new a}function r(){var t,e,n=new Promise((function(){t=arguments[0],e=arguments[1]}));return n.resolve=t,n.reject=e,n}function o(){for(var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:10,e=[],n="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(""),r=n.length,o=0;o<t;o++)e[o]=n[0|Math.random()*r];return e.join("")}var i,u=(i="CnVuZGVmaW5lZAoKYXN5bmMgZnVuY3Rpb24gZ1dvcmtlcjNfRnVuKG4sdCl7cmV0dXJuInAxOiIrbisiLCBwMjoiK3R9CgpsZXQgaW5zdGFuY2UgPSBudWxsCmZ1bmN0aW9uIGluaXQoaW5wdXQpewoKICAgIC8vaW5pdAogICAgbGV0IHIKICAgIAogICAgICAgIHIgPSB7CiAgICAgICAgICAgIG1haW46IGdXb3JrZXIzX0Z1bgogICAgICAgIH0KICAgICAgICAKCiAgICAvL29uCiAgICAKCiAgICAvL3NhdmUKICAgIGluc3RhbmNlID0gcgoKfQoKZnVuY3Rpb24gc2VuZE1lc3NhZ2UoZGF0YSkgewogICAgCiAgICAgICAgc2VsZi5wb3N0TWVzc2FnZShkYXRhKQogICAgICAgIAp9Cgphc3luYyBmdW5jdGlvbiBydW4oZGF0YSkgewogICAgLy8gY29uc29sZS5sb2coJ2lubmVyIHdvcmtlciBydW4nLGRhdGEpCgogICAgLy9tb2RlCiAgICBsZXQgbW9kZSA9IGRhdGEubW9kZQoKICAgIC8vY2hlY2sKICAgIGlmKG1vZGUgIT09ICdpbml0JyAmJiBtb2RlICE9PSAnY2FsbCcpewogICAgICAgIHJldHVybgogICAgfQoKICAgIC8vaW5pdAogICAgaWYobW9kZSA9PT0gJ2luaXQnKXsKICAgICAgICAKICAgICAgICB0cnl7CgogICAgICAgICAgICAvL3R5cGUKICAgICAgICAgICAgbGV0IHR5cGUgPSBkYXRhLnR5cGUKCiAgICAgICAgICAgIC8vaW5wdXQKICAgICAgICAgICAgbGV0IGlucHV0ID0gZGF0YS5pbnB1dAogICAgCiAgICAgICAgICAgIC8vaW5zdGFuY2UKICAgICAgICAgICAgaWYodHlwZSA9PT0gJ2Z1bmN0aW9uJyl7CiAgICAgICAgICAgICAgICBpbml0KC4uLmlucHV0KQogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsc2UgaWYodHlwZSA9PT0gJ29iamVjdCcpewogICAgICAgICAgICAgICAgaW5zdGFuY2UgPSBnV29ya2VyM19GdW4KICAgICAgICAgICAgfQoKICAgICAgICB9CiAgICAgICAgY2F0Y2goZXJyKXsKICAgICAgICAKICAgICAgICAgICAgLy9zZW5kTWVzc2FnZQogICAgICAgICAgICBsZXQgcmVzID0gewogICAgICAgICAgICAgICAgbW9kZTogJ2VtaXQnLAogICAgICAgICAgICAgICAgZXZOYW1lOiAnZXJyb3InLAogICAgICAgICAgICAgICAgbXNnOiBlcnIsCiAgICAgICAgICAgIH0KICAgICAgICAgICAgc2VuZE1lc3NhZ2UocmVzKQoKICAgICAgICB9CiAgICAgICAgICAgIAogICAgfQoKICAgIC8vY2hlY2sKICAgIGlmKG1vZGUgPT09ICdjYWxsJyl7CiAgICAgICAgbGV0IHN0YXRlID0gJycKICAgICAgICBsZXQgbXNnID0gbnVsbAoKICAgICAgICB0cnl7CgogICAgICAgICAgICAvL2Z1bgogICAgICAgICAgICBsZXQgZnVuID0gaW5zdGFuY2VbZGF0YS5mdW5dCgogICAgICAgICAgICAvL2lucHV0CiAgICAgICAgICAgIGxldCBpbnB1dCA9IGRhdGEuaW5wdXQKCiAgICAgICAgICAgIC8vZXhlYwogICAgICAgICAgICBhd2FpdCBmdW4oLi4uaW5wdXQpCiAgICAgICAgICAgICAgICAudGhlbigoc3VjKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgc3RhdGU9J3N1Y2Nlc3MnCiAgICAgICAgICAgICAgICAgICAgbXNnPXN1YwogICAgICAgICAgICAgICAgfSkKICAgICAgICAgICAgICAgIC5jYXRjaCgoZXJyKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgc3RhdGU9J2Vycm9yJwogICAgICAgICAgICAgICAgICAgIG1zZz1lcnIKICAgICAgICAgICAgICAgIH0pCgogICAgICAgIH0KICAgICAgICBjYXRjaChlcnIpewogICAgICAgICAgICBzdGF0ZSA9ICdlcnJvcicKICAgICAgICAgICAgbXNnID0gZXJyCiAgICAgICAgfQogICAgICAgIAogICAgICAgIC8vc2VuZE1lc3NhZ2UKICAgICAgICBsZXQgcmVzID0gewogICAgICAgICAgICBtb2RlOiAncmV0dXJuJywKICAgICAgICAgICAgaWQ6IGRhdGEuaWQsCiAgICAgICAgICAgIGZ1bjogZGF0YS5mdW4sCiAgICAgICAgICAgIHN0YXRlLAogICAgICAgICAgICBtc2csCiAgICAgICAgfQogICAgICAgIHNlbmRNZXNzYWdlKHJlcykKCiAgICB9Cgp9CgpmdW5jdGlvbiByZWN2TWVzc2FnZShkYXRhKSB7CiAgICAvLyBjb25zb2xlLmxvZygnaW5uZXIgd29ya2VyIHJlY3Y6JywgZGF0YSkKCiAgICAvL2RhdGFSZWN2CiAgICBsZXQgZGF0YVJlY3YgPSBkYXRhCgogICAgLy9ydW4KICAgIHJ1bihkYXRhUmVjdikKCn0KCgogICAgICAgIHNlbGYub25tZXNzYWdlID0gZnVuY3Rpb24gKGUpIHsKICAgICAgICAgICAgcmVjdk1lc3NhZ2UoZS5kYXRhKQogICAgICAgIH0KICAgICAgICAKCg==",window.atob(i));function I(){var e=t();function n(t){try{var e=new Blob([t]),n=window.URL||window.webkitURL;return new Worker(n.createObjectURL(e))}catch(t){C(t)}}var i=n(u);if(!i)return C("invalid worker"),null;function g(){i?(i.terminate(),i=void 0):C("worker has been terminated")}function c(){var t={mode:"init",type:"function",input:Array.prototype.slice.call(arguments)};i.postMessage(t)}function a(){var t=r(),n=o(),g={mode:"call",id:n,fun:"main",input:Array.prototype.slice.call(arguments)};return i.postMessage(g),e.once(n,(function(e){"success"===e.state?t.resolve(e.msg):t.reject(e.msg)})),t}function I(t){var n=t,r=n.mode;"emit"!==r&&"return"!==r||("emit"===r&&e.emit(n.evName,n.msg),"return"===r&&e.emit(n.id,n))}function C(t){e.emit("error",t)}return i.onmessage=function(t){I(t.data)},i.onerror=C,c(Array.prototype.slice.call(arguments)),e.main=a,e.main=a,e.terminate=g,e}g=function(){var t,r=(t=c.mark((function t(){var n,r,o,i=arguments;return c.wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return n=Array.prototype.slice.call(i),r=I(),t.next=4,r.main.apply(r,e(n)).finally((function(){r.terminate()}));case 4:return o=t.sent,t.abrupt("return",o);case 6:case"end":return t.stop()}}),t)})),function(){var e=this,r=arguments;return new Promise((function(o,i){var g=t.apply(e,r);function c(t){n(g,o,i,c,a,"next",t)}function a(t){n(g,o,i,c,a,"throw",t)}c(void 0)}))});return function(){return r.apply(this,arguments)}}()}(),g}()}));return"undefined"!=typeof window&&void 0!==window.document?g:i}));
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('worker_threads')) :
+	typeof define === 'function' && define.amd ? define(['worker_threads'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.gWorker3_Fun = factory(global.worker_threads));
+}(this, (function (require$$0) { 'use strict';
+
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+	var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
+
+	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+	function createCommonjsModule(fn) {
+	  var module = { exports: {} };
+		return fn(module, module.exports), module.exports;
+	}
+
+	var tempJJN6UxosVRHiu7TKPmcYCcQ7s3XqhgD0Nw = createCommonjsModule(function (module, exports) {
+	  (function (global, factory) {
+	    module.exports = factory(require$$0__default['default']) ;
+	  })(commonjsGlobal, function (worker_threads) {
+
+	    function _arrayLikeToArray(arr, len) {
+	      if (len == null || len > arr.length) len = arr.length;
+
+	      for (var i = 0, arr2 = new Array(len); i < len; i++) {
+	        arr2[i] = arr[i];
+	      }
+
+	      return arr2;
+	    }
+
+	    function _arrayWithoutHoles(arr) {
+	      if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+	    }
+
+	    function _iterableToArray(iter) {
+	      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+	    }
+
+	    function _unsupportedIterableToArray(o, minLen) {
+	      if (!o) return;
+	      if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+	      var n = Object.prototype.toString.call(o).slice(8, -1);
+	      if (n === "Object" && o.constructor) n = o.constructor.name;
+	      if (n === "Map" || n === "Set") return Array.from(o);
+	      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+	    }
+
+	    function _nonIterableSpread() {
+	      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+	    }
+
+	    function _toConsumableArray(arr) {
+	      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+	    }
+
+	    function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+	      try {
+	        var info = gen[key](arg);
+	        var value = info.value;
+	      } catch (error) {
+	        reject(error);
+	        return;
+	      }
+
+	      if (info.done) {
+	        resolve(value);
+	      } else {
+	        Promise.resolve(value).then(_next, _throw);
+	      }
+	    }
+
+	    function _asyncToGenerator(fn) {
+	      return function () {
+	        var self = this,
+	            args = arguments;
+	        return new Promise(function (resolve, reject) {
+	          var gen = fn.apply(self, args);
+
+	          function _next(value) {
+	            asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+	          }
+
+	          function _throw(err) {
+	            asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+	          }
+
+	          _next(undefined);
+	        });
+	      };
+	    }
+
+	    function _typeof(obj) {
+	      "@babel/helpers - typeof";
+
+	      if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+	        _typeof = function _typeof(obj) {
+	          return typeof obj;
+	        };
+	      } else {
+	        _typeof = function _typeof(obj) {
+	          return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+	        };
+	      }
+
+	      return _typeof(obj);
+	    }
+
+	    function createCommonjsModule(fn) {
+	      var module = {
+	        exports: {}
+	      };
+	      return fn(module, module.exports), module.exports;
+	    }
+
+	    var runtime_1 = createCommonjsModule(function (module) {
+	      var runtime = function (exports) {
+	        var Op = Object.prototype;
+	        var hasOwn = Op.hasOwnProperty;
+	        var undefined$1; // More compressible than void 0.
+
+	        var $Symbol = typeof Symbol === "function" ? Symbol : {};
+	        var iteratorSymbol = $Symbol.iterator || "@@iterator";
+	        var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+	        var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+	        function define(obj, key, value) {
+	          Object.defineProperty(obj, key, {
+	            value: value,
+	            enumerable: true,
+	            configurable: true,
+	            writable: true
+	          });
+	          return obj[key];
+	        }
+
+	        try {
+	          // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+	          define({}, "");
+	        } catch (err) {
+	          define = function define(obj, key, value) {
+	            return obj[key] = value;
+	          };
+	        }
+
+	        function wrap(innerFn, outerFn, self, tryLocsList) {
+	          // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+	          var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+	          var generator = Object.create(protoGenerator.prototype);
+	          var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
+	          // .throw, and .return methods.
+
+	          generator._invoke = makeInvokeMethod(innerFn, self, context);
+	          return generator;
+	        }
+
+	        exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
+	        // record like context.tryEntries[i].completion. This interface could
+	        // have been (and was previously) designed to take a closure to be
+	        // invoked without arguments, but in all the cases we care about we
+	        // already have an existing method we want to call, so there's no need
+	        // to create a new function object. We can even get away with assuming
+	        // the method takes exactly one argument, since that happens to be true
+	        // in every case, so we don't have to touch the arguments object. The
+	        // only additional allocation required is the completion record, which
+	        // has a stable shape and so hopefully should be cheap to allocate.
+
+	        function tryCatch(fn, obj, arg) {
+	          try {
+	            return {
+	              type: "normal",
+	              arg: fn.call(obj, arg)
+	            };
+	          } catch (err) {
+	            return {
+	              type: "throw",
+	              arg: err
+	            };
+	          }
+	        }
+
+	        var GenStateSuspendedStart = "suspendedStart";
+	        var GenStateSuspendedYield = "suspendedYield";
+	        var GenStateExecuting = "executing";
+	        var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
+	        // breaking out of the dispatch switch statement.
+
+	        var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
+	        // .constructor.prototype properties for functions that return Generator
+	        // objects. For full spec compliance, you may wish to configure your
+	        // minifier not to mangle the names of these two functions.
+
+	        function Generator() {}
+
+	        function GeneratorFunction() {}
+
+	        function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
+	        // don't natively support it.
+
+
+	        var IteratorPrototype = {};
+
+	        IteratorPrototype[iteratorSymbol] = function () {
+	          return this;
+	        };
+
+	        var getProto = Object.getPrototypeOf;
+	        var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+
+	        if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+	          // This environment has a native %IteratorPrototype%; use it instead
+	          // of the polyfill.
+	          IteratorPrototype = NativeIteratorPrototype;
+	        }
+
+	        var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+	        GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+	        GeneratorFunctionPrototype.constructor = GeneratorFunction;
+	        GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
+	        // Iterator interface in terms of a single ._invoke method.
+
+	        function defineIteratorMethods(prototype) {
+	          ["next", "throw", "return"].forEach(function (method) {
+	            define(prototype, method, function (arg) {
+	              return this._invoke(method, arg);
+	            });
+	          });
+	        }
+
+	        exports.isGeneratorFunction = function (genFun) {
+	          var ctor = typeof genFun === "function" && genFun.constructor;
+	          return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
+	          // do is to check its .name property.
+	          (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
+	        };
+
+	        exports.mark = function (genFun) {
+	          if (Object.setPrototypeOf) {
+	            Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+	          } else {
+	            genFun.__proto__ = GeneratorFunctionPrototype;
+	            define(genFun, toStringTagSymbol, "GeneratorFunction");
+	          }
+
+	          genFun.prototype = Object.create(Gp);
+	          return genFun;
+	        }; // Within the body of any async function, `await x` is transformed to
+	        // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+	        // `hasOwn.call(value, "__await")` to determine if the yielded value is
+	        // meant to be awaited.
+
+
+	        exports.awrap = function (arg) {
+	          return {
+	            __await: arg
+	          };
+	        };
+
+	        function AsyncIterator(generator, PromiseImpl) {
+	          function invoke(method, arg, resolve, reject) {
+	            var record = tryCatch(generator[method], generator, arg);
+
+	            if (record.type === "throw") {
+	              reject(record.arg);
+	            } else {
+	              var result = record.arg;
+	              var value = result.value;
+
+	              if (value && _typeof(value) === "object" && hasOwn.call(value, "__await")) {
+	                return PromiseImpl.resolve(value.__await).then(function (value) {
+	                  invoke("next", value, resolve, reject);
+	                }, function (err) {
+	                  invoke("throw", err, resolve, reject);
+	                });
+	              }
+
+	              return PromiseImpl.resolve(value).then(function (unwrapped) {
+	                // When a yielded Promise is resolved, its final value becomes
+	                // the .value of the Promise<{value,done}> result for the
+	                // current iteration.
+	                result.value = unwrapped;
+	                resolve(result);
+	              }, function (error) {
+	                // If a rejected Promise was yielded, throw the rejection back
+	                // into the async generator function so it can be handled there.
+	                return invoke("throw", error, resolve, reject);
+	              });
+	            }
+	          }
+
+	          var previousPromise;
+
+	          function enqueue(method, arg) {
+	            function callInvokeWithMethodAndArg() {
+	              return new PromiseImpl(function (resolve, reject) {
+	                invoke(method, arg, resolve, reject);
+	              });
+	            }
+
+	            return previousPromise = // If enqueue has been called before, then we want to wait until
+	            // all previous Promises have been resolved before calling invoke,
+	            // so that results are always delivered in the correct order. If
+	            // enqueue has not been called before, then it is important to
+	            // call invoke immediately, without waiting on a callback to fire,
+	            // so that the async generator function has the opportunity to do
+	            // any necessary setup in a predictable way. This predictability
+	            // is why the Promise constructor synchronously invokes its
+	            // executor callback, and why async functions synchronously
+	            // execute code before the first await. Since we implement simple
+	            // async functions in terms of async generators, it is especially
+	            // important to get this right, even though it requires care.
+	            previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
+	            // invocations of the iterator.
+	            callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+	          } // Define the unified helper method that is used to implement .next,
+	          // .throw, and .return (see defineIteratorMethods).
+
+
+	          this._invoke = enqueue;
+	        }
+
+	        defineIteratorMethods(AsyncIterator.prototype);
+
+	        AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+	          return this;
+	        };
+
+	        exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
+	        // AsyncIterator objects; they just return a Promise for the value of
+	        // the final result produced by the iterator.
+
+	        exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+	          if (PromiseImpl === void 0) PromiseImpl = Promise;
+	          var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+	          return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
+	          : iter.next().then(function (result) {
+	            return result.done ? result.value : iter.next();
+	          });
+	        };
+
+	        function makeInvokeMethod(innerFn, self, context) {
+	          var state = GenStateSuspendedStart;
+	          return function invoke(method, arg) {
+	            if (state === GenStateExecuting) {
+	              throw new Error("Generator is already running");
+	            }
+
+	            if (state === GenStateCompleted) {
+	              if (method === "throw") {
+	                throw arg;
+	              } // Be forgiving, per 25.3.3.3.3 of the spec:
+	              // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+
+
+	              return doneResult();
+	            }
+
+	            context.method = method;
+	            context.arg = arg;
+
+	            while (true) {
+	              var delegate = context.delegate;
+
+	              if (delegate) {
+	                var delegateResult = maybeInvokeDelegate(delegate, context);
+
+	                if (delegateResult) {
+	                  if (delegateResult === ContinueSentinel) continue;
+	                  return delegateResult;
+	                }
+	              }
+
+	              if (context.method === "next") {
+	                // Setting context._sent for legacy support of Babel's
+	                // function.sent implementation.
+	                context.sent = context._sent = context.arg;
+	              } else if (context.method === "throw") {
+	                if (state === GenStateSuspendedStart) {
+	                  state = GenStateCompleted;
+	                  throw context.arg;
+	                }
+
+	                context.dispatchException(context.arg);
+	              } else if (context.method === "return") {
+	                context.abrupt("return", context.arg);
+	              }
+
+	              state = GenStateExecuting;
+	              var record = tryCatch(innerFn, self, context);
+
+	              if (record.type === "normal") {
+	                // If an exception is thrown from innerFn, we leave state ===
+	                // GenStateExecuting and loop back for another invocation.
+	                state = context.done ? GenStateCompleted : GenStateSuspendedYield;
+
+	                if (record.arg === ContinueSentinel) {
+	                  continue;
+	                }
+
+	                return {
+	                  value: record.arg,
+	                  done: context.done
+	                };
+	              } else if (record.type === "throw") {
+	                state = GenStateCompleted; // Dispatch the exception by looping back around to the
+	                // context.dispatchException(context.arg) call above.
+
+	                context.method = "throw";
+	                context.arg = record.arg;
+	              }
+	            }
+	          };
+	        } // Call delegate.iterator[context.method](context.arg) and handle the
+	        // result, either by returning a { value, done } result from the
+	        // delegate iterator, or by modifying context.method and context.arg,
+	        // setting context.delegate to null, and returning the ContinueSentinel.
+
+
+	        function maybeInvokeDelegate(delegate, context) {
+	          var method = delegate.iterator[context.method];
+
+	          if (method === undefined$1) {
+	            // A .throw or .return when the delegate iterator has no .throw
+	            // method always terminates the yield* loop.
+	            context.delegate = null;
+
+	            if (context.method === "throw") {
+	              // Note: ["return"] must be used for ES3 parsing compatibility.
+	              if (delegate.iterator["return"]) {
+	                // If the delegate iterator has a return method, give it a
+	                // chance to clean up.
+	                context.method = "return";
+	                context.arg = undefined$1;
+	                maybeInvokeDelegate(delegate, context);
+
+	                if (context.method === "throw") {
+	                  // If maybeInvokeDelegate(context) changed context.method from
+	                  // "return" to "throw", let that override the TypeError below.
+	                  return ContinueSentinel;
+	                }
+	              }
+
+	              context.method = "throw";
+	              context.arg = new TypeError("The iterator does not provide a 'throw' method");
+	            }
+
+	            return ContinueSentinel;
+	          }
+
+	          var record = tryCatch(method, delegate.iterator, context.arg);
+
+	          if (record.type === "throw") {
+	            context.method = "throw";
+	            context.arg = record.arg;
+	            context.delegate = null;
+	            return ContinueSentinel;
+	          }
+
+	          var info = record.arg;
+
+	          if (!info) {
+	            context.method = "throw";
+	            context.arg = new TypeError("iterator result is not an object");
+	            context.delegate = null;
+	            return ContinueSentinel;
+	          }
+
+	          if (info.done) {
+	            // Assign the result of the finished delegate to the temporary
+	            // variable specified by delegate.resultName (see delegateYield).
+	            context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
+
+	            context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
+	            // exception, let the outer generator proceed normally. If
+	            // context.method was "next", forget context.arg since it has been
+	            // "consumed" by the delegate iterator. If context.method was
+	            // "return", allow the original .return call to continue in the
+	            // outer generator.
+
+	            if (context.method !== "return") {
+	              context.method = "next";
+	              context.arg = undefined$1;
+	            }
+	          } else {
+	            // Re-yield the result returned by the delegate method.
+	            return info;
+	          } // The delegate iterator is finished, so forget it and continue with
+	          // the outer generator.
+
+
+	          context.delegate = null;
+	          return ContinueSentinel;
+	        } // Define Generator.prototype.{next,throw,return} in terms of the
+	        // unified ._invoke helper method.
+
+
+	        defineIteratorMethods(Gp);
+	        define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
+	        // @@iterator function is called on it. Some browsers' implementations of the
+	        // iterator prototype chain incorrectly implement this, causing the Generator
+	        // object to not be returned from this call. This ensures that doesn't happen.
+	        // See https://github.com/facebook/regenerator/issues/274 for more details.
+
+	        Gp[iteratorSymbol] = function () {
+	          return this;
+	        };
+
+	        Gp.toString = function () {
+	          return "[object Generator]";
+	        };
+
+	        function pushTryEntry(locs) {
+	          var entry = {
+	            tryLoc: locs[0]
+	          };
+
+	          if (1 in locs) {
+	            entry.catchLoc = locs[1];
+	          }
+
+	          if (2 in locs) {
+	            entry.finallyLoc = locs[2];
+	            entry.afterLoc = locs[3];
+	          }
+
+	          this.tryEntries.push(entry);
+	        }
+
+	        function resetTryEntry(entry) {
+	          var record = entry.completion || {};
+	          record.type = "normal";
+	          delete record.arg;
+	          entry.completion = record;
+	        }
+
+	        function Context(tryLocsList) {
+	          // The root entry object (effectively a try statement without a catch
+	          // or a finally block) gives us a place to store values thrown from
+	          // locations where there is no enclosing try statement.
+	          this.tryEntries = [{
+	            tryLoc: "root"
+	          }];
+	          tryLocsList.forEach(pushTryEntry, this);
+	          this.reset(true);
+	        }
+
+	        exports.keys = function (object) {
+	          var keys = [];
+
+	          for (var key in object) {
+	            keys.push(key);
+	          }
+
+	          keys.reverse(); // Rather than returning an object with a next method, we keep
+	          // things simple and return the next function itself.
+
+	          return function next() {
+	            while (keys.length) {
+	              var key = keys.pop();
+
+	              if (key in object) {
+	                next.value = key;
+	                next.done = false;
+	                return next;
+	              }
+	            } // To avoid creating an additional object, we just hang the .value
+	            // and .done properties off the next function object itself. This
+	            // also ensures that the minifier will not anonymize the function.
+
+
+	            next.done = true;
+	            return next;
+	          };
+	        };
+
+	        function values(iterable) {
+	          if (iterable) {
+	            var iteratorMethod = iterable[iteratorSymbol];
+
+	            if (iteratorMethod) {
+	              return iteratorMethod.call(iterable);
+	            }
+
+	            if (typeof iterable.next === "function") {
+	              return iterable;
+	            }
+
+	            if (!isNaN(iterable.length)) {
+	              var i = -1,
+	                  next = function next() {
+	                while (++i < iterable.length) {
+	                  if (hasOwn.call(iterable, i)) {
+	                    next.value = iterable[i];
+	                    next.done = false;
+	                    return next;
+	                  }
+	                }
+
+	                next.value = undefined$1;
+	                next.done = true;
+	                return next;
+	              };
+
+	              return next.next = next;
+	            }
+	          } // Return an iterator with no values.
+
+
+	          return {
+	            next: doneResult
+	          };
+	        }
+
+	        exports.values = values;
+
+	        function doneResult() {
+	          return {
+	            value: undefined$1,
+	            done: true
+	          };
+	        }
+
+	        Context.prototype = {
+	          constructor: Context,
+	          reset: function reset(skipTempReset) {
+	            this.prev = 0;
+	            this.next = 0; // Resetting context._sent for legacy support of Babel's
+	            // function.sent implementation.
+
+	            this.sent = this._sent = undefined$1;
+	            this.done = false;
+	            this.delegate = null;
+	            this.method = "next";
+	            this.arg = undefined$1;
+	            this.tryEntries.forEach(resetTryEntry);
+
+	            if (!skipTempReset) {
+	              for (var name in this) {
+	                // Not sure about the optimal order of these conditions:
+	                if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
+	                  this[name] = undefined$1;
+	                }
+	              }
+	            }
+	          },
+	          stop: function stop() {
+	            this.done = true;
+	            var rootEntry = this.tryEntries[0];
+	            var rootRecord = rootEntry.completion;
+
+	            if (rootRecord.type === "throw") {
+	              throw rootRecord.arg;
+	            }
+
+	            return this.rval;
+	          },
+	          dispatchException: function dispatchException(exception) {
+	            if (this.done) {
+	              throw exception;
+	            }
+
+	            var context = this;
+
+	            function handle(loc, caught) {
+	              record.type = "throw";
+	              record.arg = exception;
+	              context.next = loc;
+
+	              if (caught) {
+	                // If the dispatched exception was caught by a catch block,
+	                // then let that catch block handle the exception normally.
+	                context.method = "next";
+	                context.arg = undefined$1;
+	              }
+
+	              return !!caught;
+	            }
+
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+	              var record = entry.completion;
+
+	              if (entry.tryLoc === "root") {
+	                // Exception thrown outside of any try block that could handle
+	                // it, so set the completion value of the entire function to
+	                // throw the exception.
+	                return handle("end");
+	              }
+
+	              if (entry.tryLoc <= this.prev) {
+	                var hasCatch = hasOwn.call(entry, "catchLoc");
+	                var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+	                if (hasCatch && hasFinally) {
+	                  if (this.prev < entry.catchLoc) {
+	                    return handle(entry.catchLoc, true);
+	                  } else if (this.prev < entry.finallyLoc) {
+	                    return handle(entry.finallyLoc);
+	                  }
+	                } else if (hasCatch) {
+	                  if (this.prev < entry.catchLoc) {
+	                    return handle(entry.catchLoc, true);
+	                  }
+	                } else if (hasFinally) {
+	                  if (this.prev < entry.finallyLoc) {
+	                    return handle(entry.finallyLoc);
+	                  }
+	                } else {
+	                  throw new Error("try statement without catch or finally");
+	                }
+	              }
+	            }
+	          },
+	          abrupt: function abrupt(type, arg) {
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+
+	              if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+	                var finallyEntry = entry;
+	                break;
+	              }
+	            }
+
+	            if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
+	              // Ignore the finally entry if control is not jumping to a
+	              // location outside the try/catch block.
+	              finallyEntry = null;
+	            }
+
+	            var record = finallyEntry ? finallyEntry.completion : {};
+	            record.type = type;
+	            record.arg = arg;
+
+	            if (finallyEntry) {
+	              this.method = "next";
+	              this.next = finallyEntry.finallyLoc;
+	              return ContinueSentinel;
+	            }
+
+	            return this.complete(record);
+	          },
+	          complete: function complete(record, afterLoc) {
+	            if (record.type === "throw") {
+	              throw record.arg;
+	            }
+
+	            if (record.type === "break" || record.type === "continue") {
+	              this.next = record.arg;
+	            } else if (record.type === "return") {
+	              this.rval = this.arg = record.arg;
+	              this.method = "return";
+	              this.next = "end";
+	            } else if (record.type === "normal" && afterLoc) {
+	              this.next = afterLoc;
+	            }
+
+	            return ContinueSentinel;
+	          },
+	          finish: function finish(finallyLoc) {
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+
+	              if (entry.finallyLoc === finallyLoc) {
+	                this.complete(entry.completion, entry.afterLoc);
+	                resetTryEntry(entry);
+	                return ContinueSentinel;
+	              }
+	            }
+	          },
+	          "catch": function _catch(tryLoc) {
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+
+	              if (entry.tryLoc === tryLoc) {
+	                var record = entry.completion;
+
+	                if (record.type === "throw") {
+	                  var thrown = record.arg;
+	                  resetTryEntry(entry);
+	                }
+
+	                return thrown;
+	              }
+	            } // The context.catch method must only be called with a location
+	            // argument that corresponds to a known catch block.
+
+
+	            throw new Error("illegal catch attempt");
+	          },
+	          delegateYield: function delegateYield(iterable, resultName, nextLoc) {
+	            this.delegate = {
+	              iterator: values(iterable),
+	              resultName: resultName,
+	              nextLoc: nextLoc
+	            };
+
+	            if (this.method === "next") {
+	              // Deliberately forget the last sent value so that we don't
+	              // accidentally pass it on to the delegate.
+	              this.arg = undefined$1;
+	            }
+
+	            return ContinueSentinel;
+	          }
+	        }; // Regardless of whether this script is executing as a CommonJS module
+	        // or not, return the runtime object so that we can declare the variable
+	        // regeneratorRuntime in the outer scope, which allows this module to be
+	        // injected easily by `bin/regenerator --include-runtime script.js`.
+
+	        return exports;
+	      }( // If this script is executing as a CommonJS module, use module.exports
+	      // as the regeneratorRuntime namespace. Otherwise create a new empty
+	      // object. Either way, the resulting object will be used to initialize
+	      // the regeneratorRuntime variable at the top of this file.
+	      module.exports);
+
+	      try {
+	        regeneratorRuntime = runtime;
+	      } catch (accidentalStrictMode) {
+	        // This module should not be running in strict mode, so the above
+	        // assignment should always work unless something is misconfigured. Just
+	        // in case runtime.js accidentally runs in strict mode, we can escape
+	        // strict mode using a global Function call. This could conceivably fail
+	        // if a Content Security Policy forbids using Function, but in that case
+	        // the proper solution is to fix the accidental strict mode problem. If
+	        // you've misconfigured your bundler to force strict mode and applied a
+	        // CSP to forbid Function, and you're not willing to fix either of those
+	        // problems, please detail your unique predicament in a GitHub issue.
+	        Function("r", "regeneratorRuntime = r")(runtime);
+	      }
+	    });
+	    var regenerator = runtime_1;
+	    var eventemitter3 = createCommonjsModule(function (module) {
+	      var has = Object.prototype.hasOwnProperty,
+	          prefix = '~';
+	      /**
+	       * Constructor to create a storage for our `EE` objects.
+	       * An `Events` instance is a plain object whose properties are event names.
+	       *
+	       * @constructor
+	       * @private
+	       */
+
+	      function Events() {} //
+	      // We try to not inherit from `Object.prototype`. In some engines creating an
+	      // instance in this way is faster than calling `Object.create(null)` directly.
+	      // If `Object.create(null)` is not supported we prefix the event names with a
+	      // character to make sure that the built-in object properties are not
+	      // overridden or used as an attack vector.
+	      //
+
+
+	      if (Object.create) {
+	        Events.prototype = Object.create(null); //
+	        // This hack is needed because the `__proto__` property is still inherited in
+	        // some old browsers like Android 4, iPhone 5.1, Opera 11 and Safari 5.
+	        //
+
+	        if (!new Events().__proto__) prefix = false;
+	      }
+	      /**
+	       * Representation of a single event listener.
+	       *
+	       * @param {Function} fn The listener function.
+	       * @param {*} context The context to invoke the listener with.
+	       * @param {Boolean} [once=false] Specify if the listener is a one-time listener.
+	       * @constructor
+	       * @private
+	       */
+
+
+	      function EE(fn, context, once) {
+	        this.fn = fn;
+	        this.context = context;
+	        this.once = once || false;
+	      }
+	      /**
+	       * Add a listener for a given event.
+	       *
+	       * @param {EventEmitter} emitter Reference to the `EventEmitter` instance.
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn The listener function.
+	       * @param {*} context The context to invoke the listener with.
+	       * @param {Boolean} once Specify if the listener is a one-time listener.
+	       * @returns {EventEmitter}
+	       * @private
+	       */
+
+
+	      function addListener(emitter, event, fn, context, once) {
+	        if (typeof fn !== 'function') {
+	          throw new TypeError('The listener must be a function');
+	        }
+
+	        var listener = new EE(fn, context || emitter, once),
+	            evt = prefix ? prefix + event : event;
+	        if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);else emitter._events[evt] = [emitter._events[evt], listener];
+	        return emitter;
+	      }
+	      /**
+	       * Clear event by name.
+	       *
+	       * @param {EventEmitter} emitter Reference to the `EventEmitter` instance.
+	       * @param {(String|Symbol)} evt The Event name.
+	       * @private
+	       */
+
+
+	      function clearEvent(emitter, evt) {
+	        if (--emitter._eventsCount === 0) emitter._events = new Events();else delete emitter._events[evt];
+	      }
+	      /**
+	       * Minimal `EventEmitter` interface that is molded against the Node.js
+	       * `EventEmitter` interface.
+	       *
+	       * @constructor
+	       * @public
+	       */
+
+
+	      function EventEmitter() {
+	        this._events = new Events();
+	        this._eventsCount = 0;
+	      }
+	      /**
+	       * Return an array listing the events for which the emitter has registered
+	       * listeners.
+	       *
+	       * @returns {Array}
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.eventNames = function eventNames() {
+	        var names = [],
+	            events,
+	            name;
+	        if (this._eventsCount === 0) return names;
+
+	        for (name in events = this._events) {
+	          if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
+	        }
+
+	        if (Object.getOwnPropertySymbols) {
+	          return names.concat(Object.getOwnPropertySymbols(events));
+	        }
+
+	        return names;
+	      };
+	      /**
+	       * Return the listeners registered for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @returns {Array} The registered listeners.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.listeners = function listeners(event) {
+	        var evt = prefix ? prefix + event : event,
+	            handlers = this._events[evt];
+	        if (!handlers) return [];
+	        if (handlers.fn) return [handlers.fn];
+
+	        for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
+	          ee[i] = handlers[i].fn;
+	        }
+
+	        return ee;
+	      };
+	      /**
+	       * Return the number of listeners listening to a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @returns {Number} The number of listeners.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.listenerCount = function listenerCount(event) {
+	        var evt = prefix ? prefix + event : event,
+	            listeners = this._events[evt];
+	        if (!listeners) return 0;
+	        if (listeners.fn) return 1;
+	        return listeners.length;
+	      };
+	      /**
+	       * Calls each of the listeners registered for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @returns {Boolean} `true` if the event had listeners, else `false`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+	        var evt = prefix ? prefix + event : event;
+	        if (!this._events[evt]) return false;
+	        var listeners = this._events[evt],
+	            len = arguments.length,
+	            args,
+	            i;
+
+	        if (listeners.fn) {
+	          if (listeners.once) this.removeListener(event, listeners.fn, undefined, true);
+
+	          switch (len) {
+	            case 1:
+	              return listeners.fn.call(listeners.context), true;
+
+	            case 2:
+	              return listeners.fn.call(listeners.context, a1), true;
+
+	            case 3:
+	              return listeners.fn.call(listeners.context, a1, a2), true;
+
+	            case 4:
+	              return listeners.fn.call(listeners.context, a1, a2, a3), true;
+
+	            case 5:
+	              return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+
+	            case 6:
+	              return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+	          }
+
+	          for (i = 1, args = new Array(len - 1); i < len; i++) {
+	            args[i - 1] = arguments[i];
+	          }
+
+	          listeners.fn.apply(listeners.context, args);
+	        } else {
+	          var length = listeners.length,
+	              j;
+
+	          for (i = 0; i < length; i++) {
+	            if (listeners[i].once) this.removeListener(event, listeners[i].fn, undefined, true);
+
+	            switch (len) {
+	              case 1:
+	                listeners[i].fn.call(listeners[i].context);
+	                break;
+
+	              case 2:
+	                listeners[i].fn.call(listeners[i].context, a1);
+	                break;
+
+	              case 3:
+	                listeners[i].fn.call(listeners[i].context, a1, a2);
+	                break;
+
+	              case 4:
+	                listeners[i].fn.call(listeners[i].context, a1, a2, a3);
+	                break;
+
+	              default:
+	                if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
+	                  args[j - 1] = arguments[j];
+	                }
+	                listeners[i].fn.apply(listeners[i].context, args);
+	            }
+	          }
+	        }
+
+	        return true;
+	      };
+	      /**
+	       * Add a listener for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn The listener function.
+	       * @param {*} [context=this] The context to invoke the listener with.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.on = function on(event, fn, context) {
+	        return addListener(this, event, fn, context, false);
+	      };
+	      /**
+	       * Add a one-time listener for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn The listener function.
+	       * @param {*} [context=this] The context to invoke the listener with.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.once = function once(event, fn, context) {
+	        return addListener(this, event, fn, context, true);
+	      };
+	      /**
+	       * Remove the listeners of a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn Only remove the listeners that match this function.
+	       * @param {*} context Only remove the listeners that have this context.
+	       * @param {Boolean} once Only remove one-time listeners.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.removeListener = function removeListener(event, fn, context, once) {
+	        var evt = prefix ? prefix + event : event;
+	        if (!this._events[evt]) return this;
+
+	        if (!fn) {
+	          clearEvent(this, evt);
+	          return this;
+	        }
+
+	        var listeners = this._events[evt];
+
+	        if (listeners.fn) {
+	          if (listeners.fn === fn && (!once || listeners.once) && (!context || listeners.context === context)) {
+	            clearEvent(this, evt);
+	          }
+	        } else {
+	          for (var i = 0, events = [], length = listeners.length; i < length; i++) {
+	            if (listeners[i].fn !== fn || once && !listeners[i].once || context && listeners[i].context !== context) {
+	              events.push(listeners[i]);
+	            }
+	          } //
+	          // Reset the array, or remove it completely if we have no more listeners.
+	          //
+
+
+	          if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;else clearEvent(this, evt);
+	        }
+
+	        return this;
+	      };
+	      /**
+	       * Remove all listeners, or those of the specified event.
+	       *
+	       * @param {(String|Symbol)} [event] The event name.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+	        var evt;
+
+	        if (event) {
+	          evt = prefix ? prefix + event : event;
+	          if (this._events[evt]) clearEvent(this, evt);
+	        } else {
+	          this._events = new Events();
+	          this._eventsCount = 0;
+	        }
+
+	        return this;
+	      }; //
+	      // Alias methods names because people roll like that.
+	      //
+
+
+	      EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+	      EventEmitter.prototype.addListener = EventEmitter.prototype.on; //
+	      // Expose the prefix.
+	      //
+
+	      EventEmitter.prefixed = prefix; //
+	      // Allow `EventEmitter` to be imported as module namespace.
+	      //
+
+	      EventEmitter.EventEmitter = EventEmitter; //
+	      // Expose the module.
+	      //
+
+	      {
+	        module.exports = EventEmitter;
+	      }
+	    });
+
+	    function isWindow() {
+	      return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+	    } //ww
+
+
+	    var ww;
+
+	    function protectShell() {
+	      //cEnv
+	      var cEnv = isWindow() ? 'browser' : 'nodejs'; //check, 後續會有Nodejs或瀏覽器依賴的API例如window.atob或Buffer, 於import階段時就先行偵測跳出
+
+	      if (cEnv !== 'nodejs') {
+	        return null;
+	      }
+
+	      function evem() {
+	        return new eventemitter3();
+	      }
+
+	      function genPm() {
+	        var resolve;
+	        var reject;
+	        var p = new Promise(function () {
+	          resolve = arguments[0];
+	          reject = arguments[1];
+	        });
+	        p.resolve = resolve;
+	        p.reject = reject;
+	        return p;
+	      }
+
+	      function genID() {
+	        var len = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+	        var uuid = [];
+	        var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+	        var radix = chars.length;
+
+	        for (var i = 0; i < len; i++) {
+	          uuid[i] = chars[0 | Math.random() * radix];
+	        }
+
+	        var r = uuid.join('');
+	        return r;
+	      }
+
+	      function b642str(b64) {
+	        return Buffer.from(b64, 'base64').toString('utf8'); //Nodejs端使用Buffer
+	      } //codeShow
+	      //codeB64, 此處需提供worker執行程式碼, 因有特殊符號編譯困難, 故需先轉base64再使用
+
+
+	      var codeB64 = 'CgogICAgICAgIGxldCB7IHBhcmVudFBvcnQgfSA9IHJlcXVpcmUoJ3dvcmtlcl90aHJlYWRzJykKICAgICAgICAKCmFzeW5jIGZ1bmN0aW9uIGdXb3JrZXIzX0Z1bihwMSwgcDIpIHsKICAvLyB0aHJvdyBuZXcgRXJyb3IoJ2dXb3JrZXIzX0Z1biBlcnJvcicpCiAgcmV0dXJuICdwMTonICsgcDEgKyAnLCBwMjonICsgcDIgKyAnLCDmuKzoqabkuK3mlocnOwp9CgoKCmxldCBpbnN0YW5jZSA9IG51bGwKZnVuY3Rpb24gaW5pdChpbnB1dCl7CgogICAgLy9pbml0CiAgICBsZXQgcgogICAgCiAgICAgICAgciA9IHsKICAgICAgICAgICAgbWFpbjogZ1dvcmtlcjNfRnVuCiAgICAgICAgfQogICAgICAgIAoKICAgIC8vb24KICAgIAoKICAgIC8vc2F2ZQogICAgaW5zdGFuY2UgPSByCgp9CgpmdW5jdGlvbiBzZW5kTWVzc2FnZShkYXRhKSB7CiAgICAKICAgICAgICBwYXJlbnRQb3J0LnBvc3RNZXNzYWdlKGRhdGEpCiAgICAgICAgCn0KCmFzeW5jIGZ1bmN0aW9uIHJ1bihkYXRhKSB7CiAgICAvLyBjb25zb2xlLmxvZygnaW5uZXIgd29ya2VyIHJ1bicsZGF0YSkKCiAgICAvL21vZGUKICAgIGxldCBtb2RlID0gZGF0YS5tb2RlCgogICAgLy9jaGVjawogICAgaWYobW9kZSAhPT0gJ2luaXQnICYmIG1vZGUgIT09ICdjYWxsJyl7CiAgICAgICAgcmV0dXJuCiAgICB9CgogICAgLy9pbml0CiAgICBpZihtb2RlID09PSAnaW5pdCcpewogICAgICAgIAogICAgICAgIHRyeXsKCiAgICAgICAgICAgIC8vdHlwZQogICAgICAgICAgICBsZXQgdHlwZSA9IGRhdGEudHlwZQoKICAgICAgICAgICAgLy9pbnB1dAogICAgICAgICAgICBsZXQgaW5wdXQgPSBkYXRhLmlucHV0CiAgICAKICAgICAgICAgICAgLy9pbnN0YW5jZQogICAgICAgICAgICBpZih0eXBlID09PSAnZnVuY3Rpb24nKXsKICAgICAgICAgICAgICAgIGluaXQoLi4uaW5wdXQpCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxzZSBpZih0eXBlID09PSAnb2JqZWN0Jyl7CiAgICAgICAgICAgICAgICBpbnN0YW5jZSA9IGdXb3JrZXIzX0Z1bgogICAgICAgICAgICB9CgogICAgICAgIH0KICAgICAgICBjYXRjaChlcnIpewogICAgICAgIAogICAgICAgICAgICAvL3NlbmRNZXNzYWdlCiAgICAgICAgICAgIGxldCByZXMgPSB7CiAgICAgICAgICAgICAgICBtb2RlOiAnZW1pdCcsCiAgICAgICAgICAgICAgICBldk5hbWU6ICdlcnJvcicsCiAgICAgICAgICAgICAgICBtc2c6IGVyciwKICAgICAgICAgICAgfQogICAgICAgICAgICBzZW5kTWVzc2FnZShyZXMpCgogICAgICAgIH0KICAgICAgICAgICAgCiAgICB9CgogICAgLy9jaGVjawogICAgaWYobW9kZSA9PT0gJ2NhbGwnKXsKICAgICAgICBsZXQgc3RhdGUgPSAnJwogICAgICAgIGxldCBtc2cgPSBudWxsCgogICAgICAgIHRyeXsKCiAgICAgICAgICAgIC8vZnVuCiAgICAgICAgICAgIGxldCBmdW4gPSBpbnN0YW5jZVtkYXRhLmZ1bl0KCiAgICAgICAgICAgIC8vaW5wdXQKICAgICAgICAgICAgbGV0IGlucHV0ID0gZGF0YS5pbnB1dAoKICAgICAgICAgICAgLy9leGVjCiAgICAgICAgICAgIGF3YWl0IGZ1biguLi5pbnB1dCkKICAgICAgICAgICAgICAgIC50aGVuKChzdWMpID0+IHsKICAgICAgICAgICAgICAgICAgICBzdGF0ZT0nc3VjY2VzcycKICAgICAgICAgICAgICAgICAgICBtc2c9c3VjCiAgICAgICAgICAgICAgICB9KQogICAgICAgICAgICAgICAgLmNhdGNoKChlcnIpID0+IHsKICAgICAgICAgICAgICAgICAgICBzdGF0ZT0nZXJyb3InCiAgICAgICAgICAgICAgICAgICAgbXNnPWVycgogICAgICAgICAgICAgICAgfSkKCiAgICAgICAgfQogICAgICAgIGNhdGNoKGVycil7CiAgICAgICAgICAgIHN0YXRlID0gJ2Vycm9yJwogICAgICAgICAgICBtc2cgPSBlcnIKICAgICAgICB9CiAgICAgICAgCiAgICAgICAgLy9zZW5kTWVzc2FnZQogICAgICAgIGxldCByZXMgPSB7CiAgICAgICAgICAgIG1vZGU6ICdyZXR1cm4nLAogICAgICAgICAgICBpZDogZGF0YS5pZCwKICAgICAgICAgICAgZnVuOiBkYXRhLmZ1biwKICAgICAgICAgICAgc3RhdGUsCiAgICAgICAgICAgIG1zZywKICAgICAgICB9CiAgICAgICAgc2VuZE1lc3NhZ2UocmVzKQoKICAgIH0KCn0KCmZ1bmN0aW9uIHJlY3ZNZXNzYWdlKGRhdGEpIHsKICAgIC8vIGNvbnNvbGUubG9nKCdpbm5lciB3b3JrZXIgcmVjdjonLCBkYXRhKQoKICAgIC8vZGF0YVJlY3YKICAgIGxldCBkYXRhUmVjdiA9IGRhdGEKCiAgICAvL3J1bgogICAgcnVuKGRhdGFSZWN2KQoKfQoKCiAgICAgICAgcGFyZW50UG9ydC5vbignbWVzc2FnZScsIHJlY3ZNZXNzYWdlKQogICAgICAgIAoK'; //code
+
+	      var code = b642str(codeB64);
+
+	      function wrapWorker() {
+	        //evem
+	        var ev = evem();
+
+	        function genWorker(code) {
+	          //new Worker
+	          try {
+	            return new worker_threads.Worker(code, {
+	              eval: true
+	            });
+	          } catch (err) {
+	            emitError(err);
+	          }
+	        } //genWorker
+
+
+	        var wk = genWorker(code); //check, 於瀏覽器端可能會遭遇IE11安全性問題, 或被CSP的worker-src或script-src設定阻擋
+
+	        if (!wk) {
+	          emitError('invalid worker');
+	          return null;
+	        }
+
+	        function terminate() {
+	          if (wk) {
+	            wk.terminate();
+	            wk = undefined;
+	          } else {
+	            emitError('worker has been terminated');
+	          }
+	        }
+
+	        function init() {
+	          //dataSend
+	          var dataSend = {
+	            mode: 'init',
+	            type: 'function',
+	            input: Array.prototype.slice.call(arguments) //若直接用arguments會無法編譯
+
+	          }; //postMessage
+
+	          wk.postMessage(dataSend);
+	        }
+
+	        function main() {
+	          //pm
+	          var pm = genPm(); //id
+
+	          var id = genID(); //dataSend
+
+	          var dataSend = {
+	            mode: 'call',
+	            id: id,
+	            fun: 'main',
+	            input: Array.prototype.slice.call(arguments) //若直接用arguments會無法編譯
+
+	          }; //postMessage
+
+	          wk.postMessage(dataSend); //once
+
+	          ev.once(id, function (res) {
+	            if (res.state === 'success') {
+	              pm.resolve(res.msg);
+	            } else {
+	              pm.reject(res.msg);
+	            }
+	          });
+	          return pm;
+	        }
+
+	        function recvMessage(data) {
+	          // console.log('outer worker recv:', data)
+	          //dataRecv
+	          var dataRecv = data; //mode
+
+	          var mode = dataRecv.mode; //check
+
+	          if (mode !== 'emit' && mode !== 'return') {
+	            return;
+	          } //emit
+
+
+	          if (mode === 'emit') {
+	            //emit
+	            ev.emit(dataRecv.evName, dataRecv.msg);
+	          } //return
+
+
+	          if (mode === 'return') {
+	            //emit
+	            ev.emit(dataRecv.id, dataRecv);
+	          }
+	        } //bind recvMessage
+
+
+	        wk.on('message', recvMessage);
+
+	        function emitError(err) {
+	          ev.emit('error', err);
+	        } //bind emitError
+
+
+	        wk.on('error', emitError); //init
+
+	        init(Array.prototype.slice.call(arguments)); //若直接用arguments會無法編譯
+
+	        ev.main = main;
+	        ev.main = main;
+	        ev.terminate = terminate;
+	        return ev;
+	      } //set ww
+
+
+	      ww = /*#__PURE__*/function () {
+	        var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+	          var input,
+	              nww,
+	              r,
+	              _args = arguments;
+	          return regenerator.wrap(function _callee$(_context) {
+	            while (1) {
+	              switch (_context.prev = _context.next) {
+	                case 0:
+	                  input = Array.prototype.slice.call(_args);
+	                  nww = wrapWorker();
+	                  _context.next = 4;
+	                  return nww.main.apply(nww, _toConsumableArray(input)) //nww.main需跟cmain一致
+	                  . //nww.main需跟cmain一致
+	                  finally(function () {
+	                    nww.terminate(); //每次執行完不論成功失敗都要中止worker
+	                  });
+
+	                case 4:
+	                  r = _context.sent;
+	                  return _context.abrupt("return", r);
+
+	                case 6:
+	                case "end":
+	                  return _context.stop();
+	              }
+	            }
+	          }, _callee);
+	        }));
+
+	        return function ww() {
+	          return _ref.apply(this, arguments);
+	        };
+	      }();
+	    }
+
+	    protectShell();
+	    var ww$1 = ww;
+	    return ww$1;
+	  });
+	});
+
+	var tempJJN6UxosVRHiu7TKPmcYCcQ7s3XqhgD0Ww = createCommonjsModule(function (module, exports) {
+	  (function (global, factory) {
+	    module.exports = factory() ;
+	  })(commonjsGlobal, function () {
+
+	    function _arrayLikeToArray(arr, len) {
+	      if (len == null || len > arr.length) len = arr.length;
+
+	      for (var i = 0, arr2 = new Array(len); i < len; i++) {
+	        arr2[i] = arr[i];
+	      }
+
+	      return arr2;
+	    }
+
+	    function _arrayWithoutHoles(arr) {
+	      if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+	    }
+
+	    function _iterableToArray(iter) {
+	      if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+	    }
+
+	    function _unsupportedIterableToArray(o, minLen) {
+	      if (!o) return;
+	      if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+	      var n = Object.prototype.toString.call(o).slice(8, -1);
+	      if (n === "Object" && o.constructor) n = o.constructor.name;
+	      if (n === "Map" || n === "Set") return Array.from(o);
+	      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+	    }
+
+	    function _nonIterableSpread() {
+	      throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+	    }
+
+	    function _toConsumableArray(arr) {
+	      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+	    }
+
+	    function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+	      try {
+	        var info = gen[key](arg);
+	        var value = info.value;
+	      } catch (error) {
+	        reject(error);
+	        return;
+	      }
+
+	      if (info.done) {
+	        resolve(value);
+	      } else {
+	        Promise.resolve(value).then(_next, _throw);
+	      }
+	    }
+
+	    function _asyncToGenerator(fn) {
+	      return function () {
+	        var self = this,
+	            args = arguments;
+	        return new Promise(function (resolve, reject) {
+	          var gen = fn.apply(self, args);
+
+	          function _next(value) {
+	            asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+	          }
+
+	          function _throw(err) {
+	            asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+	          }
+
+	          _next(undefined);
+	        });
+	      };
+	    }
+
+	    function _typeof(obj) {
+	      "@babel/helpers - typeof";
+
+	      if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+	        _typeof = function _typeof(obj) {
+	          return typeof obj;
+	        };
+	      } else {
+	        _typeof = function _typeof(obj) {
+	          return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+	        };
+	      }
+
+	      return _typeof(obj);
+	    }
+
+	    function createCommonjsModule(fn) {
+	      var module = {
+	        exports: {}
+	      };
+	      return fn(module, module.exports), module.exports;
+	    }
+
+	    var runtime_1 = createCommonjsModule(function (module) {
+	      var runtime = function (exports) {
+	        var Op = Object.prototype;
+	        var hasOwn = Op.hasOwnProperty;
+	        var undefined$1; // More compressible than void 0.
+
+	        var $Symbol = typeof Symbol === "function" ? Symbol : {};
+	        var iteratorSymbol = $Symbol.iterator || "@@iterator";
+	        var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+	        var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+	        function define(obj, key, value) {
+	          Object.defineProperty(obj, key, {
+	            value: value,
+	            enumerable: true,
+	            configurable: true,
+	            writable: true
+	          });
+	          return obj[key];
+	        }
+
+	        try {
+	          // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+	          define({}, "");
+	        } catch (err) {
+	          define = function define(obj, key, value) {
+	            return obj[key] = value;
+	          };
+	        }
+
+	        function wrap(innerFn, outerFn, self, tryLocsList) {
+	          // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+	          var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+	          var generator = Object.create(protoGenerator.prototype);
+	          var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
+	          // .throw, and .return methods.
+
+	          generator._invoke = makeInvokeMethod(innerFn, self, context);
+	          return generator;
+	        }
+
+	        exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
+	        // record like context.tryEntries[i].completion. This interface could
+	        // have been (and was previously) designed to take a closure to be
+	        // invoked without arguments, but in all the cases we care about we
+	        // already have an existing method we want to call, so there's no need
+	        // to create a new function object. We can even get away with assuming
+	        // the method takes exactly one argument, since that happens to be true
+	        // in every case, so we don't have to touch the arguments object. The
+	        // only additional allocation required is the completion record, which
+	        // has a stable shape and so hopefully should be cheap to allocate.
+
+	        function tryCatch(fn, obj, arg) {
+	          try {
+	            return {
+	              type: "normal",
+	              arg: fn.call(obj, arg)
+	            };
+	          } catch (err) {
+	            return {
+	              type: "throw",
+	              arg: err
+	            };
+	          }
+	        }
+
+	        var GenStateSuspendedStart = "suspendedStart";
+	        var GenStateSuspendedYield = "suspendedYield";
+	        var GenStateExecuting = "executing";
+	        var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
+	        // breaking out of the dispatch switch statement.
+
+	        var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
+	        // .constructor.prototype properties for functions that return Generator
+	        // objects. For full spec compliance, you may wish to configure your
+	        // minifier not to mangle the names of these two functions.
+
+	        function Generator() {}
+
+	        function GeneratorFunction() {}
+
+	        function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
+	        // don't natively support it.
+
+
+	        var IteratorPrototype = {};
+
+	        IteratorPrototype[iteratorSymbol] = function () {
+	          return this;
+	        };
+
+	        var getProto = Object.getPrototypeOf;
+	        var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+
+	        if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+	          // This environment has a native %IteratorPrototype%; use it instead
+	          // of the polyfill.
+	          IteratorPrototype = NativeIteratorPrototype;
+	        }
+
+	        var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+	        GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+	        GeneratorFunctionPrototype.constructor = GeneratorFunction;
+	        GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
+	        // Iterator interface in terms of a single ._invoke method.
+
+	        function defineIteratorMethods(prototype) {
+	          ["next", "throw", "return"].forEach(function (method) {
+	            define(prototype, method, function (arg) {
+	              return this._invoke(method, arg);
+	            });
+	          });
+	        }
+
+	        exports.isGeneratorFunction = function (genFun) {
+	          var ctor = typeof genFun === "function" && genFun.constructor;
+	          return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
+	          // do is to check its .name property.
+	          (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
+	        };
+
+	        exports.mark = function (genFun) {
+	          if (Object.setPrototypeOf) {
+	            Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+	          } else {
+	            genFun.__proto__ = GeneratorFunctionPrototype;
+	            define(genFun, toStringTagSymbol, "GeneratorFunction");
+	          }
+
+	          genFun.prototype = Object.create(Gp);
+	          return genFun;
+	        }; // Within the body of any async function, `await x` is transformed to
+	        // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+	        // `hasOwn.call(value, "__await")` to determine if the yielded value is
+	        // meant to be awaited.
+
+
+	        exports.awrap = function (arg) {
+	          return {
+	            __await: arg
+	          };
+	        };
+
+	        function AsyncIterator(generator, PromiseImpl) {
+	          function invoke(method, arg, resolve, reject) {
+	            var record = tryCatch(generator[method], generator, arg);
+
+	            if (record.type === "throw") {
+	              reject(record.arg);
+	            } else {
+	              var result = record.arg;
+	              var value = result.value;
+
+	              if (value && _typeof(value) === "object" && hasOwn.call(value, "__await")) {
+	                return PromiseImpl.resolve(value.__await).then(function (value) {
+	                  invoke("next", value, resolve, reject);
+	                }, function (err) {
+	                  invoke("throw", err, resolve, reject);
+	                });
+	              }
+
+	              return PromiseImpl.resolve(value).then(function (unwrapped) {
+	                // When a yielded Promise is resolved, its final value becomes
+	                // the .value of the Promise<{value,done}> result for the
+	                // current iteration.
+	                result.value = unwrapped;
+	                resolve(result);
+	              }, function (error) {
+	                // If a rejected Promise was yielded, throw the rejection back
+	                // into the async generator function so it can be handled there.
+	                return invoke("throw", error, resolve, reject);
+	              });
+	            }
+	          }
+
+	          var previousPromise;
+
+	          function enqueue(method, arg) {
+	            function callInvokeWithMethodAndArg() {
+	              return new PromiseImpl(function (resolve, reject) {
+	                invoke(method, arg, resolve, reject);
+	              });
+	            }
+
+	            return previousPromise = // If enqueue has been called before, then we want to wait until
+	            // all previous Promises have been resolved before calling invoke,
+	            // so that results are always delivered in the correct order. If
+	            // enqueue has not been called before, then it is important to
+	            // call invoke immediately, without waiting on a callback to fire,
+	            // so that the async generator function has the opportunity to do
+	            // any necessary setup in a predictable way. This predictability
+	            // is why the Promise constructor synchronously invokes its
+	            // executor callback, and why async functions synchronously
+	            // execute code before the first await. Since we implement simple
+	            // async functions in terms of async generators, it is especially
+	            // important to get this right, even though it requires care.
+	            previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
+	            // invocations of the iterator.
+	            callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+	          } // Define the unified helper method that is used to implement .next,
+	          // .throw, and .return (see defineIteratorMethods).
+
+
+	          this._invoke = enqueue;
+	        }
+
+	        defineIteratorMethods(AsyncIterator.prototype);
+
+	        AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+	          return this;
+	        };
+
+	        exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
+	        // AsyncIterator objects; they just return a Promise for the value of
+	        // the final result produced by the iterator.
+
+	        exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+	          if (PromiseImpl === void 0) PromiseImpl = Promise;
+	          var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+	          return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
+	          : iter.next().then(function (result) {
+	            return result.done ? result.value : iter.next();
+	          });
+	        };
+
+	        function makeInvokeMethod(innerFn, self, context) {
+	          var state = GenStateSuspendedStart;
+	          return function invoke(method, arg) {
+	            if (state === GenStateExecuting) {
+	              throw new Error("Generator is already running");
+	            }
+
+	            if (state === GenStateCompleted) {
+	              if (method === "throw") {
+	                throw arg;
+	              } // Be forgiving, per 25.3.3.3.3 of the spec:
+	              // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+
+
+	              return doneResult();
+	            }
+
+	            context.method = method;
+	            context.arg = arg;
+
+	            while (true) {
+	              var delegate = context.delegate;
+
+	              if (delegate) {
+	                var delegateResult = maybeInvokeDelegate(delegate, context);
+
+	                if (delegateResult) {
+	                  if (delegateResult === ContinueSentinel) continue;
+	                  return delegateResult;
+	                }
+	              }
+
+	              if (context.method === "next") {
+	                // Setting context._sent for legacy support of Babel's
+	                // function.sent implementation.
+	                context.sent = context._sent = context.arg;
+	              } else if (context.method === "throw") {
+	                if (state === GenStateSuspendedStart) {
+	                  state = GenStateCompleted;
+	                  throw context.arg;
+	                }
+
+	                context.dispatchException(context.arg);
+	              } else if (context.method === "return") {
+	                context.abrupt("return", context.arg);
+	              }
+
+	              state = GenStateExecuting;
+	              var record = tryCatch(innerFn, self, context);
+
+	              if (record.type === "normal") {
+	                // If an exception is thrown from innerFn, we leave state ===
+	                // GenStateExecuting and loop back for another invocation.
+	                state = context.done ? GenStateCompleted : GenStateSuspendedYield;
+
+	                if (record.arg === ContinueSentinel) {
+	                  continue;
+	                }
+
+	                return {
+	                  value: record.arg,
+	                  done: context.done
+	                };
+	              } else if (record.type === "throw") {
+	                state = GenStateCompleted; // Dispatch the exception by looping back around to the
+	                // context.dispatchException(context.arg) call above.
+
+	                context.method = "throw";
+	                context.arg = record.arg;
+	              }
+	            }
+	          };
+	        } // Call delegate.iterator[context.method](context.arg) and handle the
+	        // result, either by returning a { value, done } result from the
+	        // delegate iterator, or by modifying context.method and context.arg,
+	        // setting context.delegate to null, and returning the ContinueSentinel.
+
+
+	        function maybeInvokeDelegate(delegate, context) {
+	          var method = delegate.iterator[context.method];
+
+	          if (method === undefined$1) {
+	            // A .throw or .return when the delegate iterator has no .throw
+	            // method always terminates the yield* loop.
+	            context.delegate = null;
+
+	            if (context.method === "throw") {
+	              // Note: ["return"] must be used for ES3 parsing compatibility.
+	              if (delegate.iterator["return"]) {
+	                // If the delegate iterator has a return method, give it a
+	                // chance to clean up.
+	                context.method = "return";
+	                context.arg = undefined$1;
+	                maybeInvokeDelegate(delegate, context);
+
+	                if (context.method === "throw") {
+	                  // If maybeInvokeDelegate(context) changed context.method from
+	                  // "return" to "throw", let that override the TypeError below.
+	                  return ContinueSentinel;
+	                }
+	              }
+
+	              context.method = "throw";
+	              context.arg = new TypeError("The iterator does not provide a 'throw' method");
+	            }
+
+	            return ContinueSentinel;
+	          }
+
+	          var record = tryCatch(method, delegate.iterator, context.arg);
+
+	          if (record.type === "throw") {
+	            context.method = "throw";
+	            context.arg = record.arg;
+	            context.delegate = null;
+	            return ContinueSentinel;
+	          }
+
+	          var info = record.arg;
+
+	          if (!info) {
+	            context.method = "throw";
+	            context.arg = new TypeError("iterator result is not an object");
+	            context.delegate = null;
+	            return ContinueSentinel;
+	          }
+
+	          if (info.done) {
+	            // Assign the result of the finished delegate to the temporary
+	            // variable specified by delegate.resultName (see delegateYield).
+	            context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
+
+	            context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
+	            // exception, let the outer generator proceed normally. If
+	            // context.method was "next", forget context.arg since it has been
+	            // "consumed" by the delegate iterator. If context.method was
+	            // "return", allow the original .return call to continue in the
+	            // outer generator.
+
+	            if (context.method !== "return") {
+	              context.method = "next";
+	              context.arg = undefined$1;
+	            }
+	          } else {
+	            // Re-yield the result returned by the delegate method.
+	            return info;
+	          } // The delegate iterator is finished, so forget it and continue with
+	          // the outer generator.
+
+
+	          context.delegate = null;
+	          return ContinueSentinel;
+	        } // Define Generator.prototype.{next,throw,return} in terms of the
+	        // unified ._invoke helper method.
+
+
+	        defineIteratorMethods(Gp);
+	        define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
+	        // @@iterator function is called on it. Some browsers' implementations of the
+	        // iterator prototype chain incorrectly implement this, causing the Generator
+	        // object to not be returned from this call. This ensures that doesn't happen.
+	        // See https://github.com/facebook/regenerator/issues/274 for more details.
+
+	        Gp[iteratorSymbol] = function () {
+	          return this;
+	        };
+
+	        Gp.toString = function () {
+	          return "[object Generator]";
+	        };
+
+	        function pushTryEntry(locs) {
+	          var entry = {
+	            tryLoc: locs[0]
+	          };
+
+	          if (1 in locs) {
+	            entry.catchLoc = locs[1];
+	          }
+
+	          if (2 in locs) {
+	            entry.finallyLoc = locs[2];
+	            entry.afterLoc = locs[3];
+	          }
+
+	          this.tryEntries.push(entry);
+	        }
+
+	        function resetTryEntry(entry) {
+	          var record = entry.completion || {};
+	          record.type = "normal";
+	          delete record.arg;
+	          entry.completion = record;
+	        }
+
+	        function Context(tryLocsList) {
+	          // The root entry object (effectively a try statement without a catch
+	          // or a finally block) gives us a place to store values thrown from
+	          // locations where there is no enclosing try statement.
+	          this.tryEntries = [{
+	            tryLoc: "root"
+	          }];
+	          tryLocsList.forEach(pushTryEntry, this);
+	          this.reset(true);
+	        }
+
+	        exports.keys = function (object) {
+	          var keys = [];
+
+	          for (var key in object) {
+	            keys.push(key);
+	          }
+
+	          keys.reverse(); // Rather than returning an object with a next method, we keep
+	          // things simple and return the next function itself.
+
+	          return function next() {
+	            while (keys.length) {
+	              var key = keys.pop();
+
+	              if (key in object) {
+	                next.value = key;
+	                next.done = false;
+	                return next;
+	              }
+	            } // To avoid creating an additional object, we just hang the .value
+	            // and .done properties off the next function object itself. This
+	            // also ensures that the minifier will not anonymize the function.
+
+
+	            next.done = true;
+	            return next;
+	          };
+	        };
+
+	        function values(iterable) {
+	          if (iterable) {
+	            var iteratorMethod = iterable[iteratorSymbol];
+
+	            if (iteratorMethod) {
+	              return iteratorMethod.call(iterable);
+	            }
+
+	            if (typeof iterable.next === "function") {
+	              return iterable;
+	            }
+
+	            if (!isNaN(iterable.length)) {
+	              var i = -1,
+	                  next = function next() {
+	                while (++i < iterable.length) {
+	                  if (hasOwn.call(iterable, i)) {
+	                    next.value = iterable[i];
+	                    next.done = false;
+	                    return next;
+	                  }
+	                }
+
+	                next.value = undefined$1;
+	                next.done = true;
+	                return next;
+	              };
+
+	              return next.next = next;
+	            }
+	          } // Return an iterator with no values.
+
+
+	          return {
+	            next: doneResult
+	          };
+	        }
+
+	        exports.values = values;
+
+	        function doneResult() {
+	          return {
+	            value: undefined$1,
+	            done: true
+	          };
+	        }
+
+	        Context.prototype = {
+	          constructor: Context,
+	          reset: function reset(skipTempReset) {
+	            this.prev = 0;
+	            this.next = 0; // Resetting context._sent for legacy support of Babel's
+	            // function.sent implementation.
+
+	            this.sent = this._sent = undefined$1;
+	            this.done = false;
+	            this.delegate = null;
+	            this.method = "next";
+	            this.arg = undefined$1;
+	            this.tryEntries.forEach(resetTryEntry);
+
+	            if (!skipTempReset) {
+	              for (var name in this) {
+	                // Not sure about the optimal order of these conditions:
+	                if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
+	                  this[name] = undefined$1;
+	                }
+	              }
+	            }
+	          },
+	          stop: function stop() {
+	            this.done = true;
+	            var rootEntry = this.tryEntries[0];
+	            var rootRecord = rootEntry.completion;
+
+	            if (rootRecord.type === "throw") {
+	              throw rootRecord.arg;
+	            }
+
+	            return this.rval;
+	          },
+	          dispatchException: function dispatchException(exception) {
+	            if (this.done) {
+	              throw exception;
+	            }
+
+	            var context = this;
+
+	            function handle(loc, caught) {
+	              record.type = "throw";
+	              record.arg = exception;
+	              context.next = loc;
+
+	              if (caught) {
+	                // If the dispatched exception was caught by a catch block,
+	                // then let that catch block handle the exception normally.
+	                context.method = "next";
+	                context.arg = undefined$1;
+	              }
+
+	              return !!caught;
+	            }
+
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+	              var record = entry.completion;
+
+	              if (entry.tryLoc === "root") {
+	                // Exception thrown outside of any try block that could handle
+	                // it, so set the completion value of the entire function to
+	                // throw the exception.
+	                return handle("end");
+	              }
+
+	              if (entry.tryLoc <= this.prev) {
+	                var hasCatch = hasOwn.call(entry, "catchLoc");
+	                var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+	                if (hasCatch && hasFinally) {
+	                  if (this.prev < entry.catchLoc) {
+	                    return handle(entry.catchLoc, true);
+	                  } else if (this.prev < entry.finallyLoc) {
+	                    return handle(entry.finallyLoc);
+	                  }
+	                } else if (hasCatch) {
+	                  if (this.prev < entry.catchLoc) {
+	                    return handle(entry.catchLoc, true);
+	                  }
+	                } else if (hasFinally) {
+	                  if (this.prev < entry.finallyLoc) {
+	                    return handle(entry.finallyLoc);
+	                  }
+	                } else {
+	                  throw new Error("try statement without catch or finally");
+	                }
+	              }
+	            }
+	          },
+	          abrupt: function abrupt(type, arg) {
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+
+	              if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+	                var finallyEntry = entry;
+	                break;
+	              }
+	            }
+
+	            if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
+	              // Ignore the finally entry if control is not jumping to a
+	              // location outside the try/catch block.
+	              finallyEntry = null;
+	            }
+
+	            var record = finallyEntry ? finallyEntry.completion : {};
+	            record.type = type;
+	            record.arg = arg;
+
+	            if (finallyEntry) {
+	              this.method = "next";
+	              this.next = finallyEntry.finallyLoc;
+	              return ContinueSentinel;
+	            }
+
+	            return this.complete(record);
+	          },
+	          complete: function complete(record, afterLoc) {
+	            if (record.type === "throw") {
+	              throw record.arg;
+	            }
+
+	            if (record.type === "break" || record.type === "continue") {
+	              this.next = record.arg;
+	            } else if (record.type === "return") {
+	              this.rval = this.arg = record.arg;
+	              this.method = "return";
+	              this.next = "end";
+	            } else if (record.type === "normal" && afterLoc) {
+	              this.next = afterLoc;
+	            }
+
+	            return ContinueSentinel;
+	          },
+	          finish: function finish(finallyLoc) {
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+
+	              if (entry.finallyLoc === finallyLoc) {
+	                this.complete(entry.completion, entry.afterLoc);
+	                resetTryEntry(entry);
+	                return ContinueSentinel;
+	              }
+	            }
+	          },
+	          "catch": function _catch(tryLoc) {
+	            for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+	              var entry = this.tryEntries[i];
+
+	              if (entry.tryLoc === tryLoc) {
+	                var record = entry.completion;
+
+	                if (record.type === "throw") {
+	                  var thrown = record.arg;
+	                  resetTryEntry(entry);
+	                }
+
+	                return thrown;
+	              }
+	            } // The context.catch method must only be called with a location
+	            // argument that corresponds to a known catch block.
+
+
+	            throw new Error("illegal catch attempt");
+	          },
+	          delegateYield: function delegateYield(iterable, resultName, nextLoc) {
+	            this.delegate = {
+	              iterator: values(iterable),
+	              resultName: resultName,
+	              nextLoc: nextLoc
+	            };
+
+	            if (this.method === "next") {
+	              // Deliberately forget the last sent value so that we don't
+	              // accidentally pass it on to the delegate.
+	              this.arg = undefined$1;
+	            }
+
+	            return ContinueSentinel;
+	          }
+	        }; // Regardless of whether this script is executing as a CommonJS module
+	        // or not, return the runtime object so that we can declare the variable
+	        // regeneratorRuntime in the outer scope, which allows this module to be
+	        // injected easily by `bin/regenerator --include-runtime script.js`.
+
+	        return exports;
+	      }( // If this script is executing as a CommonJS module, use module.exports
+	      // as the regeneratorRuntime namespace. Otherwise create a new empty
+	      // object. Either way, the resulting object will be used to initialize
+	      // the regeneratorRuntime variable at the top of this file.
+	      module.exports);
+
+	      try {
+	        regeneratorRuntime = runtime;
+	      } catch (accidentalStrictMode) {
+	        // This module should not be running in strict mode, so the above
+	        // assignment should always work unless something is misconfigured. Just
+	        // in case runtime.js accidentally runs in strict mode, we can escape
+	        // strict mode using a global Function call. This could conceivably fail
+	        // if a Content Security Policy forbids using Function, but in that case
+	        // the proper solution is to fix the accidental strict mode problem. If
+	        // you've misconfigured your bundler to force strict mode and applied a
+	        // CSP to forbid Function, and you're not willing to fix either of those
+	        // problems, please detail your unique predicament in a GitHub issue.
+	        Function("r", "regeneratorRuntime = r")(runtime);
+	      }
+	    });
+	    var regenerator = runtime_1;
+	    var eventemitter3 = createCommonjsModule(function (module) {
+	      var has = Object.prototype.hasOwnProperty,
+	          prefix = '~';
+	      /**
+	       * Constructor to create a storage for our `EE` objects.
+	       * An `Events` instance is a plain object whose properties are event names.
+	       *
+	       * @constructor
+	       * @private
+	       */
+
+	      function Events() {} //
+	      // We try to not inherit from `Object.prototype`. In some engines creating an
+	      // instance in this way is faster than calling `Object.create(null)` directly.
+	      // If `Object.create(null)` is not supported we prefix the event names with a
+	      // character to make sure that the built-in object properties are not
+	      // overridden or used as an attack vector.
+	      //
+
+
+	      if (Object.create) {
+	        Events.prototype = Object.create(null); //
+	        // This hack is needed because the `__proto__` property is still inherited in
+	        // some old browsers like Android 4, iPhone 5.1, Opera 11 and Safari 5.
+	        //
+
+	        if (!new Events().__proto__) prefix = false;
+	      }
+	      /**
+	       * Representation of a single event listener.
+	       *
+	       * @param {Function} fn The listener function.
+	       * @param {*} context The context to invoke the listener with.
+	       * @param {Boolean} [once=false] Specify if the listener is a one-time listener.
+	       * @constructor
+	       * @private
+	       */
+
+
+	      function EE(fn, context, once) {
+	        this.fn = fn;
+	        this.context = context;
+	        this.once = once || false;
+	      }
+	      /**
+	       * Add a listener for a given event.
+	       *
+	       * @param {EventEmitter} emitter Reference to the `EventEmitter` instance.
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn The listener function.
+	       * @param {*} context The context to invoke the listener with.
+	       * @param {Boolean} once Specify if the listener is a one-time listener.
+	       * @returns {EventEmitter}
+	       * @private
+	       */
+
+
+	      function addListener(emitter, event, fn, context, once) {
+	        if (typeof fn !== 'function') {
+	          throw new TypeError('The listener must be a function');
+	        }
+
+	        var listener = new EE(fn, context || emitter, once),
+	            evt = prefix ? prefix + event : event;
+	        if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);else emitter._events[evt] = [emitter._events[evt], listener];
+	        return emitter;
+	      }
+	      /**
+	       * Clear event by name.
+	       *
+	       * @param {EventEmitter} emitter Reference to the `EventEmitter` instance.
+	       * @param {(String|Symbol)} evt The Event name.
+	       * @private
+	       */
+
+
+	      function clearEvent(emitter, evt) {
+	        if (--emitter._eventsCount === 0) emitter._events = new Events();else delete emitter._events[evt];
+	      }
+	      /**
+	       * Minimal `EventEmitter` interface that is molded against the Node.js
+	       * `EventEmitter` interface.
+	       *
+	       * @constructor
+	       * @public
+	       */
+
+
+	      function EventEmitter() {
+	        this._events = new Events();
+	        this._eventsCount = 0;
+	      }
+	      /**
+	       * Return an array listing the events for which the emitter has registered
+	       * listeners.
+	       *
+	       * @returns {Array}
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.eventNames = function eventNames() {
+	        var names = [],
+	            events,
+	            name;
+	        if (this._eventsCount === 0) return names;
+
+	        for (name in events = this._events) {
+	          if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
+	        }
+
+	        if (Object.getOwnPropertySymbols) {
+	          return names.concat(Object.getOwnPropertySymbols(events));
+	        }
+
+	        return names;
+	      };
+	      /**
+	       * Return the listeners registered for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @returns {Array} The registered listeners.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.listeners = function listeners(event) {
+	        var evt = prefix ? prefix + event : event,
+	            handlers = this._events[evt];
+	        if (!handlers) return [];
+	        if (handlers.fn) return [handlers.fn];
+
+	        for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
+	          ee[i] = handlers[i].fn;
+	        }
+
+	        return ee;
+	      };
+	      /**
+	       * Return the number of listeners listening to a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @returns {Number} The number of listeners.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.listenerCount = function listenerCount(event) {
+	        var evt = prefix ? prefix + event : event,
+	            listeners = this._events[evt];
+	        if (!listeners) return 0;
+	        if (listeners.fn) return 1;
+	        return listeners.length;
+	      };
+	      /**
+	       * Calls each of the listeners registered for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @returns {Boolean} `true` if the event had listeners, else `false`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+	        var evt = prefix ? prefix + event : event;
+	        if (!this._events[evt]) return false;
+	        var listeners = this._events[evt],
+	            len = arguments.length,
+	            args,
+	            i;
+
+	        if (listeners.fn) {
+	          if (listeners.once) this.removeListener(event, listeners.fn, undefined, true);
+
+	          switch (len) {
+	            case 1:
+	              return listeners.fn.call(listeners.context), true;
+
+	            case 2:
+	              return listeners.fn.call(listeners.context, a1), true;
+
+	            case 3:
+	              return listeners.fn.call(listeners.context, a1, a2), true;
+
+	            case 4:
+	              return listeners.fn.call(listeners.context, a1, a2, a3), true;
+
+	            case 5:
+	              return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+
+	            case 6:
+	              return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+	          }
+
+	          for (i = 1, args = new Array(len - 1); i < len; i++) {
+	            args[i - 1] = arguments[i];
+	          }
+
+	          listeners.fn.apply(listeners.context, args);
+	        } else {
+	          var length = listeners.length,
+	              j;
+
+	          for (i = 0; i < length; i++) {
+	            if (listeners[i].once) this.removeListener(event, listeners[i].fn, undefined, true);
+
+	            switch (len) {
+	              case 1:
+	                listeners[i].fn.call(listeners[i].context);
+	                break;
+
+	              case 2:
+	                listeners[i].fn.call(listeners[i].context, a1);
+	                break;
+
+	              case 3:
+	                listeners[i].fn.call(listeners[i].context, a1, a2);
+	                break;
+
+	              case 4:
+	                listeners[i].fn.call(listeners[i].context, a1, a2, a3);
+	                break;
+
+	              default:
+	                if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
+	                  args[j - 1] = arguments[j];
+	                }
+	                listeners[i].fn.apply(listeners[i].context, args);
+	            }
+	          }
+	        }
+
+	        return true;
+	      };
+	      /**
+	       * Add a listener for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn The listener function.
+	       * @param {*} [context=this] The context to invoke the listener with.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.on = function on(event, fn, context) {
+	        return addListener(this, event, fn, context, false);
+	      };
+	      /**
+	       * Add a one-time listener for a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn The listener function.
+	       * @param {*} [context=this] The context to invoke the listener with.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.once = function once(event, fn, context) {
+	        return addListener(this, event, fn, context, true);
+	      };
+	      /**
+	       * Remove the listeners of a given event.
+	       *
+	       * @param {(String|Symbol)} event The event name.
+	       * @param {Function} fn Only remove the listeners that match this function.
+	       * @param {*} context Only remove the listeners that have this context.
+	       * @param {Boolean} once Only remove one-time listeners.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.removeListener = function removeListener(event, fn, context, once) {
+	        var evt = prefix ? prefix + event : event;
+	        if (!this._events[evt]) return this;
+
+	        if (!fn) {
+	          clearEvent(this, evt);
+	          return this;
+	        }
+
+	        var listeners = this._events[evt];
+
+	        if (listeners.fn) {
+	          if (listeners.fn === fn && (!once || listeners.once) && (!context || listeners.context === context)) {
+	            clearEvent(this, evt);
+	          }
+	        } else {
+	          for (var i = 0, events = [], length = listeners.length; i < length; i++) {
+	            if (listeners[i].fn !== fn || once && !listeners[i].once || context && listeners[i].context !== context) {
+	              events.push(listeners[i]);
+	            }
+	          } //
+	          // Reset the array, or remove it completely if we have no more listeners.
+	          //
+
+
+	          if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;else clearEvent(this, evt);
+	        }
+
+	        return this;
+	      };
+	      /**
+	       * Remove all listeners, or those of the specified event.
+	       *
+	       * @param {(String|Symbol)} [event] The event name.
+	       * @returns {EventEmitter} `this`.
+	       * @public
+	       */
+
+
+	      EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+	        var evt;
+
+	        if (event) {
+	          evt = prefix ? prefix + event : event;
+	          if (this._events[evt]) clearEvent(this, evt);
+	        } else {
+	          this._events = new Events();
+	          this._eventsCount = 0;
+	        }
+
+	        return this;
+	      }; //
+	      // Alias methods names because people roll like that.
+	      //
+
+
+	      EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+	      EventEmitter.prototype.addListener = EventEmitter.prototype.on; //
+	      // Expose the prefix.
+	      //
+
+	      EventEmitter.prefixed = prefix; //
+	      // Allow `EventEmitter` to be imported as module namespace.
+	      //
+
+	      EventEmitter.EventEmitter = EventEmitter; //
+	      // Expose the module.
+	      //
+
+	      {
+	        module.exports = EventEmitter;
+	      }
+	    });
+
+	    function isWindow() {
+	      return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+	    } //ww
+
+
+	    var ww;
+
+	    function protectShell() {
+	      //cEnv
+	      var cEnv = isWindow() ? 'browser' : 'nodejs'; //check, 後續會有Nodejs或瀏覽器依賴的API例如window.atob或Buffer, 於import階段時就先行偵測跳出
+
+	      if (cEnv !== 'browser') {
+	        return null;
+	      }
+
+	      function evem() {
+	        return new eventemitter3();
+	      }
+
+	      function genPm() {
+	        var resolve;
+	        var reject;
+	        var p = new Promise(function () {
+	          resolve = arguments[0];
+	          reject = arguments[1];
+	        });
+	        p.resolve = resolve;
+	        p.reject = reject;
+	        return p;
+	      }
+
+	      function genID() {
+	        var len = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+	        var uuid = [];
+	        var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+	        var radix = chars.length;
+
+	        for (var i = 0; i < len; i++) {
+	          uuid[i] = chars[0 | Math.random() * radix];
+	        }
+
+	        var r = uuid.join('');
+	        return r;
+	      }
+
+	      function b642str(b64) {
+	        return window.atob(b64); //瀏覽器端執行使用atob
+	      } //codeShow
+	      //codeB64, 此處需提供worker執行程式碼, 因有特殊符號編譯困難, 故需先轉base64再使用
+
+
+	      var codeB64 = 'CgoKYXN5bmMgZnVuY3Rpb24gZ1dvcmtlcjNfRnVuKHAxLCBwMikgewogIC8vIHRocm93IG5ldyBFcnJvcignZ1dvcmtlcjNfRnVuIGVycm9yJykKICByZXR1cm4gJ3AxOicgKyBwMSArICcsIHAyOicgKyBwMiArICcsIOa4rOippuS4reaWhyc7Cn0KCgoKbGV0IGluc3RhbmNlID0gbnVsbApmdW5jdGlvbiBpbml0KGlucHV0KXsKCiAgICAvL2luaXQKICAgIGxldCByCiAgICAKICAgICAgICByID0gewogICAgICAgICAgICBtYWluOiBnV29ya2VyM19GdW4KICAgICAgICB9CiAgICAgICAgCgogICAgLy9vbgogICAgCgogICAgLy9zYXZlCiAgICBpbnN0YW5jZSA9IHIKCn0KCmZ1bmN0aW9uIHNlbmRNZXNzYWdlKGRhdGEpIHsKICAgIAogICAgICAgIHNlbGYucG9zdE1lc3NhZ2UoZGF0YSkKICAgICAgICAKfQoKYXN5bmMgZnVuY3Rpb24gcnVuKGRhdGEpIHsKICAgIC8vIGNvbnNvbGUubG9nKCdpbm5lciB3b3JrZXIgcnVuJyxkYXRhKQoKICAgIC8vbW9kZQogICAgbGV0IG1vZGUgPSBkYXRhLm1vZGUKCiAgICAvL2NoZWNrCiAgICBpZihtb2RlICE9PSAnaW5pdCcgJiYgbW9kZSAhPT0gJ2NhbGwnKXsKICAgICAgICByZXR1cm4KICAgIH0KCiAgICAvL2luaXQKICAgIGlmKG1vZGUgPT09ICdpbml0Jyl7CiAgICAgICAgCiAgICAgICAgdHJ5ewoKICAgICAgICAgICAgLy90eXBlCiAgICAgICAgICAgIGxldCB0eXBlID0gZGF0YS50eXBlCgogICAgICAgICAgICAvL2lucHV0CiAgICAgICAgICAgIGxldCBpbnB1dCA9IGRhdGEuaW5wdXQKICAgIAogICAgICAgICAgICAvL2luc3RhbmNlCiAgICAgICAgICAgIGlmKHR5cGUgPT09ICdmdW5jdGlvbicpewogICAgICAgICAgICAgICAgaW5pdCguLi5pbnB1dCkKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlIGlmKHR5cGUgPT09ICdvYmplY3QnKXsKICAgICAgICAgICAgICAgIGluc3RhbmNlID0gZ1dvcmtlcjNfRnVuCiAgICAgICAgICAgIH0KCiAgICAgICAgfQogICAgICAgIGNhdGNoKGVycil7CiAgICAgICAgCiAgICAgICAgICAgIC8vc2VuZE1lc3NhZ2UKICAgICAgICAgICAgbGV0IHJlcyA9IHsKICAgICAgICAgICAgICAgIG1vZGU6ICdlbWl0JywKICAgICAgICAgICAgICAgIGV2TmFtZTogJ2Vycm9yJywKICAgICAgICAgICAgICAgIG1zZzogZXJyLAogICAgICAgICAgICB9CiAgICAgICAgICAgIHNlbmRNZXNzYWdlKHJlcykKCiAgICAgICAgfQogICAgICAgICAgICAKICAgIH0KCiAgICAvL2NoZWNrCiAgICBpZihtb2RlID09PSAnY2FsbCcpewogICAgICAgIGxldCBzdGF0ZSA9ICcnCiAgICAgICAgbGV0IG1zZyA9IG51bGwKCiAgICAgICAgdHJ5ewoKICAgICAgICAgICAgLy9mdW4KICAgICAgICAgICAgbGV0IGZ1biA9IGluc3RhbmNlW2RhdGEuZnVuXQoKICAgICAgICAgICAgLy9pbnB1dAogICAgICAgICAgICBsZXQgaW5wdXQgPSBkYXRhLmlucHV0CgogICAgICAgICAgICAvL2V4ZWMKICAgICAgICAgICAgYXdhaXQgZnVuKC4uLmlucHV0KQogICAgICAgICAgICAgICAgLnRoZW4oKHN1YykgPT4gewogICAgICAgICAgICAgICAgICAgIHN0YXRlPSdzdWNjZXNzJwogICAgICAgICAgICAgICAgICAgIG1zZz1zdWMKICAgICAgICAgICAgICAgIH0pCiAgICAgICAgICAgICAgICAuY2F0Y2goKGVycikgPT4gewogICAgICAgICAgICAgICAgICAgIHN0YXRlPSdlcnJvcicKICAgICAgICAgICAgICAgICAgICBtc2c9ZXJyCiAgICAgICAgICAgICAgICB9KQoKICAgICAgICB9CiAgICAgICAgY2F0Y2goZXJyKXsKICAgICAgICAgICAgc3RhdGUgPSAnZXJyb3InCiAgICAgICAgICAgIG1zZyA9IGVycgogICAgICAgIH0KICAgICAgICAKICAgICAgICAvL3NlbmRNZXNzYWdlCiAgICAgICAgbGV0IHJlcyA9IHsKICAgICAgICAgICAgbW9kZTogJ3JldHVybicsCiAgICAgICAgICAgIGlkOiBkYXRhLmlkLAogICAgICAgICAgICBmdW46IGRhdGEuZnVuLAogICAgICAgICAgICBzdGF0ZSwKICAgICAgICAgICAgbXNnLAogICAgICAgIH0KICAgICAgICBzZW5kTWVzc2FnZShyZXMpCgogICAgfQoKfQoKZnVuY3Rpb24gcmVjdk1lc3NhZ2UoZGF0YSkgewogICAgLy8gY29uc29sZS5sb2coJ2lubmVyIHdvcmtlciByZWN2OicsIGRhdGEpCgogICAgLy9kYXRhUmVjdgogICAgbGV0IGRhdGFSZWN2ID0gZGF0YQoKICAgIC8vcnVuCiAgICBydW4oZGF0YVJlY3YpCgp9CgoKICAgICAgICBzZWxmLm9ubWVzc2FnZSA9IGZ1bmN0aW9uIChlKSB7CiAgICAgICAgICAgIHJlY3ZNZXNzYWdlKGUuZGF0YSkKICAgICAgICB9CiAgICAgICAgCgo='; //code
+
+	      var code = b642str(codeB64);
+
+	      function wrapWorker() {
+	        //evem
+	        var ev = evem();
+
+	        function genWorker(code) {
+	          //new Worker
+	          try {
+	            var blob = new Blob([code]); //blob for Chrome 8+, Firefox 6+, Safari 6.0+, Opera 15+
+
+	            var URL = window.URL || window.webkitURL;
+	            return new Worker(URL.createObjectURL(blob));
+	          } catch (err) {
+	            emitError(err);
+	          }
+	        } //genWorker
+
+
+	        var wk = genWorker(code); //check, 於瀏覽器端可能會遭遇IE11安全性問題, 或被CSP的worker-src或script-src設定阻擋
+
+	        if (!wk) {
+	          emitError('invalid worker');
+	          return null;
+	        }
+
+	        function terminate() {
+	          if (wk) {
+	            wk.terminate();
+	            wk = undefined;
+	          } else {
+	            emitError('worker has been terminated');
+	          }
+	        }
+
+	        function init() {
+	          //dataSend
+	          var dataSend = {
+	            mode: 'init',
+	            type: 'function',
+	            input: Array.prototype.slice.call(arguments) //若直接用arguments會無法編譯
+
+	          }; //postMessage
+
+	          wk.postMessage(dataSend);
+	        }
+
+	        function main() {
+	          //pm
+	          var pm = genPm(); //id
+
+	          var id = genID(); //dataSend
+
+	          var dataSend = {
+	            mode: 'call',
+	            id: id,
+	            fun: 'main',
+	            input: Array.prototype.slice.call(arguments) //若直接用arguments會無法編譯
+
+	          }; //postMessage
+
+	          wk.postMessage(dataSend); //once
+
+	          ev.once(id, function (res) {
+	            if (res.state === 'success') {
+	              pm.resolve(res.msg);
+	            } else {
+	              pm.reject(res.msg);
+	            }
+	          });
+	          return pm;
+	        }
+
+	        function recvMessage(data) {
+	          // console.log('outer worker recv:', data)
+	          //dataRecv
+	          var dataRecv = data; //mode
+
+	          var mode = dataRecv.mode; //check
+
+	          if (mode !== 'emit' && mode !== 'return') {
+	            return;
+	          } //emit
+
+
+	          if (mode === 'emit') {
+	            //emit
+	            ev.emit(dataRecv.evName, dataRecv.msg);
+	          } //return
+
+
+	          if (mode === 'return') {
+	            //emit
+	            ev.emit(dataRecv.id, dataRecv);
+	          }
+	        } //bind recvMessage
+
+
+	        wk.onmessage = function (e) {
+	          recvMessage(e.data);
+	        };
+
+	        function emitError(err) {
+	          ev.emit('error', err);
+	        } //bind emitError
+
+
+	        wk.onerror = emitError; //init
+
+	        init(Array.prototype.slice.call(arguments)); //若直接用arguments會無法編譯
+
+	        ev.main = main;
+	        ev.main = main;
+	        ev.terminate = terminate;
+	        return ev;
+	      } //set ww
+
+
+	      ww = /*#__PURE__*/function () {
+	        var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+	          var input,
+	              nww,
+	              r,
+	              _args = arguments;
+	          return regenerator.wrap(function _callee$(_context) {
+	            while (1) {
+	              switch (_context.prev = _context.next) {
+	                case 0:
+	                  input = Array.prototype.slice.call(_args);
+	                  nww = wrapWorker();
+	                  _context.next = 4;
+	                  return nww.main.apply(nww, _toConsumableArray(input)) //nww.main需跟cmain一致
+	                  . //nww.main需跟cmain一致
+	                  finally(function () {
+	                    nww.terminate(); //每次執行完不論成功失敗都要中止worker
+	                  });
+
+	                case 4:
+	                  r = _context.sent;
+	                  return _context.abrupt("return", r);
+
+	                case 6:
+	                case "end":
+	                  return _context.stop();
+	              }
+	            }
+	          }, _callee);
+	        }));
+
+	        return function ww() {
+	          return _ref.apply(this, arguments);
+	        };
+	      }();
+	    }
+
+	    protectShell();
+	    var ww$1 = ww;
+	    return ww$1;
+	  });
+	});
+
+	function isWindow() {
+	  return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+	}
+
+	var wk;
+
+	if (isWindow()) {
+	  wk = tempJJN6UxosVRHiu7TKPmcYCcQ7s3XqhgD0Ww;
+	} else {
+	  wk = tempJJN6UxosVRHiu7TKPmcYCcQ7s3XqhgD0Nw;
+	}
+
+	var wk$1 = wk;
+
+	return wk$1;
+
+})));

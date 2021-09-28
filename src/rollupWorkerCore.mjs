@@ -61,7 +61,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     let evs = genInnerWebWorkerCodeEvs(evNames)
 
     //cnwt
-    let cnwt
+    let cnwt = ''
     if (opt.bNode) {
         cnwt = `
         let { parentPort } = require('worker_threads')
@@ -69,7 +69,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     }
 
     //csm
-    let csm
+    let csm = ''
     if (opt.bNode) {
         csm = `
         parentPort.postMessage(data)
@@ -82,7 +82,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     }
 
     //ciit
-    let ciit
+    let ciit = ''
     if (opt.type === 'function' && opt.execFunctionByInstance) {
         ciit = `
         r = {
@@ -97,7 +97,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     }
 
     //crm
-    let crm
+    let crm = ''
     if (opt.bNode) {
         crm = `
         parentPort.on('message', recvMessage)
@@ -335,7 +335,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     let cEnvRun = opt.bNode ? 'nodejs' : 'browser'
 
     //cipwt
-    let cipwt
+    let cipwt = ''
     if (opt.bNode) {
         cipwt = `
         import { Worker } from 'worker_threads'
@@ -343,10 +343,10 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }
 
     //cb642str
-    let cb642str
+    let cb642str = ''
     if (opt.bNode) {
         cb642str = `
-        return Buffer.from(b64, 'base64').toString('ascii') //Nodejs端使用Buffer
+        return Buffer.from(b64, 'base64').toString('utf8') //Nodejs端使用Buffer
         `
     }
     else {
@@ -369,7 +369,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }), '\n')
 
     //cnw
-    let cnw
+    let cnw = ''
     if (opt.bNode) {
         cnw = `
         return new Worker(code, { eval: true })
@@ -384,14 +384,14 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }
 
     //cwt
-    let cwt
+    let cwt = ''
     if (opt.type === 'function') {
         if (opt.execFunctionByInstance) {
             cwt = `
             ww = async function (){
                 let input = [...arguments]
                 let nww = wrapWorker()
-                let r = await nww.main(...input)
+                let r = await nww.main(...input) //nww.main需跟cmain一致
                     .finally(() => {
                         nww.terminate() //每次執行完不論成功失敗都要中止worker
                     })
@@ -426,7 +426,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }
 
     //cee
-    let cee
+    let cee = ''
     if (opt.bNode) {
         cee = `
         wk.on('error', emitError)
@@ -439,7 +439,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }
 
     //crm
-    let crm
+    let crm = ''
     if (opt.bNode) {
         crm = `
         wk.on('message', recvMessage)
@@ -640,7 +640,7 @@ export default ww
  * 使用rollup編譯檔案，並封裝至前端web worker內或後端nodejs worker內
  *
  * @param {Object} opt 輸入設定物件
- * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下
+ * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
  * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
  * @param {Boolean} [opt.execFunctionByInstance=true] 輸入若模組類型為物件type='function'時，是否將function視為使用獨立實體執行並自動銷毀實體布林值，例如原模組就是一個運算函數，不需要回傳eventemmitter監聽事件，預設true
  * @param {Boolean} [opt.execObjectFunsByInstance=true] 輸入若模組類型為物件type='object'時，各函式是否使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true
@@ -651,7 +651,7 @@ export default ww
  * @param {String} opt.fpTar 輸入編譯完程式碼檔案儲存位置字串
  * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
- * @param {String} [opt.formatOut='es'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'
+ * @param {String} [opt.formatOut='es'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
  * @param {String} [opt.targets='new'] 輸入編譯等級字串，可選'new'、'old'，預設'new'
  * @param {Boolean} [opt.bNode=false] 輸入是否運行於Nodejs布林值，預設false
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設true

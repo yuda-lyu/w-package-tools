@@ -1,5 +1,8 @@
 import w from './test-code-out-wk/gWorker3_Fun.wk.umd.js'
 
+// console.log('w', w)
+// => w [Function (anonymous)]
+
 w(1.234, 'xyz')
     .then((res) => {
         console.log('w(1.234,\'xyz\') then', res)
