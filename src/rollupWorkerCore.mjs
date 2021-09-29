@@ -9,7 +9,7 @@ let cmain = 'main' //'__system__main__'
 
 
 function str2b64(str) {
-    return Buffer.from(str).toString('base64')
+    return Buffer.from(str, 'utf8').toString('base64')
 }
 
 
@@ -341,6 +341,11 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         import { Worker } from 'worker_threads'
         `
     }
+    else {
+        cipwt = `
+        import { Base64 } from 'js-base64'
+        `
+    }
 
     //cb642str
     let cb642str = ''
@@ -351,7 +356,8 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }
     else {
         cb642str = `
-        return window.atob(b64) //瀏覽器端執行使用atob
+        return Base64.decode(b64)
+        // return window.atob(b64) //瀏覽器端執行使用 atob 或 decodeURIComponent(atob()) 或 unescape(decodeURIComponent(atob('ooxx'))) 無法解Buffer轉出的b64, 因這只能解由瀏覽器對應的函數產生b64
         `
     }
 

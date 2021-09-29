@@ -31,7 +31,7 @@ function mergeCore(fpSrcNW, fpSrcWW) {
 
 
 /**
- * 使用rollup編譯檔案，並封裝至封裝至前端web worker與後端worker內
+ * 使用rollup編譯檔案，並封裝至前端web worker與後端worker內
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用

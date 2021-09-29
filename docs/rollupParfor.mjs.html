@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>rollupWorker.mjs - Documentation</title>
+    <title>rollupParfor.mjs - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -32,7 +32,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">rollupWorker.mjs</h1>
+    <h1 class="page-title">rollupParfor.mjs</h1>
     
 
     
@@ -45,37 +45,164 @@
             <pre class="prettyprint source linenums"><code>import fs from 'fs'
 import _ from 'lodash'
 import w from './wsemip.umd.js'
-// import rollupNodeWorker from './rollupNodeWorker.mjs'
-// import rollupWebWorker from './rollupWebWorker.mjs'
-import rollupWorkerCore from './rollupWorkerCore.mjs'
-import rollupCode from './rollupCode.mjs'
+import pathResolve from './pathResolve.mjs'
+import rollupWorker from './rollupWorker.mjs'
+import rollupFile from './rollupFile.mjs'
 
 
-function mergeCore(fpSrcNW, fpSrcWW) {
+function genParforCoreCode(fpPmSeries, fpCore) {
     let c = `
-    import nw from '${fpSrcNW}'
-    import ww from '${fpSrcWW}'
+    import pmSeries from '{fpPmSeries}'
+    import core from '{fpCore}'
     
-    function isWindow() {
-        return typeof window !== 'undefined' &amp;&amp; typeof window.document !== 'undefined'
+    async function parforCore(pgs) {
+    
+        //pmSeries
+        let rs = await pmSeries(pgs, async (pg, kpg) => {
+            let { v, k } = pg
+            let r = await core(v)
+            return {
+                k,
+                r,
+            }
+        })
+        // console.log('parforCore rs', rs)
+    
+        return rs
     }
     
-    let wk
-    if(isWindow()){
-        wk = ww
-    }
-    else {
-        wk = nw
-    }
-    
-    export default wk
+    export default parforCore
     `
+    c = c.replace('{fpPmSeries}', pathResolve(fpPmSeries))
+    c = c.replace('{fpCore}', pathResolve(fpCore))
+    return c
+}
+
+
+function genParforCode(fpWpf, fpParforCore) {
+    let c = `
+    import get from 'lodash/get'
+    import each from 'lodash/each'
+    import size from 'lodash/size'
+    import w from '{fpWpf}'
+    import parforCore from '{fpParforCore}'
+    
+    async function parfor(pgs, opt = {}) {
+    
+        //cb
+        let cb = get(opt, 'cb')
+    
+        //returnResult
+        let returnResult = get(opt, 'returnResult')
+        if (!w.isbol(returnResult)) {
+            returnResult = false
+        }
+    
+        //check
+        if (!returnResult &amp;&amp; !w.isfun(cb)) {
+            return Promise.reject('cb is not a function, need to set opt.returnResult to true')
+        }
+    
+        //takeLimit
+        let takeLimit = get(opt, 'takeLimit')
+        if (!w.ispint(takeLimit)) {
+            takeLimit = 4
+        }
+        takeLimit = w.cint(takeLimit)
+    
+        //takeNumOfPgs
+        let takeNumOfPgs = get(opt, 'takeNumOfPgs')
+        if (!w.ispint(takeNumOfPgs)) {
+            takeNumOfPgs = 1
+        }
+        takeNumOfPgs = w.cint(takeNumOfPgs)
+    
+        //arr
+        let isPgsObj = false
+        let arr = []
+        if (w.iseobj(pgs)) {
+            isPgsObj = true
+            each(pgs, (v, k) => {
+                arr.push({ v, k })
+            })
+        }
+        else if (w.isearr(pgs)) {
+            each(pgs, (v, k) => {
+                arr.push({ v, k })
+            })
+        }
+        else {
+            throw new Error('pgs is not an effective array or object')
+        }
+        // console.log('arr', size(arr), arr)
+    
+        //n
+        let n = size(arr)
+    
+        //gpgs, takeNumOfPgs
+        // let m = 0
+        let gpgs = []
+        for (let i = 0; i &lt; n; i += takeNumOfPgs) {
+            let pgs = []
+            for (let j = 0; j &lt; takeNumOfPgs; j++) {
+                let k = i + j
+                if (k &lt; n) {
+                    // m++
+                    pgs.push(arr[k])
+                }
+            }
+            gpgs.push(pgs)
+        }
+        // console.log('gpgs', size(gpgs), gpgs)
+    
+        //rs
+        let rs = null
+        if (returnResult) {
+            if (isPgsObj) {
+                rs = {}
+            }
+            else {
+                rs = []
+            }
+        }
+    
+        //pmMap
+        await w.pmMap(gpgs, async (pgs, kpgs) => {
+            // console.log('pmMap', pgs, kpgs)
+    
+            //call fun
+            let prs = await parforCore(pgs)
+            // console.log('prs', prs)
+    
+            //save
+            if (returnResult) {
+                each(prs, (pr, kpr) => {
+                    rs[pr.k] = pr.r //obj或arr都適用
+                })
+            }
+    
+            //call cb
+            if (w.isfun(cb)) {
+                each(prs, (pr, kpr) => {
+                    cb(pr.r, pr.k)
+                })
+            }
+    
+        }, takeLimit)
+    
+        return rs
+    }
+    
+    export default parfor
+    `
+    c = c.replace('{fpWpf}', pathResolve(fpWpf))
+    c = c.replace('{fpParforCore}', pathResolve(fpParforCore))
     return c
 }
 
 
 /**
- * 使用rollup編譯檔案，並封裝至前端web worker與後端worker內
+ * 使用rollup編譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
@@ -96,7 +223,8 @@ function mergeCore(fpSrcNW, fpSrcWW) {
  * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
-async function rollupWorker(opt = {}) {
+async function rollupParfor(opt = {}) {
+    //欲編譯檔案需使用es6模組語法, 輸出格式為export default, 輸出需為物件, 該物件給予任意可執行之async函數, 打包後會於web worker內執行, 並再把全部async函數映射出來至指定物件當中, 故可採一樣(未封裝前)方式執行
 
     //name
     let name = _.get(opt, 'name', null)
@@ -110,46 +238,16 @@ async function rollupWorker(opt = {}) {
         return Promise.reject('opt.fpSrc is not file')
     }
 
-    //fn
-    let fn = w.getFileName(fpSrc)
-
     //fpTar
     let fpTar = _.get(opt, 'fpTar', null)
     if (!w.isestr(fpTar)) {
         return Promise.reject('invalid opt.fpTar')
     }
 
-    //nameDistType
-    let nameDistType = _.get(opt, 'nameDistType', null)
-
-    //nameDist
-    let nameDist = name
-    if (nameDistType === 'kebabCase') {
-        nameDist = _.kebabCase(name)
-    }
-
-    //hookNameDist
-    let hookNameDist = _.get(opt, 'hookNameDist', null)
-    if (_.isFunction(hookNameDist)) {
-        nameDist = hookNameDist(nameDist, name, fn)
-    }
-
-    //formatOut, umd為瀏覽器端直接使用, es為供vue-cli或webpack使用
-    let formatOut = _.get(opt, 'formatOut', null)
-    if (!formatOut) {
-        formatOut = 'es'
-    }
-
-    //targets
-    let targets = opt.targets
-    if (!w.isbol(targets)) {
-        targets = 'new' //於瀏覽器端，因程式碼用字串+blob方式作為web worker初始化之方式, 無法支援ie11(會需要改安全性)只好放棄, 且若被CSP檔那只能由伺服器改設定, 故此處直接改用最新語法new打包
-    }
-
-    //bMinify
-    let bMinify = _.get(opt, 'bMinify', null)
-    if (!w.isbol(bMinify)) {
-        bMinify = true
+    //type
+    let type = _.get(opt, 'type', null)
+    if (w.isestr(type) &amp;&amp; type !== 'function') {
+        return Promise.reject(`opt.type need to set 'function'`)
     }
 
     //bLog
@@ -163,51 +261,58 @@ async function rollupWorker(opt = {}) {
         console.log('transpiling: ' + w.getFileName(fpSrc))
     }
 
+    //輔助函數
+    let fpWpfPmSeries = `./src/wpf_pmSeries.umd.js`
+    let fpWpf = `./src/wpf.umd.js`
+
     //id
     let id = w.genID()
-    let fpSrcNW = `./temp-${id}-nw.js`
-    let fpSrcWW = `./temp-${id}-ww.js`
-    let fpSrcMg = `./temp-${id}-mg.js`
+    let fpTempParforCoreSrc = `./temp-${id}-parforCore-src.mjs`
+    let fpTempParforCoreTar = `./temp-${id}-parforCore-tar.wk.umd.js`
+    let fpTempParforSrc = `./temp-${id}-parfor-src.mjs`
 
     async function core() {
 
-        //rollupWorkerCore for nodejs worker
-        let codeNW = await rollupWorkerCore({
+        //codeParforCore, 產生並儲存parforCore程式碼
+        let codeParforCore = genParforCoreCode(fpWpfPmSeries, fpSrc)
+        fs.writeFileSync(fpTempParforCoreSrc, codeParforCore, 'utf8')
+
+        //編譯parforCore
+        await rollupWorker({
             ...opt,
-            bNode: true,
-            bReturnCode: true,
+            name: 'parforCore', //一定要為parforCore, worker內會使用同名函數做繫節, 故不能更換, 除非改genParforCoreCode內的函數parforCore名稱
+            type: 'function', //原模組輸出為函數, 可傳入參數初始化
+            execFunctionByInstance: true, //原模組為計算函數回傳結果
+            fpSrc: fpTempParforCoreSrc,
+            fpTar: fpTempParforCoreTar,
+            // formatOut: 'es', //由外部決定
+            // bMinify: false, //由外部決定
             bLog: false,
         })
-        fs.writeFileSync(fpSrcNW, codeNW, 'utf8')
 
-        //rollupWorkerCore for web worker
-        let codeWW = await rollupWorkerCore({
+        //codeParfor, 產生並儲存parfor程式碼
+        let codeParfor = genParforCode(fpWpf, fpTempParforCoreTar)
+        fs.writeFileSync(fpTempParforSrc, codeParfor, 'utf8')
+
+        ///編譯parfor
+        let codeRes = await rollupFile({
             ...opt,
-            bNode: false,
-            bReturnCode: true,
-            bLog: false,
-        })
-        fs.writeFileSync(fpSrcWW, codeWW, 'utf8')
-
-        //mergeCore
-        let codeMerge = mergeCore(fpSrcNW, fpSrcWW)
-        fs.writeFileSync(fpSrcMg, codeMerge, 'utf8')
-
-        //rollupCode
-        let codeRes = await rollupCode(codeMerge, {
-            name: nameDist,
-            formatOut,
-            targets,
-            bNodePolyfill: false, //outer不需使用node polyfill
-            bMinify,
+            fpSrc: fpTempParforSrc,
+            fdSrc: './',
+            // fdTar, //不給就是直接回傳code
+            hookNameDist: () => {
+                return name //指定編譯名稱
+            },
             bBanner: false,
-            bSourcemap: false, //rollupCode不提供sourcemap
+            bSourcemap: false, //rollupParfor不提供sourcemap
             globals: { //因有已包含Nodejs與瀏覽器的worker封裝, 故需指定剔除Nodejs的worker的引用
                 'worker_threads': 'worker_threads',
             },
             external: [
                 'worker_threads',
             ],
+            // formatOut: 'es', //由外部決定
+            // bMinify: false, //由外部決定
             bLog: false,
         })
 
@@ -227,19 +332,19 @@ async function rollupWorker(opt = {}) {
 
             //unlinkSync, 不論編譯成功失敗都刪除檔案
             try {
-                fs.unlinkSync(fpSrcNW)
+                fs.unlinkSync(fpTempParforCoreSrc)
             }
             catch (err) {
                 console.log(err)
             }
             try {
-                fs.unlinkSync(fpSrcWW)
+                fs.unlinkSync(fpTempParforCoreTar)
             }
             catch (err) {
                 console.log(err)
             }
             try {
-                fs.unlinkSync(fpSrcMg)
+                fs.unlinkSync(fpTempParforSrc)
             }
             catch (err) {
                 console.log(err)
@@ -250,7 +355,7 @@ async function rollupWorker(opt = {}) {
 }
 
 
-export default rollupWorker
+export default rollupParfor
 </code></pre>
         </article>
     </section>
