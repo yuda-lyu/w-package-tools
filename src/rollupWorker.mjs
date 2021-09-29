@@ -1,3 +1,4 @@
+// import path from 'path'
 import fs from 'fs'
 import _ from 'lodash'
 import w from './wsemip.umd.js'
@@ -179,6 +180,9 @@ async function rollupWorker(opt = {}) {
 
     //core
     await core()
+        .catch((err) => {
+            console.log(err)
+        })
         .finally(() => {
 
             //unlinkSync, 不論編譯成功失敗都刪除檔案

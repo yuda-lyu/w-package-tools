@@ -1,3 +1,4 @@
+// import path from 'path'
 import fs from 'fs'
 import _ from 'lodash'
 import w from './wsemip.umd.js'
@@ -29,7 +30,13 @@ function genParforCoreCode(fpPmSeries, fpCore) {
     
     export default parforCore
     `
-    c = c.replace('{fpPmSeries}', pathResolve(fpPmSeries))
+    if (fs.existsSync(fpPmSeries)) {
+        fpPmSeries = pathResolve(fpPmSeries)
+    }
+    else {
+        fpPmSeries = fpPmSeries.replace('./', 'w-package-tools/')
+    }
+    c = c.replace('{fpPmSeries}', fpPmSeries)
     c = c.replace('{fpCore}', pathResolve(fpCore))
     return c
 }
@@ -151,7 +158,13 @@ function genParforCode(fpWpf, fpParforCore) {
     
     export default parfor
     `
-    c = c.replace('{fpWpf}', pathResolve(fpWpf))
+    if (fs.existsSync(fpWpf)) {
+        fpWpf = pathResolve(fpWpf)
+    }
+    else {
+        fpWpf = fpWpf.replace('./', 'w-package-tools/')
+    }
+    c = c.replace('{fpWpf}', fpWpf)
     c = c.replace('{fpParforCore}', pathResolve(fpParforCore))
     return c
 }
@@ -284,6 +297,9 @@ async function rollupParfor(opt = {}) {
 
     //core
     await core()
+        .catch((err) => {
+            console.log(err)
+        })
         .finally(() => {
 
             //unlinkSync, 不論編譯成功失敗都刪除檔案
