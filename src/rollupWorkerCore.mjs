@@ -871,18 +871,17 @@ async function rollupWorkerCore(opt = {}) {
     // fs.writeFileSync('./z4-codeRes.js', codeRes, 'utf8')
 
     if (bReturnCode) {
-
-        //writeFileSync
-        fs.writeFileSync(fpTar, codeRes, 'utf8')
-
-        //console
-        if (bLog) {
-            console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpTar))
-        }
-
+        return codeRes
     }
 
-    return codeRes
+    //writeFileSync
+    fs.writeFileSync(fpTar, codeRes, 'utf8')
+
+    //console
+    if (bLog) {
+        console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpTar))
+    }
+
 }
 
 
