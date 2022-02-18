@@ -6,16 +6,17 @@ function getBlock(ss, m1, m2) {
     let rs = []
     for (let i = 0; i < ss.length; i++) {
         let s = ss[i]
-        if (s.indexOf(m1) >= 0) { //indexOf for m1
+        if (w.strleft(s, _.size(m1)) === m1) {
             let t = s.substring(s.indexOf(m1) + m1.length, s.length)
             rs.push(t)
             continue
         }
         if (rs.length > 0) {
-            rs.push(s)
-            if (s === m2) { //equal for m2
+            if (w.strleft(s, _.size(m2)) === m2) {
+                rs.push(m2)
                 break
             }
+            rs.push(s)
         }
     }
     return rs.join('\r\n')
@@ -42,66 +43,76 @@ function parseVueCode(h) {
     //console.log('tmp', tmp)
 
     //data
-    m1 = 'data: function() {'
-    m2 = '    },'
+    m1 = '    data: function() {'
+    m2 = '    }'
     let data = getBlock(ss, m1, m2)
     if (!data) {
         data = 'function() { return {} }'
     }
     else {
         data = 'function() {' + data
-        data = w.strdelright(data, 1)
+        if (w.strright(data, 1) === ',') {
+            data = w.strdelright(data, 1)
+        }
     }
-    //console.log('data', data)
+    // console.log('data', data)
 
     //mounted
-    m1 = 'mounted: function() {'
-    m2 = '    },'
+    m1 = '    mounted: function() {'
+    m2 = '    }'
     let mounted = getBlock(ss, m1, m2)
     if (!mounted) {
         mounted = 'function() { return {} }'
     }
     else {
         mounted = 'function() {' + mounted
-        mounted = w.strdelright(mounted, 1)
+        if (w.strright(mounted, 1) === ',') {
+            mounted = w.strdelright(mounted, 1)
+        }
     }
-    //console.log('mounted', mounted)
+    // console.log('mounted', mounted)
 
     //computed
-    m1 = 'computed:'
-    m2 = '    },'
+    m1 = '    computed:'
+    m2 = '    }'
     let computed = getBlock(ss, m1, m2)
     if (!computed) {
         computed = '{}'
     }
     else {
-        computed = w.strdelright(computed, 1)
+        if (w.strright(computed, 1) === ',') {
+            computed = w.strdelright(computed, 1)
+        }
     }
-    //console.log('computed', computed)
+    // console.log('computed', computed)
 
     //methods
-    m1 = 'methods:'
-    m2 = '    },'
+    m1 = '    methods:'
+    m2 = '    }'
     let methods = getBlock(ss, m1, m2)
     if (!methods) {
         methods = '{}'
     }
     else {
-        methods = w.strdelright(methods, 1)
+        if (w.strright(methods, 1) === ',') {
+            methods = w.strdelright(methods, 1)
+        }
     }
-    //console.log('methods', methods)
+    // console.log('methods', methods)
 
     //action
-    m1 = `'actions':`
-    m2 = '            ],'
+    m1 = `            'actions':`
+    m2 = '            ]'
     let action = getBlock(ss, m1, m2)
     if (!action) {
         action = '[]'
     }
     else {
-        action = w.strdelright(action, 1)
+        if (w.strright(action, 1) === ',') {
+            action = w.strdelright(action, 1)
+        }
     }
-    //console.log('action', action)
+    // console.log('action', action)
 
     return { tmp, data, mounted, computed, methods, action, }
 }
