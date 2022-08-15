@@ -1,7 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.65",
-  "description": "A tool for build packages.",
+  "version": "1.0.66",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
     "@babel/cli": "^7.13.16",
@@ -65,7 +64,6 @@
     "type": "git",
     "url": "https://github.com/yuda-lyu/w-package-tools"
   },
-  "homepage": "https://yuda-lyu.github.io/w-package-tools/w-package-tools.html",
   "keywords": [
     "package",
     "tool",
