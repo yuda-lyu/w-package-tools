@@ -10,13 +10,15 @@ import resolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import postcss from 'rollup-plugin-postcss'
 import { babel } from '@rollup/plugin-babel'
-import babelForVue2 from 'rollup-plugin-babel' //才能編譯vue2含async語法的組件
-import { terser } from 'rollup-plugin-terser'
+// import babelForVue2 from 'rollup-plugin-babel' //才能編譯vue2含async語法的組件
+// import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import getPks from './getPks.mjs'
 
 
-let babelForJs = babel
+// let babelForJs = babel
+// let babelForVue2 = babel
 
 
 /**
@@ -243,14 +245,16 @@ async function rollupFile(opt = {}) {
         ]
     }
     let babelPlugin
-    if (extIn === 'vue') {
-        babelOpt.runtimeHelpers = true //給rollup-plugin-babel用, 為舊版babel設定
-        babelPlugin = babelForVue2(babelOpt)
-    }
-    else {
-        babelOpt.babelHelpers = 'runtime' //新版babel設定
-        babelPlugin = babelForJs(babelOpt)
-    }
+    // if (extIn === 'vue') {
+    //     babelOpt.runtimeHelpers = true //給rollup-plugin-babel用, 為舊版babel設定
+    //     babelPlugin = babelForVue2(babelOpt)
+    // }
+    // else {
+    //     babelOpt.babelHelpers = 'runtime' //新版babel設定
+    //     babelPlugin = babelForJs(babelOpt)
+    // }
+    babelOpt.babelHelpers = 'runtime' //新版babel設定
+    babelPlugin = babel(babelOpt)
     plugins.push(babelPlugin)
 
     plugins.push(postcss({

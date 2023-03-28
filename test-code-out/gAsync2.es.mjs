@@ -1,5 +1,5 @@
 /*!
- * gWorker2_Obj v1.0.66
+ * gAsync2 v1.0.66
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
@@ -618,29 +618,32 @@ function trim(string, chars, guard) {
 }
 var trim_1 = trim;
 
-async function aaa(p1) {
-  return 'aaaRes p [' + p1 + '] p' + trim_1(' [trim] ');
+async function gAsync2() {
+  let key = '*';
+  let data = {
+    a: 1,
+    b: 2.2,
+    c: `${key}`,
+    d: trim_1(' trim me ')
+  };
+  let f = () => {
+    let k = 'n';
+    return {
+      m: data.a,
+      [k]: data.b
+    };
+  };
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log('gAsync2 data=', data);
+      console.log('gAsync2 f()=', f());
+      resolve({
+        name: 'gAsync2',
+        data,
+        fr: f()
+      });
+    }, 300);
+  });
 }
-async function bbb(p1, p2) {
-  if (p1 <= p2) {
-    return 'bbbRes p1<=p2';
-  }
-  return Promise.reject('bbbRes p1>p2');
-}
-async function ccc(n) {
-  let r = 1;
-  for (let i = 0; i < n; i++) {
-    r += 1;
-    r -= 1;
-    r *= 5.5;
-    r /= 5.5;
-  }
-  return 'no.=' + n + ', r=' + r;
-}
-let gWorker2_Obj = {
-  aaa,
-  bbb,
-  ccc
-};
 
-export { gWorker2_Obj as default };
+export { gAsync2 as default };
