@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.67",
+  "version": "1.0.68",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
     "@babel/cli": "^7.21.0",
@@ -27,7 +27,7 @@
     "@starptech/prettyhtml": "^0.10.0",
     "core-js": "^3.29.1",
     "docdash": "^2.0.1",
-    "eslint": "^8.36.0",
+    "eslint": "^8.37.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-plugin-import": "^2.27.5",
@@ -46,7 +46,7 @@
     "rollup": "^3.20.2",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-vue": "6.0.0",
+    "rollup-plugin-vue": "^5.1.9",
     "rollup-plugin-vue-template-compiler": "^1.0.3",
     "vue-eslint-parser": "^9.1.0",
     "vue-template-compiler": "^2.7.14"

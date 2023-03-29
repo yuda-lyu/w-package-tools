@@ -3,15 +3,14 @@ import path from 'path'
 import _ from 'lodash'
 import w from './wsemip.umd.js'
 import { rollup } from 'rollup'
-import vue from 'rollup-plugin-vue'
+import vue from 'rollup-plugin-vue' //5.1.9為轉譯vue2, 6.0.0為轉譯vue3
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import postcss from 'rollup-plugin-postcss'
-import { babel } from '@rollup/plugin-babel'
+import { babel } from '@rollup/plugin-babel' //考慮ie11已剔除, 不須轉譯async或模版語法等, 故vue2直接使用編譯程式碼的@rollup/plugin-babel
 // import babelForVue2 from 'rollup-plugin-babel' //才能編譯vue2含async語法的組件
-// import { terser } from 'rollup-plugin-terser'
 import terser from '@rollup/plugin-terser'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import getPks from './getPks.mjs'
