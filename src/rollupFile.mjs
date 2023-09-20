@@ -301,6 +301,7 @@ async function rollupFile(opt = {}) {
         format: formatOut,
         name: nameDist,
         file: fpTar,
+        inlineDynamicImports: true, //有些套件例如pyodide內會使用動態加載技術, 故得使用inlineDynamicImports
         sourcemap: bSourcemap,
         sourcemapExcludeSources: true,
     }
