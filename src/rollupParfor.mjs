@@ -1,6 +1,6 @@
 // import path from 'path'
 import fs from 'fs'
-import _ from 'lodash'
+import _ from 'lodash-es'
 import w from './wsemip.umd.js'
 import pathResolve from './pathResolve.mjs'
 import rollupWorker from './rollupWorker.mjs'
@@ -44,9 +44,9 @@ function genParforCoreCode(fpPmSeries, fpCore) {
 
 function genParforCode(fpWpf, fpParforCore) {
     let c = `
-    import get from 'lodash/get'
-    import each from 'lodash/each'
-    import size from 'lodash/size'
+    import get from 'lodash-es/get'
+    import each from 'lodash-es/each'
+    import size from 'lodash-es/size'
     import w from '{fpWpf}'
     import parforCore from '{fpParforCore}'
     

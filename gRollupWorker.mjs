@@ -1,5 +1,5 @@
 import path from 'path'
-import _ from 'lodash'
+import _ from 'lodash-es'
 import w from './src/wsemip.umd.js'
 import rollupWorker from './src/rollupWorker.mjs'
 import gWorker2_Obj from './test-code-in/gWorker2_Obj.mjs'

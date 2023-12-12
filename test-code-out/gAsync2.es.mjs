@@ -1,28 +1,22 @@
 /*!
- * gAsync2 v1.0.67
+ * gAsync2 v1.0.70
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
 /** Detect free variable `global` from Node.js. */
-var freeGlobal$1 = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-var _freeGlobal = freeGlobal$1;
-
-var freeGlobal = _freeGlobal;
+var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+var freeGlobal$1 = freeGlobal;
 
 /** Detect free variable `self`. */
 var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
 
 /** Used as a reference to the global object. */
-var root$1 = freeGlobal || freeSelf || Function('return this')();
-var _root = root$1;
-
-var root = _root;
+var root = freeGlobal$1 || freeSelf || Function('return this')();
+var root$1 = root;
 
 /** Built-in value references. */
-var Symbol$3 = root.Symbol;
-var _Symbol = Symbol$3;
+var Symbol = root$1.Symbol;
+var Symbol$1 = Symbol;
 
 /**
  * A specialized version of `_.map` for arrays without support for iteratee
@@ -33,7 +27,7 @@ var _Symbol = Symbol$3;
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns the new mapped array.
  */
-function arrayMap$1(array, iteratee) {
+function arrayMap(array, iteratee) {
   var index = -1,
     length = array == null ? 0 : array.length,
     result = Array(length);
@@ -42,7 +36,6 @@ function arrayMap$1(array, iteratee) {
   }
   return result;
 }
-var _arrayMap = arrayMap$1;
 
 /**
  * Checks if `value` is classified as an `Array` object.
@@ -67,10 +60,8 @@ var _arrayMap = arrayMap$1;
  * _.isArray(_.noop);
  * // => false
  */
-var isArray$1 = Array.isArray;
-var isArray_1 = isArray$1;
-
-var Symbol$2 = _Symbol;
+var isArray = Array.isArray;
+var isArray$1 = isArray;
 
 /** Used for built-in method references. */
 var objectProto$1 = Object.prototype;
@@ -86,7 +77,7 @@ var hasOwnProperty = objectProto$1.hasOwnProperty;
 var nativeObjectToString$1 = objectProto$1.toString;
 
 /** Built-in value references. */
-var symToStringTag$1 = Symbol$2 ? Symbol$2.toStringTag : undefined;
+var symToStringTag$1 = Symbol$1 ? Symbol$1.toStringTag : undefined;
 
 /**
  * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
@@ -95,7 +86,7 @@ var symToStringTag$1 = Symbol$2 ? Symbol$2.toStringTag : undefined;
  * @param {*} value The value to query.
  * @returns {string} Returns the raw `toStringTag`.
  */
-function getRawTag$1(value) {
+function getRawTag(value) {
   var isOwn = hasOwnProperty.call(value, symToStringTag$1),
     tag = value[symToStringTag$1];
   try {
@@ -112,7 +103,6 @@ function getRawTag$1(value) {
   }
   return result;
 }
-var _getRawTag = getRawTag$1;
 
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
@@ -131,14 +121,9 @@ var nativeObjectToString = objectProto.toString;
  * @param {*} value The value to convert.
  * @returns {string} Returns the converted string.
  */
-function objectToString$1(value) {
+function objectToString(value) {
   return nativeObjectToString.call(value);
 }
-var _objectToString = objectToString$1;
-
-var Symbol$1 = _Symbol,
-  getRawTag = _getRawTag,
-  objectToString = _objectToString;
 
 /** `Object#toString` result references. */
 var nullTag = '[object Null]',
@@ -154,13 +139,12 @@ var symToStringTag = Symbol$1 ? Symbol$1.toStringTag : undefined;
  * @param {*} value The value to query.
  * @returns {string} Returns the `toStringTag`.
  */
-function baseGetTag$1(value) {
+function baseGetTag(value) {
   if (value == null) {
     return value === undefined ? undefinedTag : nullTag;
   }
   return symToStringTag && symToStringTag in Object(value) ? getRawTag(value) : objectToString(value);
 }
-var _baseGetTag = baseGetTag$1;
 
 /**
  * Checks if `value` is object-like. A value is object-like if it's not `null`
@@ -186,13 +170,9 @@ var _baseGetTag = baseGetTag$1;
  * _.isObjectLike(null);
  * // => false
  */
-function isObjectLike$1(value) {
+function isObjectLike(value) {
   return value != null && typeof value == 'object';
 }
-var isObjectLike_1 = isObjectLike$1;
-
-var baseGetTag = _baseGetTag,
-  isObjectLike = isObjectLike_1;
 
 /** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
@@ -214,21 +194,15 @@ var symbolTag = '[object Symbol]';
  * _.isSymbol('abc');
  * // => false
  */
-function isSymbol$1(value) {
+function isSymbol(value) {
   return typeof value == 'symbol' || isObjectLike(value) && baseGetTag(value) == symbolTag;
 }
-var isSymbol_1 = isSymbol$1;
-
-var Symbol = _Symbol,
-  arrayMap = _arrayMap,
-  isArray = isArray_1,
-  isSymbol = isSymbol_1;
 
 /** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** Used to convert symbols to primitives and strings. */
-var symbolProto = Symbol ? Symbol.prototype : undefined,
+var symbolProto = Symbol$1 ? Symbol$1.prototype : undefined,
   symbolToString = symbolProto ? symbolProto.toString : undefined;
 
 /**
@@ -239,14 +213,14 @@ var symbolProto = Symbol ? Symbol.prototype : undefined,
  * @param {*} value The value to process.
  * @returns {string} Returns the string.
  */
-function baseToString$2(value) {
+function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
   if (typeof value == 'string') {
     return value;
   }
-  if (isArray(value)) {
+  if (isArray$1(value)) {
     // Recursively convert values (susceptible to call stack limits).
-    return arrayMap(value, baseToString$2) + '';
+    return arrayMap(value, baseToString) + '';
   }
   if (isSymbol(value)) {
     return symbolToString ? symbolToString.call(value) : '';
@@ -254,7 +228,6 @@ function baseToString$2(value) {
   var result = value + '';
   return result == '0' && 1 / value == -INFINITY ? '-0' : result;
 }
-var _baseToString = baseToString$2;
 
 /** Used to match a single whitespace character. */
 var reWhitespace = /\s/;
@@ -267,14 +240,11 @@ var reWhitespace = /\s/;
  * @param {string} string The string to inspect.
  * @returns {number} Returns the index of the last non-whitespace character.
  */
-function trimmedEndIndex$1(string) {
+function trimmedEndIndex(string) {
   var index = string.length;
   while (index-- && reWhitespace.test(string.charAt(index))) {}
   return index;
 }
-var _trimmedEndIndex = trimmedEndIndex$1;
-
-var trimmedEndIndex = _trimmedEndIndex;
 
 /** Used to match leading whitespace. */
 var reTrimStart = /^\s+/;
@@ -286,10 +256,9 @@ var reTrimStart = /^\s+/;
  * @param {string} string The string to trim.
  * @returns {string} Returns the trimmed string.
  */
-function baseTrim$1(string) {
+function baseTrim(string) {
   return string ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '') : string;
 }
-var _baseTrim = baseTrim$1;
 
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
@@ -300,7 +269,7 @@ var _baseTrim = baseTrim$1;
  * @param {number} [end=array.length] The end position.
  * @returns {Array} Returns the slice of `array`.
  */
-function baseSlice$1(array, start, end) {
+function baseSlice(array, start, end) {
   var index = -1,
     length = array.length;
   if (start < 0) {
@@ -318,9 +287,6 @@ function baseSlice$1(array, start, end) {
   }
   return result;
 }
-var _baseSlice = baseSlice$1;
-
-var baseSlice = _baseSlice;
 
 /**
  * Casts `array` to a slice if it's needed.
@@ -331,12 +297,11 @@ var baseSlice = _baseSlice;
  * @param {number} [end=array.length] The end position.
  * @returns {Array} Returns the cast slice.
  */
-function castSlice$1(array, start, end) {
+function castSlice(array, start, end) {
   var length = array.length;
   end = end === undefined ? length : end;
   return !start && end >= length ? array : baseSlice(array, start, end);
 }
-var _castSlice = castSlice$1;
 
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
@@ -349,7 +314,7 @@ var _castSlice = castSlice$1;
  * @param {boolean} [fromRight] Specify iterating from right to left.
  * @returns {number} Returns the index of the matched value, else `-1`.
  */
-function baseFindIndex$1(array, predicate, fromIndex, fromRight) {
+function baseFindIndex(array, predicate, fromIndex, fromRight) {
   var length = array.length,
     index = fromIndex + (fromRight ? 1 : -1);
   while (fromRight ? index-- : ++index < length) {
@@ -359,7 +324,6 @@ function baseFindIndex$1(array, predicate, fromIndex, fromRight) {
   }
   return -1;
 }
-var _baseFindIndex = baseFindIndex$1;
 
 /**
  * The base implementation of `_.isNaN` without support for number objects.
@@ -368,10 +332,9 @@ var _baseFindIndex = baseFindIndex$1;
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is `NaN`, else `false`.
  */
-function baseIsNaN$1(value) {
+function baseIsNaN(value) {
   return value !== value;
 }
-var _baseIsNaN = baseIsNaN$1;
 
 /**
  * A specialized version of `_.indexOf` which performs strict equality
@@ -383,7 +346,7 @@ var _baseIsNaN = baseIsNaN$1;
  * @param {number} fromIndex The index to search from.
  * @returns {number} Returns the index of the matched value, else `-1`.
  */
-function strictIndexOf$1(array, value, fromIndex) {
+function strictIndexOf(array, value, fromIndex) {
   var index = fromIndex - 1,
     length = array.length;
   while (++index < length) {
@@ -393,11 +356,6 @@ function strictIndexOf$1(array, value, fromIndex) {
   }
   return -1;
 }
-var _strictIndexOf = strictIndexOf$1;
-
-var baseFindIndex = _baseFindIndex,
-  baseIsNaN = _baseIsNaN,
-  strictIndexOf = _strictIndexOf;
 
 /**
  * The base implementation of `_.indexOf` without `fromIndex` bounds checks.
@@ -408,12 +366,9 @@ var baseFindIndex = _baseFindIndex,
  * @param {number} fromIndex The index to search from.
  * @returns {number} Returns the index of the matched value, else `-1`.
  */
-function baseIndexOf$2(array, value, fromIndex) {
+function baseIndexOf(array, value, fromIndex) {
   return value === value ? strictIndexOf(array, value, fromIndex) : baseFindIndex(array, baseIsNaN, fromIndex);
 }
-var _baseIndexOf = baseIndexOf$2;
-
-var baseIndexOf$1 = _baseIndexOf;
 
 /**
  * Used by `_.trim` and `_.trimEnd` to get the index of the last string symbol
@@ -424,14 +379,11 @@ var baseIndexOf$1 = _baseIndexOf;
  * @param {Array} chrSymbols The character symbols to find.
  * @returns {number} Returns the index of the last unmatched string symbol.
  */
-function charsEndIndex$1(strSymbols, chrSymbols) {
+function charsEndIndex(strSymbols, chrSymbols) {
   var index = strSymbols.length;
-  while (index-- && baseIndexOf$1(chrSymbols, strSymbols[index], 0) > -1) {}
+  while (index-- && baseIndexOf(chrSymbols, strSymbols[index], 0) > -1) {}
   return index;
 }
-var _charsEndIndex = charsEndIndex$1;
-
-var baseIndexOf = _baseIndexOf;
 
 /**
  * Used by `_.trim` and `_.trimStart` to get the index of the first string symbol
@@ -442,13 +394,12 @@ var baseIndexOf = _baseIndexOf;
  * @param {Array} chrSymbols The character symbols to find.
  * @returns {number} Returns the index of the first unmatched string symbol.
  */
-function charsStartIndex$1(strSymbols, chrSymbols) {
+function charsStartIndex(strSymbols, chrSymbols) {
   var index = -1,
     length = strSymbols.length;
   while (++index < length && baseIndexOf(chrSymbols, strSymbols[index], 0) > -1) {}
   return index;
 }
-var _charsStartIndex = charsStartIndex$1;
 
 /**
  * Converts an ASCII `string` to an array.
@@ -457,10 +408,9 @@ var _charsStartIndex = charsStartIndex$1;
  * @param {string} string The string to convert.
  * @returns {Array} Returns the converted array.
  */
-function asciiToArray$1(string) {
+function asciiToArray(string) {
   return string.split('');
 }
-var _asciiToArray = asciiToArray$1;
 
 /** Used to compose unicode character classes. */
 var rsAstralRange$1 = '\\ud800-\\udfff',
@@ -483,10 +433,9 @@ var reHasUnicode = RegExp('[' + rsZWJ$1 + rsAstralRange$1 + rsComboRange$1 + rsV
  * @param {string} string The string to inspect.
  * @returns {boolean} Returns `true` if a symbol is found, else `false`.
  */
-function hasUnicode$1(string) {
+function hasUnicode(string) {
   return reHasUnicode.test(string);
 }
-var _hasUnicode = hasUnicode$1;
 
 /** Used to compose unicode character classes. */
 var rsAstralRange = '\\ud800-\\udfff',
@@ -523,14 +472,9 @@ var reUnicode = RegExp(rsFitz + '(?=' + rsFitz + ')|' + rsSymbol + rsSeq, 'g');
  * @param {string} string The string to convert.
  * @returns {Array} Returns the converted array.
  */
-function unicodeToArray$1(string) {
+function unicodeToArray(string) {
   return string.match(reUnicode) || [];
 }
-var _unicodeToArray = unicodeToArray$1;
-
-var asciiToArray = _asciiToArray,
-  hasUnicode = _hasUnicode,
-  unicodeToArray = _unicodeToArray;
 
 /**
  * Converts `string` to an array.
@@ -539,12 +483,9 @@ var asciiToArray = _asciiToArray,
  * @param {string} string The string to convert.
  * @returns {Array} Returns the converted array.
  */
-function stringToArray$1(string) {
+function stringToArray(string) {
   return hasUnicode(string) ? unicodeToArray(string) : asciiToArray(string);
 }
-var _stringToArray = stringToArray$1;
-
-var baseToString$1 = _baseToString;
 
 /**
  * Converts `value` to a string. An empty string is returned for `null`
@@ -567,18 +508,9 @@ var baseToString$1 = _baseToString;
  * _.toString([1, 2, 3]);
  * // => '1,2,3'
  */
-function toString$1(value) {
-  return value == null ? '' : baseToString$1(value);
+function toString(value) {
+  return value == null ? '' : baseToString(value);
 }
-var toString_1 = toString$1;
-
-var baseToString = _baseToString,
-  baseTrim = _baseTrim,
-  castSlice = _castSlice,
-  charsEndIndex = _charsEndIndex,
-  charsStartIndex = _charsStartIndex,
-  stringToArray = _stringToArray,
-  toString = toString_1;
 
 /**
  * Removes leading and trailing whitespace or specified characters from `string`.
@@ -616,7 +548,6 @@ function trim(string, chars, guard) {
     end = charsEndIndex(strSymbols, chrSymbols) + 1;
   return castSlice(strSymbols, start, end).join('');
 }
-var trim_1 = trim;
 
 async function gAsync2() {
   let key = '*';
@@ -624,7 +555,7 @@ async function gAsync2() {
     a: 1,
     b: 2.2,
     c: `${key}`,
-    d: trim_1(' trim me ')
+    d: trim(' trim me ')
   };
   let f = () => {
     let k = 'n';

@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import _ from 'lodash'
+import _ from 'lodash-es'
 import w from './wsemip.umd.js'
 import { rollup } from 'rollup'
 import vue from 'rollup-plugin-vue' //5.1.9為轉譯vue2, 6.0.0為轉譯vue3

@@ -1,5 +1,5 @@
 /*!
- * gVue1 v1.0.67
+ * gVue1 v1.0.70
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
@@ -17,7 +17,7 @@
     //
     //
 
-    // import trim from 'lodash/trim'
+    // import trim from 'lodash-es/trim'
 
     var script = {
         components: {
@@ -221,11 +221,11 @@
       /* style */
       const __vue_inject_styles__ = function (inject) {
         if (!inject) return
-        inject("data-v-62c244a6_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"gVue1.vue"}, media: undefined });
+        inject("data-v-16774789_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"gVue1.vue"}, media: undefined });
 
       };
       /* scoped */
-      const __vue_scope_id__ = "data-v-62c244a6";
+      const __vue_scope_id__ = "data-v-16774789";
       /* module identifier */
       const __vue_module_identifier__ = undefined;
       /* functional template */

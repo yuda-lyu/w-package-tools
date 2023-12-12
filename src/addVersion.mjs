@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import getPks from './getPks.mjs'
 import setPks from './setPks.mjs'
 

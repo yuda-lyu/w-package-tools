@@ -1,5 +1,5 @@
 import fs from 'fs'
-import _ from 'lodash'
+import _ from 'lodash-es'
 import prettyhtml from '@starptech/prettyhtml'
 import w from './wsemip.umd.js'
 

@@ -1,4 +1,4 @@
-import trim from 'lodash/trim'
+import trim from 'lodash-es/trim'
 import EventEmitter from 'eventemitter3'
 
 
