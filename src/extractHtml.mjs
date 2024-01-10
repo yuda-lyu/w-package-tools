@@ -12,6 +12,7 @@ import w from './wsemip.umd.js'
  * @param {String} [opt.title=''] 輸入標題字串，預設''
  * @param {String} [opt.head=''] 輸入head內額外html字串，預設''
  * @param {String} [opt.appTag=''] 輸入app使用標記字串，預設'div'
+ * @param {String} [opt.appClass=''] 輸入app的class字串，預設''
  * @param {String} [opt.appStyle=''] 輸入app的style字串，預設''
  * @param {String} [opt.appTmp=''] 輸入app的html字串，預設''
  * @param {String} [opt.installVue=''] 輸入註冊vue組件的js程式碼字串，預設''
@@ -32,6 +33,7 @@ async function extractHtml(opt = {}) {
     let title = _.get(opt, 'title', '')
     let head = _.get(opt, 'head', '')
     let appTag = _.get(opt, 'appTag', 'div')
+    let appClass = _.get(opt, 'appClass', '')
     let appStyle = _.get(opt, 'appStyle', '')
     let appTmp = _.get(opt, 'appTmp', '')
     let installVue = _.get(opt, 'installVue', '')
@@ -71,7 +73,7 @@ async function extractHtml(opt = {}) {
 </head>
 <body style="font-family:'Microsoft JhengHei','Avenir','Helvetica'; padding:0px; margin:0px;">
 
-    <${appTag} id="app" style="${appStyle}">
+    <${appTag} id="app" class="${appClass}" style="${appStyle}">
 
         ${appTmp}
 
