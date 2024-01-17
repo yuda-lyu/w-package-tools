@@ -874,7 +874,7 @@ async function rollupWorkerCore(opt = {}) {
     rpOpt = {
         // name, //打包成es不需要name
         fn, //rollupFile會偵測副檔名作為formatIn
-        fdSrc: w.getDirName(fpSrc),
+        fdSrc: w.getPathParent(fpSrc),
         // fdTar: '', //沒給代表回傳程式碼
         format: 'es', //輸出formatOut
         targets,
