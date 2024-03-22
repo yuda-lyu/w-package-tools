@@ -44,9 +44,9 @@ function genParforCoreCode(fpPmSeries, fpCore) {
 
 function genParforCode(fpWpf, fpParforCore) {
     let c = `
-    import get from 'lodash-es/get'
-    import each from 'lodash-es/each'
-    import size from 'lodash-es/size'
+import get from 'lodash-es/get.js'
+import each from 'lodash-es/each.js'
+import size from 'lodash-es/size.js'
     import w from '{fpWpf}'
     import parforCore from '{fpParforCore}'
     

@@ -1,4 +1,4 @@
-import trim from 'lodash-es/trim'
+import trim from 'lodash-es/trim.js'
 
 
 async function aaa(p1) {

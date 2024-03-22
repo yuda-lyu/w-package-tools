@@ -1,4 +1,4 @@
-import trim from 'lodash-es/trim' //引用外部套件函式
+import trim from 'lodash-es/trim.js'
 
 async function gAsync2() {
     let key = '*'

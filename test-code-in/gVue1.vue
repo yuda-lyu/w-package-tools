@@ -6,7 +6,7 @@
 </template>
 
 <script>
-// import trim from 'lodash-es/trim'
+// import trim from 'lodash-es/trim.js'
 
 export default {
     components: {
