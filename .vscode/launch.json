@@ -15,7 +15,6 @@
             "runtimeArgs": [
                 "--max-old-space-size=14448",
                 "--experimental-modules",
-                "--es-module-specifier-resolution=node"
             ]
         }
     ]

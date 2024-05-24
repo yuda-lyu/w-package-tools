@@ -30,4 +30,4 @@ core()
     })
 
 
-//node --experimental-modules --es-module-specifier-resolution=node gRollupParfor.mjs
+//node --experimental-modules gRollupParfor.mjs

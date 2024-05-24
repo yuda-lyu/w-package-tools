@@ -1,5 +1,5 @@
-#node --experimental-modules --es-module-specifier-resolution=node toolg/addVersion.mjs
-#node --experimental-modules --es-module-specifier-resolution=node toolg/modifyReadme.mjs
+#node --experimental-modules toolg/addVersion.mjs
+#node --experimental-modules toolg/modifyReadme.mjs
 
 rm -r docs
 ./node_modules/.bin/jsdoc -c .jsdoc
@@ -12,6 +12,6 @@ npm run deploy
 
 #npm test
 
-#node --experimental-modules --es-module-specifier-resolution=node g.mjs
+#node --experimental-modules g.mjs
 
 #npm publish

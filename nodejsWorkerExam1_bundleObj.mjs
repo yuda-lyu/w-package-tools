@@ -47,4 +47,4 @@ w.ccc(300000000)
         console.log('w.ccc(n) catch', err)
     })
 
-//node --experimental-modules --es-module-specifier-resolution=node nodejsWorkerExam1_bundleObj.mjs
+//node --experimental-modules nodejsWorkerExam1_bundleObj.mjs

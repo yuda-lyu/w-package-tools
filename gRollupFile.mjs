@@ -115,4 +115,4 @@ core()
         console.log(err)
     })
 
-//node --experimental-modules --es-module-specifier-resolution=node gRollupFile.mjs
+//node --experimental-modules gRollupFile.mjs

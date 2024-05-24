@@ -98,4 +98,4 @@ core()
     })
 
 
-//node --experimental-modules --es-module-specifier-resolution=node gRollupWorker.mjs
+//node --experimental-modules gRollupWorker.mjs

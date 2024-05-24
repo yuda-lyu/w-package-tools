@@ -181,7 +181,7 @@ async function rollupFile(opt = {}) {
     //mangleReserved
     let mangleReserved = _.get(opt, 'mangleReserved', null)
     if (!w.isarr(mangleReserved)) {
-        mangleReserved = []
+        mangleReserved = [] //可禁止使用'$', 因有些技術使用取代字串成編譯後程式碼, 若編譯後程式碼內含$&會導致觸發regex的插入匹配的字串, 從而造成非預期問題
     }
 
     //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱

@@ -65,4 +65,4 @@ setTimeout(() => {
     w.terminate()
 }, 3000)
 
-//node --experimental-modules --es-module-specifier-resolution=node nodejsWorkerExam3_bundleFunEv.mjs
+//node --experimental-modules nodejsWorkerExam3_bundleFunEv.mjs

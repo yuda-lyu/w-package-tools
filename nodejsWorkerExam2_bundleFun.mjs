@@ -11,4 +11,4 @@ w(1.234, 'xyz')
         console.log('w(1.234,\'xyz\') catch', err)
     })
 
-//node --experimental-modules --es-module-specifier-resolution=node nodejsWorkerExam2_bundleFun.mjs
+//node --experimental-modules nodejsWorkerExam2_bundleFun.mjs

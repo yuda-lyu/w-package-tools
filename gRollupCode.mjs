@@ -123,4 +123,4 @@ core()
     })
 
 
-//node --experimental-modules --es-module-specifier-resolution=node gRollupCode.mjs
+//node --experimental-modules gRollupCode.mjs
