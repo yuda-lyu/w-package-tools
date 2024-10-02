@@ -31,10 +31,10 @@ function gBase2() {
     }
     testAsync()
         .then((r) => {
-            console.log('aaa testAsync resolve', r)
+            console.log('tf1 testAsync resolve', r)
         })
         .catch((r) => {
-            console.log('aaa testAsync reject', r)
+            console.log('tf1 testAsync reject', r)
         })
 
     console.log('gBase2 objData=', objData)

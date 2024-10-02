@@ -72,18 +72,18 @@ function evem() {
 function gWorker4_FunEv(inip1, inip2) {
     let ev = evem()
 
-    async function aaa(p1) {
-        return 'aaaRes p [' + p1 + '] p' + trim(' [trim] ')
+    async function tf1(p1) {
+        return 'tf1Res p [' + p1 + '] p' + trim(' [trim] ')
     }
 
-    async function bbb(p1, p2) {
+    async function tf2(p1, p2) {
         if (p1 <= p2) {
-            return 'bbbRes p1<=p2'
+            return 'tf2Res p1<=p2'
         }
-        return Promise.reject('bbbRes p1>p2')
+        return Promise.reject('tf2Res p1>p2')
     }
 
-    async function ccc(n) {
+    async function tf3(n) {
         let r = 1
         for (let i = 0; i < n; i++) {
             r += 1
@@ -94,19 +94,19 @@ function gWorker4_FunEv(inip1, inip2) {
         return 'no.=' + n + ', r=' + r
     }
 
-    async function ddd(p1, p2) {
-        ev.emit('ev-ddd', 'emit data p1='+p1+', p2='+p2)
-        return 'dddRes emit-event'
+    async function tf4(p1, p2) {
+        ev.emit('ev-tf4', 'emit data p1='+p1+', p2='+p2)
+        return 'tf4Res emit-event'
     }
 
     setTimeout(() => {
-        ddd(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
+        tf4(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
     }, 1000)
 
-    ev.aaa=aaa
-    ev.bbb=bbb
-    ev.ccc=ccc
-    ev.ddd=ddd
+    ev.tf1=tf1
+    ev.tf2=tf2
+    ev.tf3=tf3
+    ev.tf4=tf4
     return ev
 }
 
@@ -117,12 +117,12 @@ function init(input){
     let r=gWorker4_FunEv(...input)
 
     //on
-    r.on('ev-ddd',(msg) => {
+    r.on('ev-tf4',(msg) => {
 
         //sendMessage
         let res={
             mode:'emit',
-            evName:'ev-ddd',
+            evName:'ev-tf4',
             msg,
         }
         sendMessage(res)
@@ -207,18 +207,18 @@ self.onmessage = function (e) {
             function _m(inip1,inip2){
                 let ev = evem()
             
-                async function aaa(p1) {
-                    return 'aaaRes p ['+p1+'] p'
+                async function tf1(p1) {
+                    return 'tf1Res p ['+p1+'] p'
                 }
             
-                async function bbb(p1, p2) {
+                async function tf2(p1, p2) {
                     if (p1 <= p2) {
-                        return 'bbbRes p1<=p2'
+                        return 'tf2Res p1<=p2'
                     }
-                    return Promise.reject('bbbRes p1>p2')
+                    return Promise.reject('tf2Res p1>p2')
                 }
             
-                async function ccc(n) {
+                async function tf3(n) {
                     let r = 1
                     for (let i = 0; i < n; i++) {
                         r += 1
@@ -229,68 +229,68 @@ self.onmessage = function (e) {
                     return 'no.=' + n + ', r=' + r
                 }
             
-                async function ddd(p1, p2) {
-                    ev.emit('ev-ddd', 'emit data p1='+p1+', p2='+p2)
-                    return 'dddRes emit-event'
+                async function tf4(p1, p2) {
+                    ev.emit('ev-tf4', 'emit data p1='+p1+', p2='+p2)
+                    return 'tf4Res emit-event'
                 }
             
                 setTimeout(() => {
-                    ddd(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
+                    tf4(inip1+'~'+inip2, 'call by setTimeout(1000ms)')
                 }, 1000)
             
-                ev.aaa=aaa
-                ev.bbb=bbb
-                ev.ccc=ccc
-                ev.ddd=ddd
+                ev.tf1=tf1
+                ev.tf2=tf2
+                ev.tf3=tf3
+                ev.tf4=tf4
                 return ev
             }
             
             let m=_m(1.234,'xyz')
-            m.on('ev-ddd',(msg) => {
-                console.log('m.ev-ddd',msg)
+            m.on('ev-tf4',(msg) => {
+                console.log('m.ev-tf4',msg)
             })
             m.on('error',(msg) => {
                 console.log('m.error',msg)
             })
             
-            m.aaa(1)
+            m.tf1(1)
                 .then((res) => {
-                    console.log('m.aaa(1) then',res)
+                    console.log('m.tf1(1) then',res)
                 })
                 .catch((err) => {
-                    console.log('m.aaa(1) catch',err)
+                    console.log('m.tf1(1) catch',err)
                 })
             
-            m.bbb(1,2)
+            m.tf2(1,2)
                 .then((res) => {
-                    console.log('m.bbb(1,2) then',res)
+                    console.log('m.tf2(1,2) then',res)
                 })
                 .catch((err) => {
-                    console.log('m.bbb(1,2) catch',err)
+                    console.log('m.tf2(1,2) catch',err)
                 })
             
-            m.bbb(5,3)
+            m.tf2(5,3)
                 .then((res) => {
-                    console.log('m.bbb(5,3) then',res)
+                    console.log('m.tf2(5,3) then',res)
                 })
                 .catch((err) => {
-                    console.log('m.bbb(5,3) catch',err)
+                    console.log('m.tf2(5,3) catch',err)
                 })
             
-            m.ccc(300000000) //運算量大會堵塞主執行緒
+            m.tf3(300000000) //運算量大會堵塞主執行緒
                 .then((res) => {
-                    console.log('m.ccc(n) then',res)
+                    console.log('m.tf3(n) then',res)
                 })
                 .catch((err) => {
-                    console.log('m.ccc(n) catch',err)
+                    console.log('m.tf3(n) catch',err)
                 })
             
-            m.ddd(4.56,'mnop')
+            m.tf4(4.56,'mnop')
                 .then((res) => {
-                    console.log('m.ddd(4.56,\'mnop\') then',res)
+                    console.log('m.tf4(4.56,\'mnop\') then',res)
                 })
                 .catch((err) => {
-                    console.log('m.ddd(4.56,\'mnop\') catch',err)
+                    console.log('m.tf4(4.56,\'mnop\') catch',err)
                 })
             
             function wrapWorker() {
@@ -339,7 +339,7 @@ self.onmessage = function (e) {
             
                 }
             
-                function aaa(){
+                function tf1(){
             
                     //pm
                     let pm = genPm()
@@ -351,7 +351,7 @@ self.onmessage = function (e) {
                     let dataSend={
                         mode:'call',
                         id,
-                        fun: 'aaa',
+                        fun: 'tf1',
                         input: [...arguments], //若直接用arguments會無法編譯
                     }
             
@@ -371,7 +371,7 @@ self.onmessage = function (e) {
                     return pm
                 }
             
-                function bbb(){
+                function tf2(){
             
                     //pm
                     let pm = genPm()
@@ -383,7 +383,7 @@ self.onmessage = function (e) {
                     let dataSend={
                         mode:'call',
                         id,
-                        fun: 'bbb',
+                        fun: 'tf2',
                         input: [...arguments], //若直接用arguments會無法編譯
                     }
             
@@ -403,7 +403,7 @@ self.onmessage = function (e) {
                     return pm
                 }
             
-                function ccc(){
+                function tf3(){
             
                     //pm
                     let pm = genPm()
@@ -415,7 +415,7 @@ self.onmessage = function (e) {
                     let dataSend={
                         mode:'call',
                         id,
-                        fun: 'ccc',
+                        fun: 'tf3',
                         input: [...arguments], //若直接用arguments會無法編譯
                     }
             
@@ -435,7 +435,7 @@ self.onmessage = function (e) {
                     return pm
                 }
             
-                function ddd(){
+                function tf4(){
             
                     //pm
                     let pm = genPm()
@@ -447,7 +447,7 @@ self.onmessage = function (e) {
                     let dataSend={
                         mode:'call',
                         id,
-                        fun: 'ddd',
+                        fun: 'tf4',
                         input: [...arguments], //若直接用arguments會無法編譯
                     }
             
@@ -498,58 +498,58 @@ self.onmessage = function (e) {
                 //init
                 init([...arguments])
             
-                ev.aaa=aaa
-                ev.bbb=bbb
-                ev.ccc=ccc
-                ev.ddd=ddd
+                ev.tf1=tf1
+                ev.tf2=tf2
+                ev.tf3=tf3
+                ev.tf4=tf4
                 return ev
             }
             let w = wrapWorker(1.234,'xyz')
-            w.on('ev-ddd',(msg) => {
-                console.log('w.ev-ddd',msg)
+            w.on('ev-tf4',(msg) => {
+                console.log('w.ev-tf4',msg)
             })
             w.on('error',(msg) => {
                 console.log('w.error',msg)
             })
             
-            w.aaa(1)
+            w.tf1(1)
                 .then((res) => {
-                    console.log('w.aaa(1) then',res)
+                    console.log('w.tf1(1) then',res)
                 })
                 .catch((err) => {
-                    console.log('w.aaa(1) catch',err)
+                    console.log('w.tf1(1) catch',err)
                 })
             
-            w.bbb(1,2)
+            w.tf2(1,2)
                 .then((res) => {
-                    console.log('w.bbb(1,2) then',res)
+                    console.log('w.tf2(1,2) then',res)
                 })
                 .catch((err) => {
-                    console.log('w.bbb(1,2) catch',err)
+                    console.log('w.tf2(1,2) catch',err)
                 })
             
-            w.bbb(5,3)
+            w.tf2(5,3)
                 .then((res) => {
-                    console.log('w.bbb(5,3) then',res)
+                    console.log('w.tf2(5,3) then',res)
                 })
                 .catch((err) => {
-                    console.log('w.bbb(5,3) catch',err)
+                    console.log('w.tf2(5,3) catch',err)
                 })
             
-            w.ccc(300000000) //運算量大但會於web worker內執行, 不會堵塞主執行緒
+            w.tf3(300000000) //運算量大但會於web worker內執行, 不會堵塞主執行緒
                 .then((res) => {
-                    console.log('w.ccc(n) then',res)
+                    console.log('w.tf3(n) then',res)
                 })
                 .catch((err) => {
-                    console.log('w.ccc(n) catch',err)
+                    console.log('w.tf3(n) catch',err)
                 })
             
-            w.ddd(4.56,'mnop')
+            w.tf4(4.56,'mnop')
                 .then((res) => {
-                    console.log('w.ddd(4.56,\'mnop\') then',res)
+                    console.log('w.tf4(4.56,\'mnop\') then',res)
                 })
                 .catch((err) => {
-                    console.log('w.ddd(4.56,\'mnop\') catch',err)
+                    console.log('w.tf4(4.56,\'mnop\') catch',err)
                 })
             
         </script>

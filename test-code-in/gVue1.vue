@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div @click="testArrFun">aaa</div>
+        <div @click="testArrFun">tf1</div>
         <div :a="`abc-${name}`">{{name}}</div>
     </div>
 </template>
@@ -15,7 +15,7 @@ export default {
         pathItems: {
             type: Array,
             default: () => [ //array function
-                'src:aaa',
+                'src:tf1',
             ],
         },
         opt: {

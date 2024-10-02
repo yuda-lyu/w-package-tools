@@ -49,7 +49,7 @@ async function core() {
         funNames: _.filter(_.keys(gWorker4_FunEv()), (v) => { //要初始化函數才能取得可提供外部呼叫之函數
             return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
         }),
-        evNames: ['ev-ddd'], //由內部emit外部的函數得手動提供,
+        evNames: ['ev-tf4'], //由內部emit外部的函數得手動提供,
         fpSrc: path.resolve(fdSrc, 'gWorker4_FunEv.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWorker4_FunEv.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
@@ -66,7 +66,7 @@ async function core() {
         funNames: _.filter(_.keys(gWorker5_FunAsm()), (v) => { //要初始化函數才能取得可提供外部呼叫之函數
             return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
         }),
-        evNames: ['ev-ddd'], //由內部emit外部的函數得手動提供,
+        evNames: ['ev-tf4'], //由內部emit外部的函數得手動提供,
         fpSrc: path.resolve(fdSrc, 'gWorker5_FunAsm.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWorker5_FunAsm.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',

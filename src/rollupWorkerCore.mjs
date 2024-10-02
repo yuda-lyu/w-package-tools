@@ -132,7 +132,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     let cnwt = ''
     if (opt.bNode) {
         cnwt = `
-        let { parentPort } = require('worker_threads')
+        let { parentPort } = require('worker_threads') //因尚未支援es6 import得使用require
         `
     }
 
@@ -304,6 +304,16 @@ function recvMessage(data) {
 }
 
 ${crm}
+
+process.on('unhandledRejection', (err) => {
+    console.log('inner:unhandledRejection', err)
+})
+process.on('uncaughtException', (err) => {
+    console.log('inner:uncaughtException', err)
+})
+process.on('uncaughtExceptionMonitor', (err) => {
+    console.log('inner:uncaughtExceptionMonitor', err)
+})
 
 `
 
@@ -512,6 +522,26 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         `
     }
 
+    //cte
+    let cte = ''
+    if (opt.bNode) {
+        cte = `
+        wk.on('exit', (code) => {
+            //The 'exit' event is emitted once the worker has stopped. If the worker exited by calling process.exit(), the exitCode parameter is the passed exit code. If the worker was terminated, the exitCode parameter is 1.
+            if (code !== 1) {
+                emitError('exit code['+code+'] !== 1')
+            }
+        })
+        `
+    }
+    else {
+        cte = `
+        wk.onmessageerror  = function (e) {
+            emitError(e.data)
+        }
+        `
+    }
+
     //crm
     let crm = ''
     if (opt.bNode) {
@@ -687,6 +717,9 @@ function protectShell() {
         //bind emitError
         ${cee}
 
+        //bind emitError for special condition
+        ${cte}
+
         //init
         init([...arguments]) //若直接用arguments會無法編譯
 
@@ -701,6 +734,16 @@ function protectShell() {
 
 }
 protectShell()
+
+process.on('unhandledRejection', (err) => {
+    console.log('outer:unhandledRejection', err)
+})
+process.on('uncaughtException', (err) => {
+    console.log('outer:uncaughtException', err)
+})
+process.on('uncaughtExceptionMonitor', (err) => {
+    console.log('outer:uncaughtExceptionMonitor', err)
+})
 
 export default ww
 

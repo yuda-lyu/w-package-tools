@@ -1,5 +1,5 @@
 /*!
- * gBase2 v1.0.74
+ * gBase2 v1.0.76
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
@@ -87,9 +87,9 @@
       await core();
     }
     testAsync().then(r => {
-      console.log('aaa testAsync resolve', r);
+      console.log('tf1 testAsync resolve', r);
     }).catch(r => {
-      console.log('aaa testAsync reject', r);
+      console.log('tf1 testAsync reject', r);
     });
     console.log('gBase2 objData=', objData);
     console.log('gBase2 testLongName()=', testLongName());

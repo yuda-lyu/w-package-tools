@@ -1,5 +1,5 @@
 /*!
- * gVue1 v1.0.74
+ * gVue1 v1.0.76
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
@@ -26,7 +26,7 @@
             pathItems: {
                 type: Array,
                 default: () => [ //array function
-                    'src:aaa',
+                    'src:tf1',
                 ],
             },
             opt: {
@@ -210,7 +210,7 @@
       var _h = _vm.$createElement;
       var _c = _vm._self._c || _h;
       return _c("div", [
-        _c("div", { on: { click: _vm.testArrFun } }, [_vm._v("aaa")]),
+        _c("div", { on: { click: _vm.testArrFun } }, [_vm._v("tf1")]),
         _vm._v(" "),
         _c("div", { attrs: { a: "abc-" + _vm.name } }, [_vm._v(_vm._s(_vm.name))])
       ])
@@ -221,11 +221,11 @@
       /* style */
       const __vue_inject_styles__ = function (inject) {
         if (!inject) return
-        inject("data-v-3d007f13_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"gVue1.vue"}, media: undefined });
+        inject("data-v-870a728c_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"gVue1.vue"}, media: undefined });
 
       };
       /* scoped */
-      const __vue_scope_id__ = "data-v-3d007f13";
+      const __vue_scope_id__ = "data-v-870a728c";
       /* module identifier */
       const __vue_module_identifier__ = undefined;
       /* functional template */

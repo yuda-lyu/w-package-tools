@@ -1,18 +1,18 @@
 import trim from 'lodash-es/trim.js'
 
 
-async function aaa(p1) {
-    return 'aaaRes p [' + p1 + '] p' + trim(' [trim] ')
+async function tf1(p1) {
+    return 'tf1Res p [' + p1 + '] p' + trim(' [trim] ')
 }
 
-async function bbb(p1, p2) {
+async function tf2(p1, p2) {
     if (p1 <= p2) {
-        return 'bbbRes p1<=p2'
+        return 'tf2Res p1<=p2'
     }
-    return Promise.reject('bbbRes p1>p2')
+    return Promise.reject('tf2Res p1>p2')
 }
 
-async function ccc(n) {
+async function tf3(n) {
     let r = 1
     for (let i = 0; i < n; i++) {
         r += 1
@@ -24,9 +24,9 @@ async function ccc(n) {
 }
 
 let gWorker2_Obj = {
-    aaa,
-    bbb,
-    ccc,
+    tf1,
+    tf2,
+    tf3,
 }
 
 

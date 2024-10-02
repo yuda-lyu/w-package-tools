@@ -17,18 +17,18 @@ async function get_t_test(df, p) {
 function gWorker5_FunAsm(inip1, inip2) {
     let ev = evem()
 
-    async function aaa(p1) {
-        return 'aaaRes p [' + p1 + '] p' + trim(' [trim] ')
+    async function tf1(p1) {
+        return 'tf1Res p [' + p1 + '] p' + trim(' [trim] ')
     }
 
-    async function bbb(p1, p2) {
+    async function tf2(p1, p2) {
         if (p1 <= p2) {
-            return 'bbbRes p1<=p2'
+            return 'tf2Res p1<=p2'
         }
-        return Promise.reject('bbbRes p1>p2')
+        return Promise.reject('tf2Res p1>p2')
     }
 
-    async function ccc(n) {
+    async function tf3(n) {
         let r = 1
         for (let i = 0; i < n; i++) {
             r += 1
@@ -39,24 +39,24 @@ function gWorker5_FunAsm(inip1, inip2) {
         return 'no.=' + n + ', r=' + r
     }
 
-    async function ddd(p1, p2) {
-        ev.emit('ev-ddd', `emit data p1='${p1}', p2='${p2}'`)
-        return 'dddRes emit-event'
+    async function tf4(p1, p2) {
+        ev.emit('ev-tf4', `emit data p1='${p1}', p2='${p2}'`)
+        return 'tf4Res emit-event'
     }
 
     setTimeout(() => {
-        ddd(`${inip1}~${inip2}`, `call by setTimeout(1000ms)`)
+        tf4(`${inip1}~${inip2}`, `call by setTimeout(1000ms)`)
     }, 1000)
 
-    async function eee(df, p) {
+    async function tf5(df, p) {
         return get_t_test(df, p)
     }
 
-    ev.aaa = aaa
-    ev.bbb = bbb
-    ev.ccc = ccc
-    ev.ddd = ddd
-    ev.eee = eee
+    ev.tf1 = tf1
+    ev.tf2 = tf2
+    ev.tf3 = tf3
+    ev.tf4 = tf4
+    ev.tf5 = tf5
     return ev
 }
 

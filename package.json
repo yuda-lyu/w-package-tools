@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.0.76",
+  "version": "1.0.77",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
     "@babel/cli": "^7.21.0",
