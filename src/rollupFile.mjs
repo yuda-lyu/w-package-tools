@@ -64,7 +64,10 @@ async function rollupFile(opt = {}) {
 
     //fdTar
     let fdTar = _.get(opt, 'fdTar', null)
-    if (!w.fsIsFolder(fdTar)) {
+    if (w.isestr(fdTar) && !w.fsIsFolder(fdTar)) {
+        w.fsCreateFolder(fdTar)
+    }
+    else {
         fdTar = ''
     }
 
@@ -277,10 +280,7 @@ async function rollupFile(opt = {}) {
     //fpTar, 編譯後檔案
     let bReturnCode = false
     let fpTar = ''
-    if (w.isestr(fdTar)) {
-        if (!w.fsIsFolder(fdTar)) {
-            w.fsCreateFolder(fdTar)
-        }
+    if (w.fsIsFolder(fdTar)) {
         fpTar = path.resolve(fdTar, `${nameDist}.${formatOut}.${extOut}`)
     }
     else {
