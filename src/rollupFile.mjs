@@ -65,10 +65,10 @@ async function rollupFile(opt = {}) {
     //fdTar
     let fdTar = _.get(opt, 'fdTar', null)
     if (w.isestr(fdTar)) {
-        if(!w.fsIsFolder(fdTar)){
+        if (!w.fsIsFolder(fdTar)) {
             w.fsCreateFolder(fdTar)
         }
-        else{
+        else {
             //none
         }
     }
