@@ -305,15 +305,17 @@ function recvMessage(data) {
 
 ${crm}
 
-process.on('unhandledRejection', (err) => {
-    console.log('inner:unhandledRejection', err)
-})
-process.on('uncaughtException', (err) => {
-    console.log('inner:uncaughtException', err)
-})
-process.on('uncaughtExceptionMonitor', (err) => {
-    console.log('inner:uncaughtExceptionMonitor', err)
-})
+if(process){
+    process.on('unhandledRejection', (err) => {
+        console.log('inner:unhandledRejection', err)
+    })
+    process.on('uncaughtException', (err) => {
+        console.log('inner:uncaughtException', err)
+    })
+    process.on('uncaughtExceptionMonitor', (err) => {
+        console.log('inner:uncaughtExceptionMonitor', err)
+    })
+}
 
 `
 
@@ -735,15 +737,17 @@ function protectShell() {
 }
 protectShell()
 
-process.on('unhandledRejection', (err) => {
-    console.log('outer:unhandledRejection', err)
-})
-process.on('uncaughtException', (err) => {
-    console.log('outer:uncaughtException', err)
-})
-process.on('uncaughtExceptionMonitor', (err) => {
-    console.log('outer:uncaughtExceptionMonitor', err)
-})
+if(process){
+    process.on('unhandledRejection', (err) => {
+        console.log('outer:unhandledRejection', err)
+    })
+    process.on('uncaughtException', (err) => {
+        console.log('outer:uncaughtException', err)
+    })
+    process.on('uncaughtExceptionMonitor', (err) => {
+        console.log('outer:uncaughtExceptionMonitor', err)
+    })
+}
 
 export default ww
 
