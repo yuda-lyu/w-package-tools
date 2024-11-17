@@ -305,7 +305,7 @@ function recvMessage(data) {
 
 ${crm}
 
-if(process){
+try{
     process.on('unhandledRejection', (err) => {
         console.log('inner:unhandledRejection', err)
     })
@@ -316,6 +316,7 @@ if(process){
         console.log('inner:uncaughtExceptionMonitor', err)
     })
 }
+catch(err){}
 
 `
 
@@ -737,7 +738,7 @@ function protectShell() {
 }
 protectShell()
 
-if(process){
+try{
     process.on('unhandledRejection', (err) => {
         console.log('outer:unhandledRejection', err)
     })
@@ -748,6 +749,7 @@ if(process){
         console.log('outer:uncaughtExceptionMonitor', err)
     })
 }
+catch(err){}
 
 export default ww
 
