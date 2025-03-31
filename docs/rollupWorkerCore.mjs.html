@@ -60,9 +60,50 @@ function str2b64(str) {
 }
 
 
-function clearExportDefault(code, name) {
+function clearExportCode(code, name) {
 
-    //cled, 通常會編譯成為「export default OOO;」
+    //clec, cjs會編譯成為「module.exports = OOO;」
+    let clec = () => {
+        let err = ''
+        let c = `module.exports = ${name};`
+        let s = _.split(code, c)
+        if (_.size(s) &lt; 2) {
+            err = `找不到 '${c}'`
+            return { err }
+        }
+        else if (_.size(s) > 2) {
+            err = `出現多個 '${c}'`
+            return { err }
+        }
+        return _.get(s, 0)
+    }
+
+    //clecm, cjs會編譯與壓縮成為「module.exports=OOO;」
+    let clecm = () => {
+        let err = ''
+        let c = `module.exports=${name};`
+        let s = _.split(code, c)
+        if (_.size(s) &lt; 2) {
+            err = `找不到 '${c}'`
+            return { err }
+        }
+        else if (_.size(s) > 2) {
+            err = `出現多個 '${c}'`
+            return { err }
+        }
+        return _.get(s, 0)
+    }
+
+    //cleim, cjs會編譯與壓縮成為「module.exports=程式碼」, 因同樣會出現module.exports, 故須等前面cjs兩種都偵測完再偵測
+    let cleim = () => {
+        let c = `module.exports=`
+        if (code.indexOf(c) >= 0) {
+            code = code.replace(`module.exports=`, `let ${name}=`)
+            return code
+        }
+    }
+
+    //cled, es6會編譯成為「export default OOO;」
     let cled = () => {
         let err = ''
         let c = `export default ${name};`
@@ -78,7 +119,7 @@ function clearExportDefault(code, name) {
         return _.get(s, 0)
     }
 
-    //clead, 有專案設定導致編譯成為非預期格式「export { OOO as default };」
+    //clead, es6有專案設定導致編譯成為「export { OOO as default };」
     let clead = () => {
         let err = ''
         let c = `export { ${name} as default };`
@@ -94,7 +135,7 @@ function clearExportDefault(code, name) {
         return _.get(s, 0)
     }
 
-    //cleadm, 有專案設定導致編譯成為非預期格式「export{OOO as default};」, 開啟壓縮後只有as前後有空白
+    //cleadm, es6有專案設定導致編譯與壓縮成為「export{OOO as default};」
     let cleadm = () => {
         let err = ''
         let c = `export{${name} as default};`
@@ -108,6 +149,30 @@ function clearExportDefault(code, name) {
             return { err }
         }
         return _.get(s, 0)
+    }
+
+    //clec
+    let rec = clec()
+
+    //check
+    if (!w.isestr(_.get(rec, 'err'))) {
+        return rec
+    }
+
+    //clecm
+    let recm = clecm()
+
+    //check
+    if (!w.isestr(_.get(recm, 'err'))) {
+        return recm
+    }
+
+    //cleim
+    let reim = cleim()
+
+    //check
+    if (!w.isestr(_.get(reim, 'err'))) {
+        return reim
     }
 
     //cled
@@ -483,12 +548,14 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     let cb642str = ''
     if (opt.bNode) {
         cb642str = `
-        return Buffer.from(b64, 'base64').toString('utf8') //Nodejs端使用Buffer解碼
+        //return b64
+        return Buffer.from(b64, 'base64').toString('utf8') //Nodejs端使用Buffer解碼 
         `
     }
     else {
         cb642str = `
-        return Base64.decode(b64) //瀏覽器端使用Base64解碼
+        //return b64
+        return Base64.decode(b64) //瀏覽器端使用Base64解碼 
         // return window.atob(b64) //瀏覽器端執行使用 atob 或 decodeURIComponent(atob()) 或 unescape(decodeURIComponent(atob('ooxx'))) 無法解Buffer轉出的b64, 因這只能解由瀏覽器對應的函數產生b64
         `
     }
@@ -672,7 +739,7 @@ function protectShell() {
     //codeShow
 
     //codeB64, 此處需提供worker執行程式碼, 因有特殊符號編譯困難, 故需先轉base64再使用
-    let codeB64 = '${codeB64}'
+    let codeB64 = \`${codeB64}\`
 
     //code
     let code = b642str(codeB64)
@@ -986,11 +1053,11 @@ async function rollupWorkerCore(opt = {}) {
 
     //rollupFile, 預處理, 把code內的關聯都打包出來, 故需用es, 程式碼之後還會編譯故targets使用new, 此處要用rollupFile對原檔案打包, 才能正確引入相關模組與套件
     rpOpt = {
-        // name, //打包成es不需要name
+        // name, //打包成cjs不需要name
         fn, //rollupFile會偵測副檔名作為formatIn
         fdSrc: w.getPathParent(fpSrc),
         // fdTar: '', //沒給代表回傳程式碼
-        format: 'es', //輸出formatOut
+        format: 'cjs', //輸出formatOut
         targets,
         bSourcemap: false, //預設值為true得關閉
         bBanner: false,
@@ -1003,7 +1070,7 @@ async function rollupWorkerCore(opt = {}) {
         bLog: false,
     }
     if (bNode) {
-        rpOpt.globals = { //需指定剔除Nodejs的worker的引用
+        rpOpt.globals = { //需指定剔除Nodejs的inner的worker的引用
             'worker_threads': 'worker_threads',
         }
         rpOpt.external = [
@@ -1021,12 +1088,12 @@ async function rollupWorkerCore(opt = {}) {
     let codeTransOri = await rollupFile(rpOpt)
     // fs.writeFileSync(`./z-1-node[${bNode}]-1-codeTransOri.js`, codeTransOri, 'utf8')
 
-    //clearExportDefault
-    let codeTrans = clearExportDefault(codeTransOri, name)
-    // fs.writeFileSync(`./z-1-node[${bNode}]-2-codeTrans.js`, codeTrans, 'utf8')
+    //clearExportCode
+    let codeTransClr = clearExportCode(codeTransOri, name)
+    // fs.writeFileSync(`./z-1-node[${bNode}]-2-codeTransClr.js`, codeTransClr, 'utf8')
 
     //addInnerWebWorkerCode
-    let codeTransAdd = addInnerWebWorkerCode(codeTrans, name, evNames, { bNode, type, execFunctionByInstance, execObjectFunsByInstance })
+    let codeTransAdd = addInnerWebWorkerCode(codeTransClr, name, evNames, { bNode, type, execFunctionByInstance, execObjectFunsByInstance })
     // fs.writeFileSync(`./z-1-node[${bNode}]-3-codeTransAdd.js`, codeTransAdd, 'utf8')
 
     //addOuterWebWorkerCode
@@ -1047,7 +1114,7 @@ async function rollupWorkerCore(opt = {}) {
         bLog: false,
     }
     if (bNode) {
-        rpOpt.globals = { //需指定剔除Nodejs的worker的引用
+        rpOpt.globals = { //需指定剔除Nodejs的inner的worker的引用
             'worker_threads': 'worker_threads',
         }
         rpOpt.external = [
@@ -1095,7 +1162,7 @@ export default rollupWorkerCore
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Mar 31 2025 16:54:29 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Mar 31 2025 23:42:13 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

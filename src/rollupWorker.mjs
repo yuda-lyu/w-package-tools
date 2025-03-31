@@ -187,7 +187,7 @@ async function rollupWorker(opt = {}) {
             bMinify,
             keepFnames,
             mangleReserved,
-            globals: { //因有已包含Nodejs與瀏覽器的worker封裝, 故需指定剔除Nodejs的worker的引用即可
+            globals: { //因有已包含Nodejs與瀏覽器的worker封裝, 故需指定剔除Nodejs的inner的worker的引用即可
                 'worker_threads': 'worker_threads',
                 ...globals,
             },
