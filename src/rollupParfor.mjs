@@ -189,7 +189,9 @@ import size from 'lodash-es/size.js'
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入當bNode為true時，編譯是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
  * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
+ * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupParfor(opt = {}) {
@@ -276,9 +278,11 @@ async function rollupParfor(opt = {}) {
             bSourcemap: false, //rollupParfor不提供sourcemap
             globals: { //因有已包含Nodejs與瀏覽器的worker封裝, 故需指定剔除Nodejs的worker的引用
                 'worker_threads': 'worker_threads',
+                // ...globals,
             },
             external: [
                 'worker_threads',
+                // ...external,
             ],
             // formatOut: 'es', //由外部決定
             // bMinify: false, //由外部決定

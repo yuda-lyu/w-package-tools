@@ -19,7 +19,7 @@ function mergeCore(fpSrcNW, fpSrcWW) {
     
     let wk
     if(isWindow()){
-        wk = ww
+        wk = ww 
     }
     else {
         wk = nw
@@ -47,10 +47,11 @@ function mergeCore(fpSrcNW, fpSrcWW) {
  * @param {String} [opt.targets='new'] 輸入編譯等級字串，可選'new'、'old'，預設'new'
  * @param {Boolean} [opt.execFunctionByInstance=true] 輸入若模組類型為物件type='function'時，是否將function視為使用獨立實體執行並自動銷毀實體布林值，例如原模組就是一個運算函數，不需要回傳eventemmitter監聽事件，預設true
  * @param {Boolean} [opt.execObjectFunsByInstance=true] 輸入若模組類型為物件type='object'時，各函式是否使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true
- * @param {Boolean} [opt.bNodePolyfill=false] 輸入當bNode為true時，編譯是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
  * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
+ * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupWorker(opt = {}) {
@@ -109,6 +110,30 @@ async function rollupWorker(opt = {}) {
         bMinify = true
     }
 
+    //keepFnames
+    let keepFnames = _.get(opt, 'keepFnames', null)
+    if (!w.isbol(keepFnames)) {
+        keepFnames = false
+    }
+
+    //mangleReserved
+    let mangleReserved = _.get(opt, 'mangleReserved', null)
+    if (!w.isarr(mangleReserved)) {
+        mangleReserved = [] //可禁止使用'$', 因有些技術使用取代字串成編譯後程式碼, 若編譯後程式碼內含$&會導致觸發regex的插入匹配的字串, 從而造成非預期問題
+    }
+
+    //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
+    let globals = _.get(opt, 'globals', null)
+    if (!w.isobj(globals)) {
+        globals = {}
+    }
+
+    //external, 提供字串需解析成陣列, 指定哪些內部模組需引用外部模組
+    let external = _.get(opt, 'external', null)
+    if (!w.isarr(external)) {
+        external = []
+    }
+
     //bLog
     let bLog = _.get(opt, 'bLog', null)
     if (!w.isbol(bLog)) {
@@ -146,30 +171,36 @@ async function rollupWorker(opt = {}) {
         })
         fs.writeFileSync(fpSrcWW, codeWW, 'utf8')
 
-        //mergeCore
+        //mergeCore, 合併nodejs與web的worker的程式碼
         let codeMerge = mergeCore(fpSrcNW, fpSrcWW)
         fs.writeFileSync(fpSrcMg, codeMerge, 'utf8')
+        // fs.writeFileSync(`./z-2-node[both]-1-mergeBoth.js`, codeMerge, 'utf8')
 
-        //rollupCode
+        //rollupCode, 編譯合併nodejs與web的worker的程式碼
         let codeRes = await rollupCode(codeMerge, {
             name: nameDist,
             formatOut,
             targets,
+            bSourcemap: false, //rollupCode不提供sourcemap
+            bBanner: false, //rollupCode不提供banner
             bNodePolyfill: false, //outer不需使用node polyfill
             bMinify,
-            bBanner: false,
-            bSourcemap: false, //rollupCode不提供sourcemap
-            globals: { //因有已包含Nodejs與瀏覽器的worker封裝, 故需指定剔除Nodejs的worker的引用
+            keepFnames,
+            mangleReserved,
+            globals: { //因有已包含Nodejs與瀏覽器的worker封裝, 故需指定剔除Nodejs的worker的引用即可
                 'worker_threads': 'worker_threads',
+                ...globals,
             },
             external: [
                 'worker_threads',
+                ...external,
             ],
             bLog: false,
         })
 
         //writeFileSync
         fs.writeFileSync(fpTar, codeRes, 'utf8')
+        // fs.writeFileSync(`./z-2-node[both]-2-finall.js`, codeMerge, 'utf8')
 
         //console
         if (bLog) {

@@ -1665,7 +1665,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line25">line 25</a>
+        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line24">line 24</a>
     </li></ul></dd>
     
 
@@ -1964,46 +1964,6 @@
 
         <tr>
             
-                <td class="name"><code>bBanner</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>true</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設true</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>bNodePolyfill</code></td>
             
 
@@ -2157,7 +2117,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -2998,7 +2958,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -3842,7 +3802,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -4015,7 +3975,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupParfor.mjs.html">rollupParfor.mjs</a>, <a href="rollupParfor.mjs.html#line195">line 195</a>
+        <a href="rollupParfor.mjs.html">rollupParfor.mjs</a>, <a href="rollupParfor.mjs.html#line197">line 197</a>
     </li></ul></dd>
     
 
@@ -4751,7 +4711,87 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內外模組的關聯性物件，預設{}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>external</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
         </tr>
 
     
@@ -5349,7 +5389,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line56">line 56</a>
+        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line57">line 57</a>
     </li></ul></dd>
     
 
@@ -5932,46 +5972,6 @@
 
         <tr>
             
-                <td class="name"><code>bNodePolyfill</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>false</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入當bNode為true時，編譯是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>bMinify</code></td>
             
 
@@ -6085,7 +6085,87 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內外模組的關聯性物件，預設{}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>external</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
         </tr>
 
     
@@ -6178,7 +6258,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line786">line 786</a>
+        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line792">line 792</a>
     </li></ul></dd>
     
 
@@ -6998,7 +7078,87 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]</p></td>
+            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內外模組的關聯性物件，預設{}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>external</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>[]</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
         </tr>
 
     
@@ -7281,7 +7441,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Sun Nov 17 2024 23:56:48 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Mar 31 2025 16:54:29 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

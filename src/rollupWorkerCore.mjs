@@ -132,7 +132,10 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     let cnwt = ''
     if (opt.bNode) {
         cnwt = `
-        let { parentPort } = require('worker_threads') //因尚未支援es6 import得使用require
+        //import { parentPort } from 'worker_threads'
+        let { parentPort } = require('worker_threads') //因package.json不給type=module故無法支援es6 import, 得使用require
+        //若要於nodejs worker內使用無法編譯的原生套件例如fs, 避免使用頂層import加載使用, 因無法編譯會直接保留
+        //並因import位於worker外層限定為require區(package.json不給type=module), 故出現錯誤無法編譯
         `
     }
 
@@ -411,6 +414,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
 
     //codeB64
     let codeB64 = str2b64(code)
+    // let codeB64 = code
 
     //cEnvRun
     let cEnvRun = opt.bNode ? 'nodejs' : 'browser'
@@ -432,12 +436,12 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     let cb642str = ''
     if (opt.bNode) {
         cb642str = `
-        return Buffer.from(b64, 'base64').toString('utf8') //Nodejs端使用Buffer
+        return Buffer.from(b64, 'base64').toString('utf8') //Nodejs端使用Buffer解碼
         `
     }
     else {
         cb642str = `
-        return Base64.decode(b64)
+        return Base64.decode(b64) //瀏覽器端使用Base64解碼
         // return window.atob(b64) //瀏覽器端執行使用 atob 或 decodeURIComponent(atob()) 或 unescape(decodeURIComponent(atob('ooxx'))) 無法解Buffer轉出的b64, 因這只能解由瀏覽器對應的函數產生b64
         `
     }
@@ -780,7 +784,9 @@ export default ww
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設true
  * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
+ * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupWorkerCore(opt = {}) {
@@ -908,6 +914,18 @@ async function rollupWorkerCore(opt = {}) {
         mangleReserved = []
     }
 
+    //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
+    let globals = _.get(opt, 'globals', null)
+    if (!w.isobj(globals)) {
+        globals = {}
+    }
+
+    //external, 提供字串需解析成陣列, 指定哪些內部模組需引用外部模組
+    let external = _.get(opt, 'external', null)
+    if (!w.isarr(external)) {
+        external = []
+    }
+
     //bLog
     let bLog = _.get(opt, 'bLog', null)
     if (!w.isbol(bLog)) {
@@ -927,66 +945,78 @@ async function rollupWorkerCore(opt = {}) {
         // fdTar: '', //沒給代表回傳程式碼
         format: 'es', //輸出formatOut
         targets,
+        bSourcemap: false, //預設值為true得關閉
+        bBanner: false,
         bNodePolyfill,
         bMinify,
         keepFnames,
         mangleReserved: [name, ...mangleReserved],
-        bBanner: false,
-        bSourcemap: false, //預設值為true得關閉
+        globals: {},
+        external: [],
         bLog: false,
     }
     if (bNode) {
-        rpOpt.globals = {
+        rpOpt.globals = { //需指定剔除Nodejs的worker的引用
             'worker_threads': 'worker_threads',
         }
         rpOpt.external = [
             'worker_threads',
         ]
     }
-    else {
-        // globals, //inner必須有完整依賴程式碼
-        // external, //inner必須有完整依賴程式碼
+    rpOpt.globals = {
+        ...rpOpt.globals,
+        ...globals,
     }
+    rpOpt.external = [
+        ...rpOpt.external,
+        external,
+    ]
     let codeTransOri = await rollupFile(rpOpt)
-    // fs.writeFileSync('./z0-codeTransOri.js', codeTransOri, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${bNode}]-1-codeTransOri.js`, codeTransOri, 'utf8')
 
     //clearExportDefault
     let codeTrans = clearExportDefault(codeTransOri, name)
-    // fs.writeFileSync('./z1-codeTrans.js', codeTrans, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${bNode}]-2-codeTrans.js`, codeTrans, 'utf8')
 
     //addInnerWebWorkerCode
     let codeTransAdd = addInnerWebWorkerCode(codeTrans, name, evNames, { bNode, type, execFunctionByInstance, execObjectFunsByInstance })
-    // fs.writeFileSync('./z2-codeTransAdd.js', codeTransAdd, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${bNode}]-3-codeTransAdd.js`, codeTransAdd, 'utf8')
 
     //addOuterWebWorkerCode
     let codeMerge = addOuterWebWorkerCode(codeTransAdd, funNames, { bNode, type, execFunctionByInstance, execObjectFunsByInstance })
-    // fs.writeFileSync('./z3-codeMerge.js', codeMerge, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${bNode}]-4-codeMerge.js`, codeMerge, 'utf8')
 
-    //rollupCode
+    //rollupCode, 編譯合併內外worker的程式碼
     rpOpt = {
         name: nameDist,
         formatOut,
         targets,
+        bSourcemap: false, //rollupCode不提供sourcemap
+        bBanner: false, //rollupCode不提供banner
         bNodePolyfill: false, //outer不需使用node polyfill
         bMinify,
-        bBanner: false,
-        bSourcemap: false, //rollupCode不提供sourcemap
+        globals: {},
+        external: [],
         bLog: false,
     }
     if (bNode) {
-        rpOpt.globals = {
+        rpOpt.globals = { //需指定剔除Nodejs的worker的引用
             'worker_threads': 'worker_threads',
         }
         rpOpt.external = [
             'worker_threads',
         ]
     }
-    else {
-        // globals, //outer無依賴
-        // external, //outer無依賴
+    rpOpt.globals = {
+        ...rpOpt.globals,
+        ...globals,
     }
+    rpOpt.external = [
+        ...rpOpt.external,
+        external,
+    ]
     let codeRes = await rollupCode(codeMerge, rpOpt)
-    // fs.writeFileSync('./z4-codeRes.js', codeRes, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${bNode}]-5-codeRes.js`, codeRes, 'utf8')
 
     if (bReturnCode) {
         return codeRes

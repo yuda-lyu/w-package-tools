@@ -13,8 +13,6 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** w-package-tools is mainly dependent on `@rollup`, `@babel`, `core-js`, `eslint`, etc.
-
 ```alias
 
 npm i w-package-tools

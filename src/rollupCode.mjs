@@ -13,11 +13,10 @@ import rollupFile from './rollupFile.mjs'
  * @param {String} [opt.formatIn='js'] 輸入待編譯程式碼格式字串，可選'js'、'mjs'，預設'js'
  * @param {String} [opt.formatOut='umd'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'
  * @param {String} [opt.targets='old'] 輸入編譯等級字串，可選'new'、'old'，預設'old'
- * @param {Boolean} [opt.bBanner=true] 輸入編譯檔案是否帶有開頭banner布林值，預設true
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
  * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱布林值，預設[]
+ * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -46,12 +45,6 @@ async function rollupCode(codeSrc, opt = {}) {
     let targets = _.get(opt, 'targets', null)
     if (!w.isbol(targets)) {
         targets = 'old'
-    }
-
-    //bBanner
-    let bBanner = _.get(opt, 'bBanner', null)
-    if (!w.isbol(bBanner)) {
-        bBanner = false
     }
 
     //bNodePolyfill
@@ -112,13 +105,12 @@ async function rollupCode(codeSrc, opt = {}) {
     }
     opt.format = formatOut
     opt.targets = targets
-    opt.bBanner = bBanner
+    opt.bSourcemap = false
+    opt.bBanner = false
     opt.bNodePolyfill = bNodePolyfill
     opt.bMinify = bMinify
     opt.keepFnames = keepFnames
     opt.mangleReserved = mangleReserved
-    opt.bBanner = false
-    opt.bSourcemap = false
     opt.globals = globals
     opt.external = external
     opt.bLog = bLog

@@ -24,6 +24,12 @@ async function core() {
         fpTar: path.resolve(fdTar, 'gWorker2_Obj.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
         // bMinify: false,
+        // globals: {
+        //     // 'fs': 'fs',
+        // },
+        // external: [
+        //     // 'fs',
+        // ],
     })
         .catch((err) => {
             console.log(err)
@@ -37,6 +43,12 @@ async function core() {
         fpTar: path.resolve(fdTar, 'gWorker3_Fun.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
         // bMinify: false,
+        // globals: {
+        //     // 'fs': 'fs',
+        // },
+        // external: [
+        //     // 'fs',
+        // ],
     })
         .catch((err) => {
             console.log(err)
@@ -54,6 +66,12 @@ async function core() {
         fpTar: path.resolve(fdTar, 'gWorker4_FunEv.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
         // bMinify: false,
+        // globals: {
+        //     // 'fs': 'fs',
+        // },
+        // external: [
+        //     // 'fs',
+        // ],
     })
         .catch((err) => {
             console.log(err)
@@ -71,6 +89,12 @@ async function core() {
         fpTar: path.resolve(fdTar, 'gWorker5_FunAsm.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
         // bMinify: false,
+        // globals: {
+        //     // 'fs': 'fs',
+        // },
+        // external: [
+        //     // 'fs',
+        // ],
     })
         .catch((err) => {
             console.log(err)
@@ -86,6 +110,12 @@ async function core() {
         // execObjectFunsByInstance: true, //模組為物件時會自動將各函數使用獨立實體執行
         bNodePolyfill: true, //WJsonStream已修改程式碼有添加import buffer或timers等故一定要使用node poyfill才能執行
         // bMinify: false,
+        // globals: {
+        //     // 'fs': 'fs',
+        // },
+        // external: [
+        //     // 'fs',
+        // ],
     })
         .catch((err) => {
             console.log(err)

@@ -1,4 +1,6 @@
 import trim from 'lodash-es/trim.js'
+// import fs from 'fs'
+// let fs = require('fs')
 
 
 async function tf1(p1) {
@@ -20,6 +22,8 @@ async function tf3(n) {
         r *= 5.5
         r /= 5.5
     }
+    // let fs = await import('fs')
+    // fs.writeFileSync(`./_${n}.txt`, `_${r}`, 'utf8')
     return 'no.=' + n + ', r=' + r
 }
 
