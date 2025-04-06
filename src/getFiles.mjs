@@ -7,7 +7,9 @@ function getFiles(fd) {
 
     //fsGetFilesInFolder
     let vpfs = w.fsGetFilesInFolder(fd)
-    let files = _.map(vpfs, 'path')
+    let files = _.map(vpfs, (v) => {
+        return w.getFileName(v.path)
+    })
     return files
 
 }
