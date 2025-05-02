@@ -66,4 +66,4 @@ w(pgs, {
         console.log('catch', err)
     })
 
-//node --experimental-modules nodejsParforExam1_bundleFun.mjs
+//node nodejsParforExam1_bundleFun.mjs

@@ -115,4 +115,4 @@ core()
         console.log(err)
     })
 
-//node --experimental-modules gRollupFile.mjs
+//node gRollupFile.mjs

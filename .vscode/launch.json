@@ -13,8 +13,7 @@
             ],
             "program": "${workspaceFolder}/nodejsWorkerExam2_bundleFun.mjs",
             "runtimeArgs": [
-                "--max-old-space-size=14448",
-                "--experimental-modules",
+                "--max-old-space-size=14448"
             ]
         }
     ]

@@ -17,7 +17,7 @@ w.fsCleanFolder(fdTar)
 async function core() {
 
     await rollupWorker({
-        name: 'gWorker2_Obj', //原模組名稱, 將來會掛於winodw下或於node引入使用
+        name: 'gWorker2_Obj', //原模組名稱, 將來會掛於winodw下, nodejs引入後為自行決定名稱
         type: 'object', //原模組輸出為物件
         funNames: _.keys(gWorker2_Obj),
         fpSrc: path.resolve(fdSrc, 'gWorker2_Obj.mjs'), //原始檔案路徑
@@ -30,13 +30,14 @@ async function core() {
         // external: [
         //     // 'fs',
         // ],
+        runin: 'both',
     })
         .catch((err) => {
             console.log(err)
         })
 
     await rollupWorker({
-        name: 'gWorker3_Fun', //原模組名稱, 將來會掛於winodw下或於node引入使用
+        name: 'gWorker3_Fun', //原模組名稱, 將來會掛於winodw下, nodejs引入後為自行決定名稱
         type: 'function', //原模組輸出為函數, 可傳入參數初始化
         // execFunctionByInstance: true, //default, 原模組為計算函數回傳結果
         fpSrc: path.resolve(fdSrc, 'gWorker3_Fun.mjs'), //原始檔案路徑
@@ -49,19 +50,20 @@ async function core() {
         // external: [
         //     // 'fs',
         // ],
+        runin: 'both',
     })
         .catch((err) => {
             console.log(err)
         })
 
     await rollupWorker({
-        name: 'gWorker4_FunEv', //原模組名稱, 將來會掛於winodw下或於node引入使用
+        name: 'gWorker4_FunEv', //原模組名稱, 將來會掛於winodw下, nodejs引入後為自行決定名稱
         type: 'function', //原模組輸出為函數, 可傳入參數初始化
         execFunctionByInstance: false, //原模組為計算函數回傳結果, 故設為false使回傳結果為繼承eventemitter3物件
         funNames: _.filter(_.keys(gWorker4_FunEv()), (v) => { //要初始化函數才能取得可提供外部呼叫之函數
             return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
         }),
-        evNames: ['ev-tf4'], //由內部emit外部的函數得手動提供,
+        evNames: ['ev-tf4'], //由內部emit外部的函數得手動提供
         fpSrc: path.resolve(fdSrc, 'gWorker4_FunEv.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWorker4_FunEv.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
@@ -72,19 +74,20 @@ async function core() {
         // external: [
         //     // 'fs',
         // ],
+        runin: 'both',
     })
         .catch((err) => {
             console.log(err)
         })
 
     await rollupWorker({
-        name: 'gWorker5_FunAsm', //原模組名稱, 將來會掛於winodw下或於node引入使用
+        name: 'gWorker5_FunAsm', //原模組名稱, 將來會掛於winodw下, nodejs引入後為自行決定名稱
         type: 'function', //原模組輸出為函數, 可傳入參數初始化
         execFunctionByInstance: false, //原模組為計算函數回傳結果, 故設為false使回傳結果為繼承eventemitter3物件
         funNames: _.filter(_.keys(gWorker5_FunAsm()), (v) => { //要初始化函數才能取得可提供外部呼叫之函數
             return w.strleft(v, 1) !== '_' //要剔除eventemitter3提供之函數
         }),
-        evNames: ['ev-tf4'], //由內部emit外部的函數得手動提供,
+        evNames: ['ev-tf4'], //由內部emit外部的函數得手動提供
         fpSrc: path.resolve(fdSrc, 'gWorker5_FunAsm.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gWorker5_FunAsm.wk.umd.js'), //檔案輸出路徑
         formatOut: 'umd',
@@ -95,13 +98,14 @@ async function core() {
         // external: [
         //     // 'fs',
         // ],
+        runin: 'both',
     })
         .catch((err) => {
             console.log(err)
         })
 
     await rollupWorker({
-        name: 'gWorker6_ObjStream', //原模組名稱, 將來會掛於winodw下或於node引入使用
+        name: 'gWorker6_ObjStream', //原模組名稱, 將來會掛於winodw下, nodejs引入後為自行決定名稱
         type: 'object', //原模組輸出為物件
         funNames: _.keys(gWorker6_ObjStream),
         fpSrc: path.resolve(fdSrc, 'gWorker6_ObjStream.mjs'), //原始檔案路徑
@@ -116,6 +120,7 @@ async function core() {
         // external: [
         //     // 'fs',
         // ],
+        runin: 'both',
     })
         .catch((err) => {
             console.log(err)
@@ -128,4 +133,4 @@ core()
     })
 
 
-//node --experimental-modules gRollupWorker.mjs
+//node gRollupWorker.mjs

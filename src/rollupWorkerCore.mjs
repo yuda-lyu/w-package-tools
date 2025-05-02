@@ -936,7 +936,7 @@ async function rollupWorkerCore(opt = {}) {
         nameDist = hookNameDist(nameDist, name, fn)
     }
 
-    //formatOut, umd為瀏覽器端直接使用, es為供vue-cli或webpack使用
+    //formatOut, umd可支援nodejs或為瀏覽器端直接使用, es為供vue-cli或webpack使用
     let formatOut = _.get(opt, 'formatOut', null)
     if (!formatOut) {
         formatOut = 'es'
@@ -959,9 +959,6 @@ async function rollupWorkerCore(opt = {}) {
     if (!w.isbol(bNodePolyfill)) {
         bNodePolyfill = false
     }
-    // if (bNode) { //即使是node環境也可能需要polyfill, 因程式碼語法已修改成添加import buffer或timers等, 需要通過polyfill才能使用
-    //     bNodePolyfill = false
-    // }
 
     //bMinify
     let bMinify = _.get(opt, 'bMinify', null)

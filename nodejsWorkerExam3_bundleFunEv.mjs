@@ -65,4 +65,4 @@ setTimeout(() => {
     w.terminate()
 }, 3000)
 
-//node --experimental-modules nodejsWorkerExam3_bundleFunEv.mjs
+//node nodejsWorkerExam3_bundleFunEv.mjs

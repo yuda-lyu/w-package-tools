@@ -123,4 +123,4 @@ core()
     })
 
 
-//node --experimental-modules gRollupCode.mjs
+//node gRollupCode.mjs

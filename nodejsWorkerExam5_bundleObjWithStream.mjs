@@ -84,4 +84,4 @@ Promise.all([pmArr, pmObj])
         console.log(err)
     })
 
-//node --experimental-modules nodejsWorkerExam5_bundleObjWithStream.mjs
+//node nodejsWorkerExam5_bundleObjWithStream.mjs

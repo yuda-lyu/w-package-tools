@@ -47,4 +47,4 @@ w.tf3(300000000)
         console.log('w.tf3(n) catch', err)
     })
 
-//node --experimental-modules nodejsWorkerExam1_bundleObj.mjs
+//node nodejsWorkerExam1_bundleObj.mjs

@@ -8,7 +8,25 @@ import rollupWorkerCore from './rollupWorkerCore.mjs'
 import rollupCode from './rollupCode.mjs'
 
 
-function mergeCore(fpSrcNW, fpSrcWW) {
+function mergeNodejs(fpSrcNW) {
+    let c = `
+    import nw from '${fpSrcNW}'
+    export default nw
+    `
+    return c
+}
+
+
+function mergeBrowser(fpSrcWW) {
+    let c = `
+    import ww from '${fpSrcWW}'
+    export default ww
+    `
+    return c
+}
+
+
+function mergeBoth(fpSrcNW, fpSrcWW) {
     let c = `
     import nw from '${fpSrcNW}'
     import ww from '${fpSrcWW}'
@@ -28,6 +46,20 @@ function mergeCore(fpSrcNW, fpSrcWW) {
     export default wk
     `
     return c
+}
+
+
+function mergeCore(runin, fpSrcNW, fpSrcWW) {
+    if (runin === 'both') {
+        return mergeBoth(fpSrcNW, fpSrcWW)
+    }
+    else if (runin === 'nodejs') {
+        return mergeNodejs(fpSrcNW)
+    }
+    else if (runin === 'browser') {
+        return mergeBrowser(fpSrcWW)
+    }
+    throw new Error(`invalid runin[${runin}]`)
 }
 
 
@@ -52,6 +84,7 @@ function mergeCore(fpSrcNW, fpSrcWW) {
  * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
+ * @param {String} [opt.runin='both'] 輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupWorker(opt = {}) {
@@ -134,6 +167,12 @@ async function rollupWorker(opt = {}) {
         external = []
     }
 
+    //runin
+    let runin = _.get(opt, 'runin', null)
+    if (runin !== 'both' && runin !== 'nodejs' && runin !== 'browser') {
+        runin = 'both'
+    }
+
     //bLog
     let bLog = _.get(opt, 'bLog', null)
     if (!w.isbol(bLog)) {
@@ -154,25 +193,31 @@ async function rollupWorker(opt = {}) {
     async function core() {
 
         //rollupWorkerCore for nodejs worker
-        let codeNW = await rollupWorkerCore({
-            ...opt,
-            bNode: true,
-            bReturnCode: true,
-            bLog: false,
-        })
-        fs.writeFileSync(fpSrcNW, codeNW, 'utf8')
+        let codeNW = ''
+        if (runin === 'both' || runin === 'nodejs') {
+            codeNW = await rollupWorkerCore({
+                ...opt,
+                bNode: true,
+                bReturnCode: true,
+                bLog: false,
+            })
+            fs.writeFileSync(fpSrcNW, codeNW, 'utf8')
+        }
 
-        //rollupWorkerCore for web worker
-        let codeWW = await rollupWorkerCore({
-            ...opt,
-            bNode: false,
-            bReturnCode: true,
-            bLog: false,
-        })
-        fs.writeFileSync(fpSrcWW, codeWW, 'utf8')
+        //rollupWorkerCore for browser web worker
+        let codeWW = ''
+        if (runin === 'both' || runin === 'browser') {
+            codeWW = await rollupWorkerCore({
+                ...opt,
+                bNode: false,
+                bReturnCode: true,
+                bLog: false,
+            })
+            fs.writeFileSync(fpSrcWW, codeWW, 'utf8')
+        }
 
         //mergeCore, 合併nodejs與web的worker的程式碼
-        let codeMerge = mergeCore(fpSrcNW, fpSrcWW)
+        let codeMerge = mergeCore(runin, fpSrcNW, fpSrcWW)
         fs.writeFileSync(fpSrcMg, codeMerge, 'utf8')
         // fs.writeFileSync(`./z-2-node[both]-1-mergeBoth.js`, codeMerge, 'utf8')
 
@@ -217,17 +262,21 @@ async function rollupWorker(opt = {}) {
         .finally(() => {
 
             //unlinkSync, 不論編譯成功失敗都刪除檔案
-            try {
-                fs.unlinkSync(fpSrcNW)
+            if (runin === 'both' || runin === 'nodejs') {
+                try {
+                    fs.unlinkSync(fpSrcNW)
+                }
+                catch (err) {
+                    console.log(err)
+                }
             }
-            catch (err) {
-                console.log(err)
-            }
-            try {
-                fs.unlinkSync(fpSrcWW)
-            }
-            catch (err) {
-                console.log(err)
+            if (runin === 'both' || runin === 'browser') {
+                try {
+                    fs.unlinkSync(fpSrcWW)
+                }
+                catch (err) {
+                    console.log(err)
+                }
             }
             try {
                 fs.unlinkSync(fpSrcMg)
