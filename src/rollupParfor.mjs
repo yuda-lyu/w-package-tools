@@ -191,6 +191,7 @@ import size from 'lodash-es/size.js'
  * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -257,7 +258,7 @@ async function rollupParfor(opt = {}) {
 
         //轉譯parforCore
         await rollupWorker({
-            ...opt,
+            ...opt, //沿用設定
             name: 'parforCore', //一定要為parforCore, worker內會使用同名函數做繫節, 故不能更換, 除非改genParforCoreCode內的函數parforCore名稱
             type: 'function', //原模組輸出為函數, 可傳入參數初始化
             execFunctionByInstance: true, //原模組為計算函數回傳結果
@@ -274,7 +275,7 @@ async function rollupParfor(opt = {}) {
 
         ///轉譯parfor
         let codeRes = await rollupFile({
-            ...opt,
+            ...opt, //沿用設定
             fpSrc: fpTempParforSrc,
             fdSrc: './',
             // fdTar, //不給就是直接回傳code

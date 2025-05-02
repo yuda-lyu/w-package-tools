@@ -849,6 +849,7 @@ export default ww
  * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -976,6 +977,12 @@ async function rollupWorkerCore(opt = {}) {
         mangleReserved = []
     }
 
+    //mainFields
+    let mainFields = _.get(opt, 'mainFields', null)
+    if (!w.isearr(mainFields)) {
+        mainFields = null
+    }
+
     //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
     let globals = _.get(opt, 'globals', null)
     if (!w.isobj(globals)) {
@@ -1001,6 +1008,7 @@ async function rollupWorkerCore(opt = {}) {
 
     //rollupFile, 預處理, 把code內的關聯都打包出來, 故需用es, 程式碼之後還會轉譯故targets使用new, 此處要用rollupFile對原檔案打包, 才能正確引入相關模組與套件
     rpOpt = {
+        //不沿用設定
         // name, //打包成cjs不需要name
         fn, //rollupFile會偵測副檔名作為formatIn
         fdSrc: w.getPathParent(fpSrc),
@@ -1014,6 +1022,7 @@ async function rollupWorkerCore(opt = {}) {
         bMinify,
         keepFnames,
         mangleReserved: [name, ...mangleReserved],
+        mainFields,
         globals: {},
         external: [],
         bLog: false,
@@ -1051,6 +1060,7 @@ async function rollupWorkerCore(opt = {}) {
 
     //rollupCode, 轉譯合併內外worker的程式碼
     rpOpt = {
+        //不沿用設定
         name: nameDist,
         formatOut,
         targets,
@@ -1059,6 +1069,7 @@ async function rollupWorkerCore(opt = {}) {
         runin,
         bNodePolyfill: false, //outer不需使用node polyfill
         bMinify,
+        mainFields: null, //outer不需使用mainFields
         globals: {},
         external: [],
         bLog: false,

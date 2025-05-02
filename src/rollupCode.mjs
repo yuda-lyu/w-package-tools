@@ -18,6 +18,7 @@ import rollupFile from './rollupFile.mjs'
  * @param {Boolean} [opt.bMinify=true] 輸入轉譯是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯需壓縮時，是否保留函數名稱布林值，預設false
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -79,6 +80,12 @@ async function rollupCode(codeSrc, opt = {}) {
         mangleReserved = []
     }
 
+    //mainFields
+    let mainFields = _.get(opt, 'mainFields', null)
+    if (!w.isearr(mainFields)) {
+        mainFields = null
+    }
+
     //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
     let globals = _.get(opt, 'globals', null)
     if (!w.isobj(globals)) {
@@ -103,7 +110,7 @@ async function rollupCode(codeSrc, opt = {}) {
     //把欲轉換之程式碼寫入檔案
     fs.writeFileSync(fpSrc, codeSrc, 'utf8')
 
-    //opt
+    //opt //沿用設定
     // opt.fdSrc = ''
     opt.fdTar = '' //不給輸出資料夾則為回傳程式碼
     // opt.fn = fpSrc
@@ -120,6 +127,7 @@ async function rollupCode(codeSrc, opt = {}) {
     opt.bMinify = bMinify
     opt.keepFnames = keepFnames
     opt.mangleReserved = mangleReserved
+    opt.mainFields = mainFields
     opt.globals = globals
     opt.external = external
     opt.bLog = bLog

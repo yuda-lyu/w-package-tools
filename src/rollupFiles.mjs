@@ -22,6 +22,7 @@ import rollupFile from './rollupFile.mjs'
  * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -39,7 +40,7 @@ async function rollupFiles(opt = {}) {
 
     //pmSeries
     return w.pmSeries(fns, (fn) => {
-        let o = { ...opt }
+        let o = { ...opt } //沿用設定
         o.fn = fn
         return rollupFile(o)
     })

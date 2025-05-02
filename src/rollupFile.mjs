@@ -39,6 +39,7 @@ import getPks from './getPks.mjs'
  * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
  * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -200,6 +201,12 @@ async function rollupFile(opt = {}) {
         mangleReserved = [] //可禁止使用'$', 因有些技術使用取代字串成轉譯後程式碼, 若轉譯後程式碼內含$&會導致觸發regex的插入匹配的字串, 從而造成非預期問題
     }
 
+    //mainFields
+    let mainFields = _.get(opt, 'mainFields', null)
+    if (!w.isearr(mainFields)) {
+        mainFields = null
+    }
+
     //globals, 提供字串需解析成物件, 指定內外模組的關聯性，左邊key為內部使用之模組名稱，右邊value為外部提供之模組名稱
     let globals = _.get(opt, 'globals', null)
     if (!w.isobj(globals)) {
@@ -233,17 +240,26 @@ async function rollupFile(opt = {}) {
         plugins.push(nodePolyfills())
     }
 
-    if (runin === 'browser') {
-        plugins.push(resolve({
-            preferBuiltins: false,
-            browser: true,
-        }))
-    }
-    else {
-        plugins.push(resolve({
-            preferBuiltins: true,
-            browser: false,
-        }))
+    if (true) {
+        let resolveOpt = {}
+        if (runin === 'browser') {
+            resolveOpt = {
+                preferBuiltins: false,
+                browser: true,
+            }
+        }
+        else {
+            resolveOpt = {
+                preferBuiltins: true,
+                browser: false,
+            }
+        }
+        if (w.isearr(mainFields)) {
+            //package.json內 browser:true => mainFields預設值['browser', 'module', 'main']
+            //package.json內 browser:false => mainFields預設值['module', 'main']
+            resolveOpt.mainFields = mainFields
+        }
+        plugins.push(resolve(resolveOpt))
     }
 
     let babelOpt = {
