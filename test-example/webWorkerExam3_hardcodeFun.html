@@ -194,7 +194,7 @@ self.onmessage = function (e) {
                     //dataSend
                     let dataSend={
                         mode:'init',
-                        input: [...arguments], //若直接用arguments會無法編譯
+                        input: [...arguments], //若直接用arguments會無法轉譯
                     }
             
                     //postMessage
@@ -215,7 +215,7 @@ self.onmessage = function (e) {
                         mode:'call',
                         id,
                         fun: 'main',
-                        input: [...arguments], //若直接用arguments會無法編譯
+                        input: [...arguments], //若直接用arguments會無法轉譯
                     }
             
                     //postMessage

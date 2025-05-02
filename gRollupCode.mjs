@@ -15,6 +15,7 @@ async function core() {
         name: 'gBase1',
         formatIn: 'js',
         formatOut: 'umd',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {
@@ -29,6 +30,7 @@ async function core() {
         name: 'gBase2',
         formatIn: 'js',
         formatOut: 'umd',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {
@@ -43,6 +45,7 @@ async function core() {
         name: 'gVue1',
         formatIn: 'vue',
         formatOut: 'umd',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {
@@ -58,6 +61,7 @@ async function core() {
         formatIn: 'mjs',
         formatOut: 'es',
         targets: 'new',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {
@@ -73,6 +77,7 @@ async function core() {
         formatIn: 'mjs',
         formatOut: 'es',
         targets: 'new',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {
@@ -88,6 +93,7 @@ async function core() {
         formatIn: 'mjs',
         formatOut: 'es',
         targets: 'new',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {
@@ -103,6 +109,7 @@ async function core() {
         formatIn: 'mjs',
         formatOut: 'es',
         targets: 'new',
+        runin: 'browser',
         bMinify,
     })
         .then((code) => {

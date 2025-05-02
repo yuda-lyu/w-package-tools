@@ -218,31 +218,32 @@ import size from 'lodash-es/size.js'
 
 
 /**
- * 使用rollup編譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內
+ * 使用rollup轉譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
- * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
+ * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
  * @param {Array} opt.funNames 輸入模組可被呼叫的函數名稱陣列
  * @param {Array} [opt.evNames=[]] 輸入模組可監聽的函數名稱陣列，預設[]
  * @param {String} opt.fpSrc 輸入原始碼檔案位置字串
- * @param {String} opt.fpTar 輸入編譯完程式碼檔案儲存位置字串
- * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''
- * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
- * @param {String} [opt.formatOut='es'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
- * @param {String} [opt.targets='new'] 輸入編譯等級字串，可選'new'、'old'，預設'new'
+ * @param {String} opt.fpTar 輸入轉譯完程式碼檔案儲存位置字串
+ * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
+ * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
+ * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
+ * @param {String} [opt.targets='new'] 輸入轉譯等級字串，可選'new'、'old'，預設'new'
+ * @param {String} [opt.runin='both'] 輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'
+ * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
  * @param {Boolean} [opt.execFunctionByInstance=true] 輸入若模組類型為物件type='function'時，是否將function視為使用獨立實體執行並自動銷毀實體布林值，例如原模組就是一個運算函數，不需要回傳eventemmitter監聽事件，預設true
  * @param {Boolean} [opt.execObjectFunsByInstance=true] 輸入若模組類型為物件type='object'時，各函式是否使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true
- * @param {Boolean} [opt.bNodePolyfill=false] 輸入當bNode為true時，編譯是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
- * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
- * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
+ * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false
+ * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupParfor(opt = {}) {
-    //欲編譯檔案需使用es6模組語法, 輸出格式為export default, 輸出需為物件, 該物件給予任意可執行之async函數, 打包後會於web worker內執行, 並再把全部async函數映射出來至指定物件當中, 故可採一樣(未封裝前)方式執行
+    //欲轉譯檔案需使用es6模組語法, 輸出格式為export default, 輸出需為物件, 該物件給予任意可執行之async函數, 打包後會於web worker內執行, 並再把全部async函數映射出來至指定物件當中, 故可採一樣(未封裝前)方式執行
 
     //name
     let name = _.get(opt, 'name', null)
@@ -266,6 +267,12 @@ async function rollupParfor(opt = {}) {
     let type = _.get(opt, 'type', null)
     if (w.isestr(type) &amp;&amp; type !== 'function') {
         return Promise.reject(`opt.type need to set 'function'`)
+    }
+
+    //runin
+    let runin = _.get(opt, 'runin', null)
+    if (runin !== 'both' &amp;&amp; runin !== 'nodejs' &amp;&amp; runin !== 'browser') {
+        runin = 'both'
     }
 
     //bLog
@@ -295,7 +302,7 @@ async function rollupParfor(opt = {}) {
         let codeParforCore = genParforCoreCode(fpWpfPmSeries, fpSrc)
         fs.writeFileSync(fpTempParforCoreSrc, codeParforCore, 'utf8')
 
-        //編譯parforCore
+        //轉譯parforCore
         await rollupWorker({
             ...opt,
             name: 'parforCore', //一定要為parforCore, worker內會使用同名函數做繫節, 故不能更換, 除非改genParforCoreCode內的函數parforCore名稱
@@ -312,14 +319,14 @@ async function rollupParfor(opt = {}) {
         let codeParfor = genParforCode(fpWpf, fpTempParforCoreTar)
         fs.writeFileSync(fpTempParforSrc, codeParfor, 'utf8')
 
-        ///編譯parfor
+        ///轉譯parfor
         let codeRes = await rollupFile({
             ...opt,
             fpSrc: fpTempParforSrc,
             fdSrc: './',
             // fdTar, //不給就是直接回傳code
             hookNameDist: () => {
-                return name //指定編譯名稱
+                return name //指定轉譯名稱
             },
             bBanner: false,
             bSourcemap: false, //rollupParfor不提供sourcemap
@@ -333,6 +340,7 @@ async function rollupParfor(opt = {}) {
             ],
             // formatOut: 'es', //由外部決定
             // bMinify: false, //由外部決定
+            runin: runin === 'nodejs' ? 'nodejs' : 'browser', //parfor執行環境若為單獨指定沒問題, 若指定為both, 則強制視為運行於browser
             bLog: false,
         })
 
@@ -353,7 +361,7 @@ async function rollupParfor(opt = {}) {
         })
         .finally(() => {
 
-            //unlinkSync, 不論編譯成功失敗都刪除檔案
+            //unlinkSync, 不論轉譯成功失敗都刪除檔案
             try {
                 fs.unlinkSync(fpTempParforCoreSrc)
             }
@@ -393,7 +401,7 @@ export default rollupParfor
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Fri May 02 2025 13:06:42 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Fri May 02 2025 14:56:02 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

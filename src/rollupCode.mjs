@@ -5,18 +5,19 @@ import rollupFile from './rollupFile.mjs'
 
 
 /**
- * 使用rollup編譯程式碼
+ * 使用rollup轉譯程式碼
  *
  * @param {String} codeSrc 輸入程式碼字串
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串
- * @param {String} [opt.formatIn='js'] 輸入待編譯程式碼格式字串，可選'js'、'mjs'，預設'js'
- * @param {String} [opt.formatOut='umd'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'
- * @param {String} [opt.targets='old'] 輸入編譯等級字串，可選'new'、'old'，預設'old'
- * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true
- * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
- * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {String} [opt.formatIn='js'] 輸入待轉譯程式碼格式字串，可選'js'、'mjs'，預設'js'
+ * @param {String} [opt.formatOut='umd'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'
+ * @param {String} [opt.targets='old'] 輸入轉譯等級字串，可選'new'、'old'，預設'old'
+ * @param {String} [opt.runin='browser'] 輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'
+ * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
+ * @param {Boolean} [opt.bMinify=true] 輸入轉譯是否進行壓縮布林值，預設true
+ * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯需壓縮時，是否保留函數名稱布林值，預設false
+ * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -45,6 +46,13 @@ async function rollupCode(codeSrc, opt = {}) {
     let targets = _.get(opt, 'targets', null)
     if (!w.isbol(targets)) {
         targets = 'old'
+    }
+
+    //runin
+    let runin = _.get(opt, 'runin', null)
+    if (runin !== 'nodejs' && runin !== 'browser') {
+        console.log(`invalid runin[${runin}], set to 'browser'`)
+        runin = 'browser'
     }
 
     //bNodePolyfill
@@ -107,6 +115,7 @@ async function rollupCode(codeSrc, opt = {}) {
     opt.targets = targets
     opt.bSourcemap = false
     opt.bBanner = false
+    opt.runin = runin
     opt.bNodePolyfill = bNodePolyfill
     opt.bMinify = bMinify
     opt.keepFnames = keepFnames
@@ -119,7 +128,7 @@ async function rollupCode(codeSrc, opt = {}) {
     let code = await rollupFile(opt)
         .finally(() => {
 
-            //unlinkSync, 不論編譯成功失敗都刪除檔案
+            //unlinkSync, 不論轉譯成功失敗都刪除檔案
             try {
                 fs.unlinkSync(fpSrc)
             }

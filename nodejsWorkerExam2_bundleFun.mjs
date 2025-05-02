@@ -11,4 +11,5 @@ w(1.234, 'xyz')
         console.log('w(1.234,\'xyz\') catch', err)
     })
 
+
 //node nodejsWorkerExam2_bundleFun.mjs

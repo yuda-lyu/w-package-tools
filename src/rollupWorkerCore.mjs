@@ -15,7 +15,7 @@ function str2b64(str) {
 
 function clearExportCode(code, name) {
 
-    //clec, cjs會編譯成為「module.exports = OOO;」
+    //clec, cjs會轉譯成為「module.exports = OOO;」
     let clec = () => {
         let err = ''
         let c = `module.exports = ${name};`
@@ -31,7 +31,7 @@ function clearExportCode(code, name) {
         return _.get(s, 0)
     }
 
-    //clecm, cjs會編譯與壓縮成為「module.exports=OOO;」
+    //clecm, cjs會轉譯與壓縮成為「module.exports=OOO;」
     let clecm = () => {
         let err = ''
         let c = `module.exports=${name};`
@@ -47,7 +47,7 @@ function clearExportCode(code, name) {
         return _.get(s, 0)
     }
 
-    //cleim, cjs會編譯與壓縮成為「module.exports=程式碼」, 因同樣會出現module.exports, 故須等前面cjs兩種都偵測完再偵測
+    //cleim, cjs會轉譯與壓縮成為「module.exports=程式碼」, 因同樣會出現module.exports, 故須等前面cjs兩種都偵測完再偵測
     let cleim = () => {
         let c = `module.exports=`
         if (code.indexOf(c) >= 0) {
@@ -56,7 +56,7 @@ function clearExportCode(code, name) {
         }
     }
 
-    //cled, es6會編譯成為「export default OOO;」
+    //cled, es6會轉譯成為「export default OOO;」
     let cled = () => {
         let err = ''
         let c = `export default ${name};`
@@ -72,7 +72,7 @@ function clearExportCode(code, name) {
         return _.get(s, 0)
     }
 
-    //clead, es6有專案設定導致編譯成為「export { OOO as default };」
+    //clead, es6有專案設定導致轉譯成為「export { OOO as default };」
     let clead = () => {
         let err = ''
         let c = `export { ${name} as default };`
@@ -88,7 +88,7 @@ function clearExportCode(code, name) {
         return _.get(s, 0)
     }
 
-    //cleadm, es6有專案設定導致編譯與壓縮成為「export{OOO as default};」
+    //cleadm, es6有專案設定導致轉譯與壓縮成為「export{OOO as default};」
     let cleadm = () => {
         let err = ''
         let c = `export{${name} as default};`
@@ -195,18 +195,18 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
 
     //cnwt
     let cnwt = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         cnwt = `
         //import { parentPort } from 'worker_threads'
         let { parentPort } = require('worker_threads') //因package.json不給type=module故無法支援es6 import, 得使用require
-        //若要於nodejs worker內使用無法編譯的原生套件例如fs, 避免使用頂層import加載使用, 因無法編譯會直接保留
-        //並因import位於worker外層限定為require區(package.json不給type=module), 故出現錯誤無法編譯
+        //若要於nodejs worker內使用無法轉譯的原生套件例如fs, 避免使用頂層import加載使用, 因無法轉譯會直接保留
+        //並因import位於worker外層限定為require區(package.json不給type=module), 故出現錯誤無法轉譯
         `
     }
 
     //csm
     let csm = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         csm = `
         parentPort.postMessage(data)
         `
@@ -234,7 +234,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
 
     //crm
     let crm = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         crm = `
         parentPort.on('message', recvMessage)
         `
@@ -408,7 +408,7 @@ function ${funName}(){
         mode:'call',
         id,
         fun: '${funName}',
-        input: [...arguments], //若直接用arguments會無法編譯
+        input: [...arguments], //若直接用arguments會無法轉譯
     }
 
     //postMessage
@@ -481,12 +481,9 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     let codeB64 = str2b64(code)
     // let codeB64 = code
 
-    //cEnvRun
-    let cEnvRun = opt.bNode ? 'nodejs' : 'browser'
-
     //cipwt
     let cipwt = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         cipwt = `
         import { Worker } from 'worker_threads'
         `
@@ -499,7 +496,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
 
     //cb642str
     let cb642str = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         cb642str = `
         //return b64
         return Buffer.from(b64, 'base64').toString('utf8') //Nodejs端使用Buffer解碼 
@@ -528,7 +525,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
 
     //cnw
     let cnw = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         cnw = `
         return new Worker(code, { eval: true })
         `
@@ -585,7 +582,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
 
     //cee
     let cee = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         cee = `
         wk.on('error', emitError)
         `
@@ -598,7 +595,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
 
     //cte
     let cte = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         cte = `
         wk.on('exit', (code) => {
             //The 'exit' event is emitted once the worker has stopped. If the worker exited by calling process.exit(), the exitCode parameter is the passed exit code. If the worker was terminated, the exitCode parameter is 1.
@@ -618,7 +615,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
 
     //crm
     let crm = ''
-    if (opt.bNode) {
+    if (opt.runin === 'nodejs') {
         crm = `
         wk.on('message', recvMessage)
         `
@@ -656,7 +653,7 @@ function protectShell() {
     let cEnv = isWindow()?'browser':'nodejs'
     
     //check, 後續會有Nodejs或瀏覽器依賴的API例如window.atob或Buffer, 於import階段時就先行偵測跳出
-    if(cEnv !== '${cEnvRun}'){
+    if(cEnv !== '${opt.runin}'){
         return null
     }
 
@@ -691,7 +688,7 @@ function protectShell() {
 
     //codeShow
 
-    //codeB64, 此處需提供worker執行程式碼, 因有特殊符號編譯困難, 故需先轉base64再使用
+    //codeB64, 此處需提供worker執行程式碼, 因有特殊符號轉譯困難, 故需先轉base64再使用
     let codeB64 = \`${codeB64}\`
 
     //code
@@ -739,7 +736,7 @@ function protectShell() {
             let dataSend = {
                 mode:'init',
                 type:'${opt.type}',
-                input: [...arguments], //若直接用arguments會無法編譯
+                input: [...arguments], //若直接用arguments會無法轉譯
             }
 
             //postMessage
@@ -795,7 +792,7 @@ function protectShell() {
         ${cte}
 
         //init
-        init([...arguments]) //若直接用arguments會無法編譯
+        init([...arguments]) //若直接用arguments會無法轉譯
 
         ${cev}
         ${cmn}
@@ -831,27 +828,27 @@ export default ww
 
 
 /**
- * 使用rollup編譯檔案，並封裝至前端web worker內或後端nodejs worker內
+ * 使用rollup轉譯檔案，並封裝至前端web worker內或後端nodejs worker內
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
- * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
+ * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
  * @param {Boolean} [opt.execFunctionByInstance=true] 輸入若模組類型為物件type='function'時，是否將function視為使用獨立實體執行並自動銷毀實體布林值，例如原模組就是一個運算函數，不需要回傳eventemmitter監聽事件，預設true
  * @param {Boolean} [opt.execObjectFunsByInstance=true] 輸入若模組類型為物件type='object'時，各函式是否使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true
  * @param {Array} [opt.funNames=[]] 輸入模組可被呼叫的函數名稱陣列，預設[]
  * @param {Array} [opt.evNames=[]] 輸入模組可監聽的函數名稱陣列，預設[]
  * @param {String} opt.fpSrc 輸入原始碼檔案位置字串
- * @param {Boolean} [opt.bReturnCode=false] 輸入是否回傳編譯後程式碼而不輸出布林值，設定為true時則fpTar失效，預設false
- * @param {String} opt.fpTar 輸入編譯完程式碼檔案儲存位置字串
- * @param {String} [opt.nameDistType=''] 輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''
- * @param {Function} [opt.hookNameDist=null]  輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
- * @param {String} [opt.formatOut='es'] 輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
- * @param {String} [opt.targets='new'] 輸入編譯等級字串，可選'new'、'old'，預設'new'
- * @param {Boolean} [opt.bNode=false] 輸入是否運行於Nodejs布林值，預設false
- * @param {Boolean} [opt.bNodePolyfill=false] 輸入編譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設true
- * @param {Boolean} [opt.bMinify=true] 輸入編譯檔案是否進行壓縮布林值，預設true
- * @param {Boolean} [opt.keepFnames=false] 輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false
- * @param {Array} [opt.mangleReserved=[]] 輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
+ * @param {Boolean} [opt.bReturnCode=false] 輸入是否回傳轉譯後程式碼而不輸出布林值，設定為true時則fpTar失效，預設false
+ * @param {String} opt.fpTar 輸入轉譯完程式碼檔案儲存位置字串
+ * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
+ * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
+ * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
+ * @param {String} [opt.targets='new'] 輸入轉譯等級字串，可選'new'、'old'，預設'new'
+ * @param {String} [opt.runin='browser'] 輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'
+ * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
+ * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
+ * @param {Boolean} [opt.keepFnames=false] 輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false
+ * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
  * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
@@ -948,10 +945,11 @@ async function rollupWorkerCore(opt = {}) {
         targets = 'new' //於瀏覽器端，因程式碼用字串+blob方式作為web worker初始化之方式, 無法支援ie11(會需要改安全性)只好放棄, 且若被CSP檔那只能由伺服器改設定, 故此處直接改用最新語法new打包
     }
 
-    //bNode
-    let bNode = _.get(opt, 'bNode', null)
-    if (!w.isbol(bNode)) {
-        bNode = false
+    //runin
+    let runin = _.get(opt, 'runin', null)
+    if (runin !== 'nodejs' && runin !== 'browser') {
+        console.log(`invalid runin[${runin}], set to 'browser'`)
+        runin = 'browser'
     }
 
     //bNodePolyfill
@@ -1001,7 +999,7 @@ async function rollupWorkerCore(opt = {}) {
         console.log('transpiling: ' + w.getFileName(fpSrc))
     }
 
-    //rollupFile, 預處理, 把code內的關聯都打包出來, 故需用es, 程式碼之後還會編譯故targets使用new, 此處要用rollupFile對原檔案打包, 才能正確引入相關模組與套件
+    //rollupFile, 預處理, 把code內的關聯都打包出來, 故需用es, 程式碼之後還會轉譯故targets使用new, 此處要用rollupFile對原檔案打包, 才能正確引入相關模組與套件
     rpOpt = {
         // name, //打包成cjs不需要name
         fn, //rollupFile會偵測副檔名作為formatIn
@@ -1011,6 +1009,7 @@ async function rollupWorkerCore(opt = {}) {
         targets,
         bSourcemap: false, //預設值為true得關閉
         bBanner: false,
+        runin,
         bNodePolyfill,
         bMinify,
         keepFnames,
@@ -1019,7 +1018,7 @@ async function rollupWorkerCore(opt = {}) {
         external: [],
         bLog: false,
     }
-    if (bNode) {
+    if (runin === 'nodejs') {
         rpOpt.globals = { //需指定剔除Nodejs的inner的worker的引用
             'worker_threads': 'worker_threads',
         }
@@ -1036,34 +1035,35 @@ async function rollupWorkerCore(opt = {}) {
         external,
     ]
     let codeTransOri = await rollupFile(rpOpt)
-    // fs.writeFileSync(`./z-1-node[${bNode}]-1-codeTransOri.js`, codeTransOri, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${runin}]-1-codeTransOri.js`, codeTransOri, 'utf8')
 
     //clearExportCode
     let codeTransClr = clearExportCode(codeTransOri, name)
-    // fs.writeFileSync(`./z-1-node[${bNode}]-2-codeTransClr.js`, codeTransClr, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${runin}]-2-codeTransClr.js`, codeTransClr, 'utf8')
 
     //addInnerWebWorkerCode
-    let codeTransAdd = addInnerWebWorkerCode(codeTransClr, name, evNames, { bNode, type, execFunctionByInstance, execObjectFunsByInstance })
-    // fs.writeFileSync(`./z-1-node[${bNode}]-3-codeTransAdd.js`, codeTransAdd, 'utf8')
+    let codeTransAdd = addInnerWebWorkerCode(codeTransClr, name, evNames, { runin, type, execFunctionByInstance, execObjectFunsByInstance })
+    // fs.writeFileSync(`./z-1-node[${runin}]-3-codeTransAdd.js`, codeTransAdd, 'utf8')
 
     //addOuterWebWorkerCode
-    let codeMerge = addOuterWebWorkerCode(codeTransAdd, funNames, { bNode, type, execFunctionByInstance, execObjectFunsByInstance })
-    // fs.writeFileSync(`./z-1-node[${bNode}]-4-codeMerge.js`, codeMerge, 'utf8')
+    let codeMerge = addOuterWebWorkerCode(codeTransAdd, funNames, { runin, type, execFunctionByInstance, execObjectFunsByInstance })
+    // fs.writeFileSync(`./z-1-node[${runin}]-4-codeMerge.js`, codeMerge, 'utf8')
 
-    //rollupCode, 編譯合併內外worker的程式碼
+    //rollupCode, 轉譯合併內外worker的程式碼
     rpOpt = {
         name: nameDist,
         formatOut,
         targets,
         bSourcemap: false, //rollupCode不提供sourcemap
         bBanner: false, //rollupCode不提供banner
+        runin,
         bNodePolyfill: false, //outer不需使用node polyfill
         bMinify,
         globals: {},
         external: [],
         bLog: false,
     }
-    if (bNode) {
+    if (runin === 'nodejs') {
         rpOpt.globals = { //需指定剔除Nodejs的inner的worker的引用
             'worker_threads': 'worker_threads',
         }
@@ -1080,7 +1080,7 @@ async function rollupWorkerCore(opt = {}) {
         external,
     ]
     let codeRes = await rollupCode(codeMerge, rpOpt)
-    // fs.writeFileSync(`./z-1-node[${bNode}]-5-codeRes.js`, codeRes, 'utf8')
+    // fs.writeFileSync(`./z-1-node[${runin}]-5-codeRes.js`, codeRes, 'utf8')
 
     if (bReturnCode) {
         return codeRes

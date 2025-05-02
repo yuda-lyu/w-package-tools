@@ -13,6 +13,7 @@ async function core() {
         fn: 'gBase1.js',
         fdSrc,
         fdTar,
+        runin: 'browser',
         // bBanner: false,
         bSourcemap: false,
         bMinify: false,
@@ -29,6 +30,7 @@ async function core() {
         fn: 'gBase2.js',
         fdSrc,
         fdTar,
+        runin: 'browser',
         // bBanner: false,
         bSourcemap: false,
         bMinify: false,
@@ -45,6 +47,7 @@ async function core() {
         fn: 'gVue1.vue',
         fdSrc,
         fdTar,
+        runin: 'browser',
         // bBanner: false,
         bSourcemap: false,
         bMinify: false,
@@ -63,6 +66,7 @@ async function core() {
         fdTar,
         format: 'es',
         targets: 'new',
+        runin: 'browser',
         bSourcemap: false,
         bMinify: false,
     })
@@ -76,6 +80,7 @@ async function core() {
         fdTar,
         format: 'es',
         targets: 'new',
+        runin: 'browser',
         bSourcemap: false,
         bMinify: false,
     })
@@ -89,6 +94,7 @@ async function core() {
         fdTar,
         format: 'es',
         targets: 'new',
+        runin: 'browser',
         bSourcemap: false,
         bMinify: false,
     })
@@ -102,6 +108,7 @@ async function core() {
         fdTar,
         format: 'es',
         targets: 'new',
+        runin: 'browser',
         bSourcemap: false,
         bMinify: false,
     })
@@ -114,5 +121,6 @@ core()
     .catch((err) => {
         console.log(err)
     })
+
 
 //node gRollupFile.mjs

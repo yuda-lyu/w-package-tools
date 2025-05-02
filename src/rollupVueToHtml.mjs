@@ -5,7 +5,7 @@ import rollupFiles from './rollupFiles.mjs'
 
 
 /**
- * 使用rollup編譯Vue檔案並產生瀏覽用的html檔
+ * 使用rollup轉譯Vue檔案並產生瀏覽用的html檔
  *
  * @param {String} [src='./src/App.vue'] 輸入欲打包Vue檔案(*.vue)的位置字串，預設'./src/App.vue'
  * @param {String} [tar='./docs/examples/app.html'] 輸入輸出html的位置字串，並於該目錄下會出現打包後的js檔與map檔，預設'./docs/examples/app.html'

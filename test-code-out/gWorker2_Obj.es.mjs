@@ -1,5 +1,5 @@
 /*!
- * gWorker2_Obj v1.0.76
+ * gWorker2_Obj v1.0.88
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
@@ -549,6 +549,8 @@ function trim(string, chars, guard) {
   return castSlice(strSymbols, start, end).join('');
 }
 
+// import fs from 'fs'
+
 async function tf1(p1) {
   return 'tf1Res p [' + p1 + '] p' + trim(' [trim] ');
 }
@@ -566,6 +568,7 @@ async function tf3(n) {
     r *= 5.5;
     r /= 5.5;
   }
+  // fs.writeFileSync(`./_${n}.txt`, `_${r}`, 'utf8')
   return 'no.=' + n + ', r=' + r;
 }
 let gWorker2_Obj = {

@@ -12637,7 +12637,7 @@ function parseByStream(str) {
 
 
 function createParseStream(filter) {
-  //無法運行於web worker內, 因會被編譯成async function
+  //無法運行於web worker內, 因會被轉譯成async function
   //check
   if (!isestr(filter) && !isearr(filter)) {
     filter = '$*';
@@ -12749,7 +12749,7 @@ function stringifyByStream(data) {
 
 
 function createStringifyStream(data) {
-  //無法運行於web worker內, 因會被編譯成async function
+  //無法運行於web worker內, 因會被轉譯成async function
   //check
   if (!isobj(data) && !isarr(data)) {
     throw new Error('data is not object or array');

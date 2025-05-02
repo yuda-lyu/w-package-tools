@@ -74,4 +74,5 @@ setTimeout(() => {
     w.terminate()
 }, 3000)
 
+
 //node nodejsWorkerExam4_bundleFunWithAsm.mjs

@@ -1659,13 +1659,13 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯程式碼</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯程式碼</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line24">line 24</a>
+        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line25">line 25</a>
     </li></ul></dd>
     
 
@@ -1877,7 +1877,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入待編譯程式碼格式字串，可選'js'、'mjs'，預設'js'</p></td>
+            <td class="description last"><p>輸入待轉譯程式碼格式字串，可選'js'、'mjs'，預設'js'</p></td>
         </tr>
 
     
@@ -1917,7 +1917,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
+            <td class="description last"><p>輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
         </tr>
 
     
@@ -1957,7 +1957,47 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'old'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'old'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>runin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'browser'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'</p></td>
         </tr>
 
     
@@ -1997,7 +2037,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
+            <td class="description last"><p>輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false</p></td>
         </tr>
 
     
@@ -2037,7 +2077,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯是否進行壓縮布林值，預設true</p></td>
         </tr>
 
     
@@ -2077,7 +2117,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+            <td class="description last"><p>輸入當轉譯需壓縮時，是否保留函數名稱布林值，預設false</p></td>
         </tr>
 
     
@@ -2117,7 +2157,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入當轉譯需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -2284,13 +2324,13 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯檔案</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line45">line 45</a>
+        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -2518,7 +2558,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案至儲存資料夾字串，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案至儲存資料夾字串，預設''</p></td>
         </tr>
 
     
@@ -2558,7 +2598,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -2598,7 +2638,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -2638,7 +2678,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
+            <td class="description last"><p>輸入轉譯格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
         </tr>
 
     
@@ -2678,7 +2718,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'old'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'old'</p></td>
         </tr>
 
     
@@ -2718,7 +2758,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設'js'</p></td>
+            <td class="description last"><p>輸入轉譯檔案副檔名字串，可選'js'、'mjs'，預設'js'</p></td>
         </tr>
 
     
@@ -2758,7 +2798,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否提供sourcemap布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否提供sourcemap布林值，預設true</p></td>
         </tr>
 
     
@@ -2798,7 +2838,47 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否帶有開頭banner布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>runin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'browser'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'</p></td>
         </tr>
 
     
@@ -2838,7 +2918,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
+            <td class="description last"><p>輸入當runin='browser'時，轉譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設false</p></td>
         </tr>
 
     
@@ -2878,7 +2958,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否進行壓縮布林值，預設true</p></td>
         </tr>
 
     
@@ -2918,7 +2998,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
         </tr>
 
     
@@ -2958,7 +3038,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -3125,13 +3205,13 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯檔案</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFiles.mjs.html">rollupFiles.mjs</a>, <a href="rollupFiles.mjs.html#line28">line 28</a>
+        <a href="rollupFiles.mjs.html">rollupFiles.mjs</a>, <a href="rollupFiles.mjs.html#line29">line 29</a>
     </li></ul></dd>
     
 
@@ -3362,7 +3442,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案至儲存資料夾字串，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案至儲存資料夾字串，預設''</p></td>
         </tr>
 
     
@@ -3402,7 +3482,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -3442,7 +3522,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -3482,7 +3562,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
+            <td class="description last"><p>輸入轉譯格式字串，可選'umd'、'iife'、'es'，預設'umd'</p></td>
         </tr>
 
     
@@ -3522,7 +3602,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'old'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'old'</p></td>
         </tr>
 
     
@@ -3562,7 +3642,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案副檔名字串，可選'js'、'mjs'，預設'js'</p></td>
+            <td class="description last"><p>輸入轉譯檔案副檔名字串，可選'js'、'mjs'，預設'js'</p></td>
         </tr>
 
     
@@ -3602,7 +3682,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否提供sourcemap布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否提供sourcemap布林值，預設true</p></td>
         </tr>
 
     
@@ -3642,7 +3722,47 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否帶有開頭banner布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否帶有開頭banner布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>runin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'browser'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'</p></td>
         </tr>
 
     
@@ -3682,7 +3802,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false</p></td>
         </tr>
 
     
@@ -3722,7 +3842,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否進行壓縮布林值，預設true</p></td>
         </tr>
 
     
@@ -3762,7 +3882,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
         </tr>
 
     
@@ -3802,7 +3922,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -3969,13 +4089,13 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupParfor.mjs.html">rollupParfor.mjs</a>, <a href="rollupParfor.mjs.html#line197">line 197</a>
+        <a href="rollupParfor.mjs.html">rollupParfor.mjs</a>, <a href="rollupParfor.mjs.html#line198">line 198</a>
     </li></ul></dd>
     
 
@@ -4163,7 +4283,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'</p></td>
+            <td class="description last"><p>輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'</p></td>
         </tr>
 
     
@@ -4311,7 +4431,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯完程式碼檔案儲存位置字串</p></td>
+            <td class="description last"><p>輸入轉譯完程式碼檔案儲存位置字串</p></td>
         </tr>
 
     
@@ -4351,7 +4471,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -4391,7 +4511,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -4431,7 +4551,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'</p></td>
+            <td class="description last"><p>輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'</p></td>
         </tr>
 
     
@@ -4471,7 +4591,87 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'new'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'new'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>runin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'both'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bNodePolyfill</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false</p></td>
         </tr>
 
     
@@ -4558,46 +4758,6 @@
 
         <tr>
             
-                <td class="name"><code>bNodePolyfill</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>false</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入當bNode為true時，編譯是否自動加入node polyfill布林值，主要把node專用語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>bMinify</code></td>
             
 
@@ -4631,7 +4791,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否進行壓縮布林值，預設true</p></td>
         </tr>
 
     
@@ -4671,7 +4831,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
         </tr>
 
     
@@ -4711,7 +4871,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -4878,7 +5038,7 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯Vue檔案並產生瀏覽用的html檔</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯Vue檔案並產生瀏覽用的html檔</p></li></ul></dd>
     
 
     
@@ -5383,13 +5543,13 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯檔案，並封裝至前端web worker與後端worker內</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案，並封裝至前端web worker與後端worker內</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line90">line 90</a>
+        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -5577,7 +5737,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'</p></td>
+            <td class="description last"><p>輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'</p></td>
         </tr>
 
     
@@ -5725,7 +5885,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯完程式碼檔案儲存位置字串</p></td>
+            <td class="description last"><p>輸入轉譯完程式碼檔案儲存位置字串</p></td>
         </tr>
 
     
@@ -5765,7 +5925,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -5805,7 +5965,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -5845,7 +6005,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'</p></td>
+            <td class="description last"><p>輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'</p></td>
         </tr>
 
     
@@ -5885,7 +6045,87 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'new'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'new'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>runin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'both'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bNodePolyfill</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false</p></td>
         </tr>
 
     
@@ -6005,7 +6245,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否進行壓縮布林值，預設true</p></td>
         </tr>
 
     
@@ -6045,7 +6285,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
         </tr>
 
     
@@ -6085,7 +6325,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -6172,46 +6412,6 @@
 
         <tr>
             
-                <td class="name"><code>runin</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    <code>'both'</code>
-                
-                </td>
-            
-
-            <td class="description last"><p>輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>bLog</code></td>
             
 
@@ -6292,13 +6492,13 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup編譯檔案，並封裝至前端web worker內或後端nodejs worker內</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案，並封裝至前端web worker內或後端nodejs worker內</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line859">line 859</a>
+        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line856">line 856</a>
     </li></ul></dd>
     
 
@@ -6486,7 +6686,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。編譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'</p></td>
+            <td class="description last"><p>輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'</p></td>
         </tr>
 
     
@@ -6722,7 +6922,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入是否回傳編譯後程式碼而不輸出布林值，設定為true時則fpTar失效，預設false</p></td>
+            <td class="description last"><p>輸入是否回傳轉譯後程式碼而不輸出布林值，設定為true時則fpTar失效，預設false</p></td>
         </tr>
 
     
@@ -6758,7 +6958,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯完程式碼檔案儲存位置字串</p></td>
+            <td class="description last"><p>輸入轉譯完程式碼檔案儲存位置字串</p></td>
         </tr>
 
     
@@ -6798,7 +6998,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''</p></td>
         </tr>
 
     
@@ -6838,7 +7038,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入強制指定編譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
+            <td class="description last"><p>輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果</p></td>
         </tr>
 
     
@@ -6878,7 +7078,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入欲編譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'</p></td>
+            <td class="description last"><p>輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'</p></td>
         </tr>
 
     
@@ -6918,20 +7118,20 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯等級字串，可選'new'、'old'，預設'new'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'new'</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>bNode</code></td>
+                <td class="name"><code>runin</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">String</span>
 
 
 
@@ -6953,12 +7153,12 @@
             
                 <td class="default">
                 
-                    <code>false</code>
+                    <code>'browser'</code>
                 
                 </td>
             
 
-            <td class="description last"><p>輸入是否運行於Nodejs布林值，預設false</p></td>
+            <td class="description last"><p>輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'</p></td>
         </tr>
 
     
@@ -6998,7 +7198,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設true</p></td>
+            <td class="description last"><p>輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false</p></td>
         </tr>
 
     
@@ -7038,7 +7238,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入編譯檔案是否進行壓縮布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否進行壓縮布林值，預設true</p></td>
         </tr>
 
     
@@ -7078,7 +7278,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，是否保留函數名稱布林值，預設false</p></td>
         </tr>
 
     
@@ -7118,7 +7318,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入當編譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]</p></td>
         </tr>
 
     
@@ -7481,7 +7681,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Fri May 02 2025 13:06:42 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Fri May 02 2025 14:56:02 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

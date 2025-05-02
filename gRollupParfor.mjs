@@ -16,7 +16,8 @@ async function core() {
         // execFunctionByInstance: true, //default, 原模組為計算函數回傳結果
         fpSrc: path.resolve(fdSrc, 'gParfor1_Fun.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gParfor1_Fun.pf.umd.js'), //檔案輸出路徑
-        formatOut: 'es', //umd //用es編譯可減少體積
+        runin: 'both',
+        formatOut: 'es', //umd //用es轉譯可減少體積
         // bMinify: false,
     })
         .catch((err) => {
