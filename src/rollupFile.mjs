@@ -277,10 +277,10 @@ async function rollupFile(opt = {}) {
         ],
         plugins: [
             '@babel/plugin-transform-runtime',
-            '@babel/plugin-proposal-nullish-coalescing-operator',
-            '@babel/plugin-proposal-object-rest-spread',
             '@babel/plugin-proposal-export-default-from',
-            '@babel/plugin-proposal-optional-chaining',
+            // '@babel/plugin-proposal-nullish-coalescing-operator', //browser與nodejs已支援
+            // '@babel/plugin-proposal-object-rest-spread', //browser與nodejs已支援
+            // '@babel/plugin-proposal-optional-chaining', //browser與nodejs已支援
         ]
     }
     let babelPlugin
