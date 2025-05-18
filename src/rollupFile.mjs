@@ -338,7 +338,7 @@ async function rollupFile(opt = {}) {
     let outputOptions = {
         banner,
         globals,
-        format: formatOut,
+        format: formatOut, //若formatOut='umd', 則會被當成browser環境編譯, 偵測不支援套件而提示Creating a browser bundle that depends on Node.js built-in modules...
         name: nameDist,
         file: fpTar,
         inlineDynamicImports: true, //有些套件例如pyodide內會使用動態加載技術, 故得使用inlineDynamicImports

@@ -1041,7 +1041,7 @@ async function rollupWorkerCore(opt = {}) {
     }
     rpOpt.external = [
         ...rpOpt.external,
-        external,
+        ...external,
     ]
     let codeTransOri = await rollupFile(rpOpt)
     // fs.writeFileSync(`./z-1-node[${runin}]-1-codeTransOri.js`, codeTransOri, 'utf8')
@@ -1088,7 +1088,7 @@ async function rollupWorkerCore(opt = {}) {
     }
     rpOpt.external = [
         ...rpOpt.external,
-        external,
+        ...external,
     ]
     let codeRes = await rollupCode(codeMerge, rpOpt)
     // fs.writeFileSync(`./z-1-node[${runin}]-5-codeRes.js`, codeRes, 'utf8')
