@@ -12,6 +12,7 @@ A tool for build packages.
 To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-package-tools/global.html#addVersion).
 
 ## Installation
+
 ### Using npm(ES6 module):
 ```alias
 
