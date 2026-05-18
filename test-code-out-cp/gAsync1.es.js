@@ -1,1 +1,1 @@
-async function n(){let n={a:1,b:2.2,c:"xyz"},e=()=>({m:n.a,n:n.b});return new Promise(((a,o)=>{setTimeout((()=>{console.log("gAsync1 data=",n),console.log("gAsync1 f()=",e()),a({name:"gAsync1",data:n,fr:e()})}),300)}))}export{n as default};
+async function e(){let e={a:1,b:2.2,c:"xyz"},n=()=>{let n="n";return{m:e.a,[n]:e.b}};return new Promise((t,a)=>{setTimeout(()=>{console.log("gAsync1 data=",e),console.log("gAsync1 f()=",n()),t({name:"gAsync1",data:e,fr:n()})},300)})}export{e as default};
