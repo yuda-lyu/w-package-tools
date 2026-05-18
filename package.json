@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "main": "dist/w-package-tools.umd.js",
   "dependencies": {
     "@babel/cli": "^7.21.0",
@@ -31,7 +31,6 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-vue": "^9.10.0",
     "eventemitter3": "^5.0.4",
-    "gh-pages": "^6.3.0",
     "js-base64": "^3.7.8",
     "jsdoc": "^4.0.5",
     "jsdoc-vuejs": "3.0.9",
@@ -46,23 +45,15 @@
     "vue-eslint-parser": "^9.1.0",
     "vue-template-compiler": "^2.7.16"
   },
-  "dependenciesTemp": {
-    "rollup": "^2.47.0",
-    "rollup-plugin-babel": "^4.4.0",
-    "babel-core": "^6.26.3",
-    "babel-eslint": "^10.1.0",
-    "eslint-loader": "^4.0.2",
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-service": "^5.0.8",
-    "temp": ""
-  },
   "devDependencies": {
     "@vue/cli-service": "^5.0.8"
   },
+  "bin": {
+    "gh-pages": "bin/gh-pages.mjs"
+  },
   "scripts": {
     "test": "mocha --parallel --timeout 60000",
-    "deploy": "gh-pages -d docs"
+    "deploy": "node bin/gh-pages.mjs -d docs"
   },
   "repository": {
     "type": "git",
