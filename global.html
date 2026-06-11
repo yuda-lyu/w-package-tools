@@ -29,7 +29,7 @@
 <nav >
     
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
     
 </nav>
 
@@ -1641,6 +1641,461 @@
 
 
 
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="parfor"><span class="type-signature type-signature-async">(async) </span>parfor<span class="signature">(fpWorker, jobs, opt<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>輕量持久 worker pool 平行執行器,用原生 worker_threads 把 CPU 密集計算分散到多核心,免任何編譯步驟</p>
+<p>機制:
+· 免編譯 ESM worker:new Worker(URL)直接跑 .mjs 檔,worker 內可正常 import 專案模組與 node_modules。
+· 持久 pool:每個 worker 只建立一次(import core、模組級預計算、initData 注入都只付一次),跑完整批工作才 terminate;對比「每批新建 worker + eval bundle」省去重複啟動 / 解析 / 預計算成本。
+· 動態派工:閒置的 worker 自動領取下一個 job(內建負載均衡,不需 caller 預先平衡 job 順序)。
+· lifecycle 對稱:全部完成(或失敗)一律 terminate 所有 worker,直跑 node 不會 hang。</p>
+<p>worker 協定(worker entry 檔須遵守):</p>
+<ol>
+<li>經 workerData 收 initData(一次)。</li>
+<li>收 { k, job } → 計算 → 回 { k, r }。</li>
+<li>單 job 失敗回 { k, err }(err 為字串)→ 不炸批,主程序印錯後續跑。</li>
+<li>worker 載入 / init 失敗(import 錯、workerData 處理 throw)→ 整批 fail-fast 拋錯(不默跑)。</li>
+</ol>
+<p>適用:CPU 密集的純計算(大量迴圈、數值運算、回測撮合),且工作可拆成多個彼此獨立的 job
+不適用:I/O 密集任務(讀檔、網路請求),這類用單執行緒 Promise 並行即可,開 worker 反而多付啟動與傳輸成本</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="parfor.mjs.html">parfor.mjs</a>, <a href="parfor.mjs.html#line32">line 32</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5 class="h5-parameters">Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fpWorker</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">URL</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入 worker entry 之 file URL(建議 new URL('./xxx_worker.mjs', import.meta.url))或絕對路徑字串</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>jobs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入工作陣列,每個 job 經 postMessage 結構化複製傳入 worker</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入設定物件,預設 {}</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>takeLimit</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>os.availableParallelism()-1</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入同時 worker 數正整數,至少 1,預設 os.availableParallelism()-1</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>initData</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入經 workerData 一次性注入每個 worker 的共享唯讀資料,結構化複製,支援 TypedArray</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入每個 job 完成即時回呼函數,簽名為 cb(r, k),r 為該 job 回傳值、k 為 job 索引,job 失敗時 r 為 undefined(錯誤已印出,不中斷整批),預設 null</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>returnResult</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否回傳 results 陣列布林值,true 時依 job 索引對位回傳,預設 false(省記憶體,結果由 cb 收)</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5 class="h5-returns">Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳 Promise,resolve 時:opt.returnResult 為 true 回傳 results 陣列(依 job 索引對位),否則回傳 undefined</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -7921,7 +8376,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Mon May 18 2026 20:19:07 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Thu Jun 11 2026 15:27:18 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
