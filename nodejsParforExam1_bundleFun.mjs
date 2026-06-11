@@ -1,5 +1,5 @@
 // import w from './src/parfor.mjs'
-import w from './test-code-out-pf/gParfor1_Fun.pf.umd.js'
+import w from './test-code-out-pf/gParfor1_Fun.pf.es.mjs'
 
 
 let count = 500000000

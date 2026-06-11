@@ -1010,10 +1010,10 @@ async function rollupWorkerCore(opt = {}) {
     rpOpt = {
         //不沿用設定
         // name, //打包成cjs不需要name
-        fn, //rollupFile會偵測副檔名作為formatIn
+        fn,
         fdSrc: w.getPathParent(fpSrc),
         // fdTar: '', //沒給代表回傳程式碼
-        format: 'cjs', //輸出formatOut
+        format: 'cjs', //rollupFile須使用format
         targets,
         bSourcemap: false, //預設值為true得關閉
         bBanner: false,
@@ -1062,7 +1062,7 @@ async function rollupWorkerCore(opt = {}) {
     rpOpt = {
         //不沿用設定
         name: nameDist,
-        formatOut,
+        formatOut, //rollupCode使用formatIn(可不給)與formatOut
         targets,
         bSourcemap: false, //rollupCode不提供sourcemap
         bBanner: false, //rollupCode不提供banner

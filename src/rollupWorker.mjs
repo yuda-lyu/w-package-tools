@@ -205,6 +205,7 @@ async function rollupWorker(opt = {}) {
         if (runin === 'both' || runin === 'nodejs') {
             codeNW = await rollupWorkerCore({
                 ...opt, //沿用設定
+                //rollupWorkerCore須使用formatIn(可不給)與formatOut
                 runin: 'nodejs',
                 bReturnCode: true,
                 bLog: false,
@@ -217,6 +218,7 @@ async function rollupWorker(opt = {}) {
         if (runin === 'both' || runin === 'browser') {
             codeWW = await rollupWorkerCore({
                 ...opt, //沿用設定
+                //rollupWorkerCore須使用formatIn(可不給)與formatOut
                 runin: 'browser',
                 bReturnCode: true,
                 bLog: false,
@@ -233,7 +235,7 @@ async function rollupWorker(opt = {}) {
         let codeRes = await rollupCode(codeMerge, {
             //不沿用設定
             name: nameDist,
-            formatOut,
+            formatOut, //rollupCode須使用formatIn(可不給)與formatOut
             targets,
             bSourcemap: false, //rollupCode不提供sourcemap
             bBanner: false, //rollupCode不提供banner

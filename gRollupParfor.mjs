@@ -17,7 +17,20 @@ async function core() {
         fpSrc: path.resolve(fdSrc, 'gParfor1_Fun.mjs'), //原始檔案路徑
         fpTar: path.resolve(fdTar, 'gParfor1_Fun.pf.umd.js'), //檔案輸出路徑
         runin: 'both',
-        formatOut: 'es', //umd //用es轉譯可減少體積
+        formatOut: 'umd',
+        // bMinify: false,
+    })
+        .catch((err) => {
+            console.log(err)
+        })
+
+    await rollupParfor({
+        name: 'gParfor1_Fun', //原模組名稱, 將來會掛於winodw下, nodejs引入後為自行決定名稱
+        // execFunctionByInstance: true, //default, 原模組為計算函數回傳結果
+        fpSrc: path.resolve(fdSrc, 'gParfor1_Fun.mjs'), //原始檔案路徑
+        fpTar: path.resolve(fdTar, 'gParfor1_Fun.pf.es.mjs'), //檔案輸出路徑, 因為package.json沒有"type":"module", node預設會把.js當cjs, 故此處得用mjs
+        runin: 'both',
+        formatOut: 'es',
         // bMinify: false,
     })
         .catch((err) => {

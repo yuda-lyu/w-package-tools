@@ -118,7 +118,7 @@ async function rollupCode(codeSrc, opt = {}) {
     opt.hookNameDist = () => {
         return name //直接給模組名
     }
-    opt.format = formatOut
+    opt.format = formatOut //rollupFile須使用format
     opt.targets = targets
     opt.bSourcemap = false
     opt.bBanner = false

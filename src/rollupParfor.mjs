@@ -223,6 +223,12 @@ async function rollupParfor(opt = {}) {
         return Promise.reject(`opt.type need to set 'function'`)
     }
 
+    //formatOut, umd為瀏覽器端直接使用, es為供vue-cli或webpack使用
+    let formatOut = _.get(opt, 'formatOut', null)
+    if (!formatOut) {
+        formatOut = 'es'
+    }
+
     //runin
     let runin = _.get(opt, 'runin', null)
     if (runin !== 'both' && runin !== 'nodejs' && runin !== 'browser') {
@@ -259,13 +265,12 @@ async function rollupParfor(opt = {}) {
         //轉譯parforCore
         await rollupWorker({
             ...opt, //沿用設定
+            //rollupWorker須使用formatIn(可不給)與formatOut
             name: 'parforCore', //一定要為parforCore, worker內會使用同名函數做繫節, 故不能更換, 除非改genParforCoreCode內的函數parforCore名稱
             type: 'function', //原模組輸出為函數, 可傳入參數初始化
             execFunctionByInstance: true, //原模組為計算函數回傳結果
             fpSrc: fpTempParforCoreSrc,
             fpTar: fpTempParforCoreTar,
-            // formatOut: 'es', //由外部決定
-            // bMinify: false, //由外部決定
             bLog: false,
         })
 
@@ -292,8 +297,7 @@ async function rollupParfor(opt = {}) {
                 'worker_threads',
                 // ...external,
             ],
-            // formatOut: 'es', //由外部決定
-            // bMinify: false, //由外部決定
+            format: formatOut, //rollupFile須使用format
             runin: runin === 'nodejs' ? 'nodejs' : 'browser', //parfor執行環境若為單獨指定沒問題, 若指定為both, 則強制視為運行於browser
             bLog: false,
         })

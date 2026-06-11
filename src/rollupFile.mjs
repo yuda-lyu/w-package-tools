@@ -121,10 +121,10 @@ async function rollupFile(opt = {}) {
         nameDist = hookNameDist(nameDist, nameTrue, fn)
     }
 
-    //formatOut
-    let formatOut = _.get(opt, 'format', null)
-    if (!w.isestr(formatOut)) {
-        formatOut = 'umd'
+    //format
+    let format = _.get(opt, 'format', null)
+    if (!w.isestr(format)) {
+        format = 'umd'
     }
 
     //targets
@@ -138,7 +138,7 @@ async function rollupFile(opt = {}) {
 
     //extOut
     let extOut = _.get(opt, 'ext', null)
-    if (extOut === null && formatOut === 'es') {
+    if (extOut === null && format === 'es') {
         extOut = 'mjs' //若使用es且沒指定ext就改副檔名為mjs
     }
     if (extOut !== 'js' && extOut !== 'mjs') {
@@ -318,7 +318,7 @@ async function rollupFile(opt = {}) {
     let bReturnCode = false
     let fpTar = ''
     if (w.fsIsFolder(fdTar)) {
-        fpTar = path.resolve(fdTar, `${nameDist}.${formatOut}.${extOut}`)
+        fpTar = path.resolve(fdTar, `${nameDist}.${format}.${extOut}`)
     }
     else {
         bReturnCode = true
@@ -338,7 +338,7 @@ async function rollupFile(opt = {}) {
     let outputOptions = {
         banner,
         globals,
-        format: formatOut, //若formatOut='umd', 則會被當成browser環境編譯, 偵測不支援套件而提示Creating a browser bundle that depends on Node.js built-in modules...
+        format, //若format='umd', 則會被當成browser環境編譯, 偵測不支援套件而提示Creating a browser bundle that depends on Node.js built-in modules...
         name: nameDist,
         file: fpTar,
         inlineDynamicImports: true, //有些套件例如pyodide內會使用動態加載技術, 故得使用inlineDynamicImports
