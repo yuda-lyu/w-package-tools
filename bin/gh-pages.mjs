@@ -39,6 +39,13 @@ if (!existsSync(distAbs)) {
     process.exit(1)
 }
 
+//拒絕用空來源部署: 空 docs 會讓後續 git rm -rf . 清光舊站卻只補一個 .nojekyll,
+//等同安靜抹除線上網站. 常見於建置失敗產出空 docs 卻仍跑 deploy, 故在破壞性操作前 fail-fast.
+if (readdirSync(distAbs).length === 0) {
+    console.error(`[gh-pages] 來源資料夾為空, 拒絕部署 (避免清空線上網站): ${distAbs}`)
+    process.exit(1)
+}
+
 let remoteUrl
 try {
     remoteUrl = runQuiet(`git config --get remote.${REMOTE}.url`)
@@ -58,29 +65,6 @@ function safeRm(p) {
 if (existsSync(tmpAbs)) safeRm(tmpAbs)
 mkdirSync(tmpAbs, { recursive: true })
 
-let branchExists = true
-try {
-    run(`git clone --branch ${BRANCH} --single-branch --depth 1 "${remoteUrl}" "${tmpAbs}"`)
-}
-catch {
-    branchExists = false
-    console.log(`[gh-pages] ${BRANCH} branch 不存在於 remote, 改為 init orphan`)
-    safeRm(tmpAbs)
-    mkdirSync(tmpAbs, { recursive: true })
-    run(`git init "${tmpAbs}"`)
-    run(`git remote add ${REMOTE} "${remoteUrl}"`, { cwd: tmpAbs })
-    run(`git checkout --orphan ${BRANCH}`, { cwd: tmpAbs })
-}
-
-if (branchExists) {
-    try {
-        run(`git rm -rf .`, { cwd: tmpAbs })
-    }
-    catch {
-        console.log('[gh-pages] (無檔案可清空)')
-    }
-}
-
 //Windows + Unicode cwd 下 cpSync recursive 模式對 directory 會撞 Node/OS bug 殺 process
 //(實測 node v24 + cwd 含中文/空格, cpSync 對 docs/fonts 無 stack trace 直接 exit),
 //改用 copyFileSync 自寫遞迴 copy 繞開.
@@ -97,30 +81,62 @@ function copyRecursive(src, dst) {
     }
 }
 
-for (let entry of readdirSync(distAbs)) {
-    copyRecursive(join(distAbs, entry), join(tmpAbs, entry))
-}
-writeFileSync(join(tmpAbs, '.nojekyll'), '')
-
-run(`git add -A`, { cwd: tmpAbs })
-let hasChange = true
+//主流程整段包 try/finally: 任何一步(clone/copy/add/commit/push)失敗都不能跳過 finally 的清理,
+//否則 tmpAbs 會變孤兒資料夾遺留在專案根目錄.
 try {
-    execSync(`git diff --cached --quiet`, { cwd: tmpAbs, stdio: 'ignore' }); hasChange = false
-}
-catch {}
-if (hasChange) {
-    run(`git commit -m "deploy ${new Date().toISOString()}"`, { cwd: tmpAbs })
-    run(`git push ${REMOTE} ${BRANCH}`, { cwd: tmpAbs })
-    console.log('[gh-pages] push 完成')
-}
-else {
-    console.log('[gh-pages] 無變更, 跳過 commit/push')
-}
+    let branchExists = true
+    try {
+        run(`git clone --branch ${BRANCH} --single-branch --depth 1 "${remoteUrl}" "${tmpAbs}"`)
+    }
+    catch {
+        branchExists = false
+        console.log(`[gh-pages] ${BRANCH} branch 不存在於 remote, 改為 init orphan`)
+        safeRm(tmpAbs)
+        mkdirSync(tmpAbs, { recursive: true })
+        run(`git init "${tmpAbs}"`)
+        run(`git remote add ${REMOTE} "${remoteUrl}"`, { cwd: tmpAbs })
+        run(`git checkout --orphan ${BRANCH}`, { cwd: tmpAbs })
+    }
 
-try {
-    safeRm(tmpAbs)
+    if (branchExists) {
+        try {
+            run(`git rm -rf .`, { cwd: tmpAbs })
+        }
+        catch {
+            console.log('[gh-pages] (無檔案可清空)')
+        }
+    }
+
+    for (let entry of readdirSync(distAbs)) {
+        copyRecursive(join(distAbs, entry), join(tmpAbs, entry))
+    }
+    writeFileSync(join(tmpAbs, '.nojekyll'), '')
+
+    run(`git add -A`, { cwd: tmpAbs })
+    let hasChange = true
+    try {
+        execSync(`git diff --cached --quiet`, { cwd: tmpAbs, stdio: 'ignore' }); hasChange = false
+    }
+    catch {}
+    if (hasChange) {
+        run(`git commit -m "deploy ${new Date().toISOString()}"`, { cwd: tmpAbs })
+        run(`git push ${REMOTE} ${BRANCH}`, { cwd: tmpAbs })
+        console.log('[gh-pages] push 完成')
+    }
+    else {
+        console.log('[gh-pages] 無變更, 跳過 commit/push')
+    }
+    console.log('[gh-pages] done')
 }
 catch (e) {
-    console.warn(`[gh-pages] 清理暫存失敗: ${e.message}`)
+    console.error(`[gh-pages] 部署失敗: ${e.message}`)
+    process.exitCode = 1
 }
-console.log('[gh-pages] done')
+finally {
+    try {
+        safeRm(tmpAbs)
+    }
+    catch (e) {
+        console.warn(`[gh-pages] 清理暫存失敗: ${e.message}`)
+    }
+}
