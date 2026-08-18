@@ -29,6 +29,11 @@ function parseVueCode(h) {
     let m1
     let m2
 
+    //強制正規化為CRLF, 因內部是用split('\r\n')切行, 若原檔為LF則整份被視為單行,
+    //導致tmp與data,mounted,computed,methods,action全部解析為空, 且因正則有用[\s\S]跨行而不拋錯, 靜默產出空殼範例頁
+    //先轉LF再轉CRLF, 避免直接轉換使原有CRLF變成'\r\r\n'
+    h = h.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n')
+
     //ss
     let ss = h.split('\r\n')
 
