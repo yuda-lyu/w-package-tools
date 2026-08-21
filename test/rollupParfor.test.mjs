@@ -72,6 +72,46 @@ describe('rollupParfor', function() {
         })
     })
 
+    it('async cb 會被 await: parfor resolve 前 cb 全數完成, cb reject 傳染至 parfor', async function() {
+        //沿用第一個測試產出的 umd bundle
+        let url = `file://${fpTar.replace(/\\/g, '/')}?t=${Date.now()}`
+        let mod = await import(url)
+        let parfor = mod.default
+
+        let count = 100000
+        let pgs = [
+            { count, p1: 11, p2: 'a' },
+            { count, p1: 12, p2: 'b' },
+            { count, p1: 13, p2: 'c' },
+        ]
+
+        //async cb: 每筆 delay 後才記錄, 若未被 await 則 parfor resolve 時 done 數必不足
+        let done = []
+        await parfor(pgs, {
+            takeLimit: 2,
+            returnResult: true,
+            cb: async (r, k) => {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+                done.push(k)
+            },
+        })
+        assert.strict.deepStrictEqual(done.length, pgs.length, 'parfor resolve 前 async cb 應全數完成')
+
+        //async cb reject 應使 parfor reject
+        let err = null
+        await parfor(pgs, {
+            takeLimit: 2,
+            returnResult: true,
+            cb: async () => {
+                throw new Error('cb-boom')
+            },
+        })
+            .catch((e) => {
+                err = e
+            })
+        assert.strict.ok(err !== null && String((err && err.message) || err).includes('cb-boom'), 'async cb reject 應傳染至 parfor')
+    })
+
     it('formatOut=es 產出真 ES module 且可平行計算', async function() {
         await rollupParfor({
             name,

@@ -139,16 +139,20 @@ function genParforCode(fpWpf, fpParforCore) {
     
             //save
             if (returnResult) {
-                each(prs, (pr, kpr) => {
+                for (let i = 0; i < size(prs); i++) {
+                    let pr = prs[i]
                     rs[pr.k] = pr.r //obj或arr都適用
-                })
+                }
             }
     
-            //call cb
+            //call cb, 支援async cb: 逐項await, 使parfor會等待cb完成且cb錯誤可傳染至parfor reject;
+            //sync cb經await包裝行為不變(向後相容, sync cb拋錯原本即會使parfor reject, 改後async cb reject走同一條路);
+            //逐項序列執行使cb之非同步工作總並行度仍受takeLimit節流, 組內依k序呼叫與原each順序相同
             if (w.isfun(cb)) {
-                each(prs, (pr, kpr) => {
-                    cb(pr.r, pr.k)
-                })
+                for (let i = 0; i < size(prs); i++) {
+                    let pr = prs[i]
+                    await cb(pr.r, pr.k)
+                }
             }
     
         }, takeLimit)

@@ -1,4 +1,4 @@
-node toolg/addVersion.mjs
+#node toolg/addVersion.mjs
 #node toolg/modifyReadme.mjs
 
 rm -r docs
@@ -12,4 +12,4 @@ npm run deploy
 
 #npm test
 
-npm publish
+#npm publish
