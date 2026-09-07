@@ -374,15 +374,21 @@ function recvMessage(data) {
 ${crm}
 
 try{
-    process.on('unhandledRejection', (err) => {
-        console.log('inner:unhandledRejection', err)
-    })
-    process.on('uncaughtException', (err) => {
-        console.log('inner:uncaughtException', err)
-    })
+
+    //僅以uncaughtExceptionMonitor記錄, 不可註冊uncaughtException與unhandledRejection監聽:
+    //於worker內註冊此二監聽會阻止Node預設的worker終止行為, 使worker崩潰後仍存活空轉,
+    //外層收不到error/exit事件, pending promise永久懸置, 且存活殭屍worker會令宿主程序無法退出;
+    //移除後worker依預設行為死亡, error事件傳至外層, 由外層整批reject pending
+    // process.on('unhandledRejection', (err) => {
+    //     console.log('inner:unhandledRejection', err)
+    // })
+    // process.on('uncaughtException', (err) => {
+    //     console.log('inner:uncaughtException', err)
+    // })
     process.on('uncaughtExceptionMonitor', (err) => {
         console.log('inner:uncaughtExceptionMonitor', err)
     })
+
 }
 catch(err){}
 
@@ -400,8 +406,17 @@ function ${funName}(){
     //pm
     let pm = genPm()
 
+    //check, worker已死(崩潰或異常退出)後之呼叫立即reject, 不得懸置
+    if (bDead) {
+        pm.reject('worker is dead')
+        return pm
+    }
+
     //id
     let id = genID()
+
+    //pendings, 登記pending promise, 供worker崩潰或異常退出時整批reject
+    pendings[id] = pm
 
     //dataSend
     let dataSend = {
@@ -416,6 +431,7 @@ function ${funName}(){
 
     //once
     ev.once(id, (res) => {
+        delete pendings[id]
         if (res.state === 'success') {
             pm.resolve(res.msg)
         }
@@ -580,16 +596,16 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         }
     }
 
-    //cee
+    //cee, worker之error屬致命錯誤(worker隨後死亡), 用emitFatal標記死亡並整批reject pending
     let cee = ''
     if (opt.runin === 'nodejs') {
         cee = `
-        wk.on('error', emitError)
+        wk.on('error', emitFatal)
         `
     }
     else {
         cee = `
-        wk.onerror = emitError
+        wk.onerror = emitFatal
         `
     }
 
@@ -598,9 +614,10 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     if (opt.runin === 'nodejs') {
         cte = `
         wk.on('exit', (code) => {
-            //The 'exit' event is emitted once the worker has stopped. If the worker exited by calling process.exit(), the exitCode parameter is the passed exit code. If the worker was terminated, the exitCode parameter is 1.
-            if (code !== 1) {
-                emitError('exit code['+code+'] !== 1')
+            //worker停止(崩潰後exit code 1, 或worker內process.exit之任意code): 凡非由terminate()主動中止一律視為異常,
+            //標記死亡並整批reject pending; 崩潰時error事件先行已標記死亡, 此處emitFatal因bDead為true而不重複發送
+            if (!bTerminated) {
+                emitFatal('worker exit, code['+code+']')
             }
         })
         `
@@ -699,6 +716,31 @@ function protectShell() {
         //evem
         let ev = evem()
 
+        //pendings, 呼叫中promise登記表; bDead, worker已死標記(死後呼叫立即reject); bTerminated, 由terminate()主動中止標記(exit事件不視為異常)
+        let pendings = {}
+        let bDead = false
+        let bTerminated = false
+
+        function emitError(err) {
+            //先整批reject pending: 錯誤發生時呼叫端不得永久懸置(pending promise之settle僅靠worker回傳return訊息, worker崩潰即永無回音)
+            for (let id in pendings) {
+                let pm = pendings[id]
+                delete pendings[id]
+                ev.removeAllListeners(id) //清除genOuterWebWorkerCodeFun內對應once監聽, 避免監聽器殘留
+                pm.reject(err)
+            }
+            ev.emit('error', err)
+        }
+
+        function emitFatal(err) {
+            //致命錯誤: worker已無法再服務(崩潰,異常退出,建立失敗), 標記死亡使後續呼叫立即reject; 已標記則不重複發送
+            if (bDead) {
+                return
+            }
+            bDead = true
+            emitError(err)
+        }
+
         function genWorker(code) {
 
             //new Worker
@@ -706,7 +748,7 @@ function protectShell() {
                 ${cnw}
             }
             catch (err) {
-                emitError(err)
+                emitFatal(err)
             }
 
         }
@@ -716,12 +758,13 @@ function protectShell() {
 
         //check, 於瀏覽器端可能會遭遇IE11安全性問題, 或被CSP的worker-src或script-src設定阻擋
         if (!wk) {
-            emitError('invalid worker')
+            emitFatal('invalid worker')
             return null
         }
 
         function terminate() {
             if (wk) {
+                bTerminated = true //先標記再中止, 使exit事件不被視為異常
                 wk.terminate()
                 wk = undefined
             }
@@ -781,14 +824,10 @@ function protectShell() {
         //bind recvMessage
         ${crm}
 
-        function emitError(err) {
-            ev.emit('error', err)
-        }
-
-        //bind emitError
+        //bind emitFatal
         ${cee}
 
-        //bind emitError for special condition
+        //bind emitFatal(nodejs exit)或emitError(browser messageerror) for special condition
         ${cte}
 
         //init
@@ -807,15 +846,22 @@ function protectShell() {
 protectShell()
 
 try{
-    process.on('unhandledRejection', (err) => {
-        console.log('outer:unhandledRejection', err)
-    })
-    process.on('uncaughtException', (err) => {
-        console.log('outer:uncaughtException', err)
-    })
+
+    //此段為outer層程式碼, 運行於引用打包產物之宿主(app)主程序, 不可註冊uncaughtException與unhandledRejection監聽:
+    //註冊後宿主整個程序的未捕捉錯誤都會被改成[只印log不終止], 覆蓋Node預設的崩潰行為,
+    //等於函式庫劫持了所有下游app的全域錯誤語意, 錯誤被靜默吞掉難以察覺;
+    //與inner層worker內移除同名監聽屬同族修正(inner層吞噬會阻止worker死亡, 使外層收不到error/exit而令pending懸置),
+    //故僅保留uncaughtExceptionMonitor, 其只觀測記錄, 不影響預設終止行為
+    // process.on('unhandledRejection', (err) => {
+    //     console.log('outer:unhandledRejection', err)
+    // })
+    // process.on('uncaughtException', (err) => {
+    //     console.log('outer:uncaughtException', err)
+    // })
     process.on('uncaughtExceptionMonitor', (err) => {
         console.log('outer:uncaughtExceptionMonitor', err)
     })
+
 }
 catch(err){}
 
