@@ -1,5 +1,5 @@
 #node toolg/addVersion.mjs
-#node toolg/modifyReadme.mjs
+node toolg/modifyReadme.mjs
 
 rm -r docs
 ./node_modules/.bin/jsdoc -c .jsdoc

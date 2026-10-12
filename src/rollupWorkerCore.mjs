@@ -375,16 +375,10 @@ ${crm}
 
 try{
 
-    //僅以uncaughtExceptionMonitor記錄, 不可註冊uncaughtException與unhandledRejection監聽:
-    //於worker內註冊此二監聽會阻止Node預設的worker終止行為, 使worker崩潰後仍存活空轉,
-    //外層收不到error/exit事件, pending promise永久懸置, 且存活殭屍worker會令宿主程序無法退出;
-    //移除後worker依預設行為死亡, error事件傳至外層, 由外層整批reject pending
-    // process.on('unhandledRejection', (err) => {
-    //     console.log('inner:unhandledRejection', err)
-    // })
-    // process.on('uncaughtException', (err) => {
-    //     console.log('inner:uncaughtException', err)
-    // })
+    //僅以uncaughtExceptionMonitor記錄worker內未捕捉錯誤, 不可註冊uncaughtException與unhandledRejection監聽:
+    //於worker內註冊該二監聽會阻止worker依預設終止, 外層收不到error/exit而令pending永久懸置, 殭屍worker並令宿主無法退出;
+    //錯誤雖已經error事件傳至外層reject pending, 但無pending且呼叫端未監聽error時(eventemitter3無監聽者時emit不拋錯)此輸出為唯一痕跡, 故保留;
+    //本監聽於被包裝程式碼執行之後才安裝, 載入期之錯誤不經此記錄
     process.on('uncaughtExceptionMonitor', (err) => {
         console.log('inner:uncaughtExceptionMonitor', err)
     })
@@ -845,25 +839,10 @@ function protectShell() {
 }
 protectShell()
 
-try{
-
-    //此段為outer層程式碼, 運行於引用打包產物之宿主(app)主程序, 不可註冊uncaughtException與unhandledRejection監聽:
-    //註冊後宿主整個程序的未捕捉錯誤都會被改成[只印log不終止], 覆蓋Node預設的崩潰行為,
-    //等於函式庫劫持了所有下游app的全域錯誤語意, 錯誤被靜默吞掉難以察覺;
-    //與inner層worker內移除同名監聽屬同族修正(inner層吞噬會阻止worker死亡, 使外層收不到error/exit而令pending懸置),
-    //故僅保留uncaughtExceptionMonitor, 其只觀測記錄, 不影響預設終止行為
-    // process.on('unhandledRejection', (err) => {
-    //     console.log('outer:unhandledRejection', err)
-    // })
-    // process.on('uncaughtException', (err) => {
-    //     console.log('outer:uncaughtException', err)
-    // })
-    process.on('uncaughtExceptionMonitor', (err) => {
-        console.log('outer:uncaughtExceptionMonitor', err)
-    })
-
-}
-catch(err){}
+//outer層運行於引用產物之宿主程序, 刻意不註冊任何process監聽(含uncaughtExceptionMonitor):
+//每支產物各註冊一次(runin為both者含兩個outer而註冊兩次), 只會把與本函式庫無關之宿主錯誤重印至stdout, 數量多時並觸發MaxListenersExceededWarning;
+//宿主未捕捉錯誤之處置屬宿主(預設由Node印出並終止); worker之致命error與非主動exit已由wrapWorker之emitFatal整批reject pending;
+//曾註冊吞噬型uncaughtException與unhandledRejection(只印不終止, 劫持宿主錯誤語意), 其後僅留uncaughtExceptionMonitor, 皆已移除, 勿再加回
 
 export default ww
 

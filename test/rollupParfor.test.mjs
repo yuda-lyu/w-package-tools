@@ -2,6 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import assert from 'assert'
 import rollupParfor from '../src/rollupParfor.mjs'
+import hostProbe, { hasProcessListen } from './tools/hostProbe.mjs'
 
 
 describe('rollupParfor', function() {
@@ -16,6 +17,13 @@ describe('rollupParfor', function() {
     before(function() {
         if (!fs.existsSync(fdTar)) {
             fs.mkdirSync(fdTar, { recursive: true })
+        }
+        //先刪舊產物: rollupParfor會吞掉建置錯誤而照常resolve, 不先刪則建置失敗時可能沿用舊檔而假通過
+        for (let fp of [fpTar, fpTarEs]) {
+            try {
+                fs.unlinkSync(fp)
+            }
+            catch (err) {}
         }
     })
 
@@ -144,6 +152,24 @@ describe('rollupParfor', function() {
         pgs.forEach((pg, k) => {
             assert.strict.ok(String(res[k]).includes('p1:' + pg.p1), `res[${k}] 應含 p1:${pg.p1}`)
         })
+    })
+
+    it('import parfor 產物(umd 與 es)不得於宿主註冊 process 監聽(規則帳本R1)', function() {
+        //沿用前述兩個 it 產出之 umd 與 es 產物(parforCore 經 rollupWorker 產製, 預設 runin both 內含兩個 outer)
+        assert.strict.ok(fs.existsSync(fpTar) && fs.existsSync(fpTarEs), 'umd 與 es 產物應已產出')
+        let r = hostProbe([fpTar, fpTarEs], { mode: 'none' })
+
+        //正向對照: 子程序須確實載入兩支產物
+        assert.strict.ok(r.info !== null, `子程序未回報: ${r.stderr}`)
+        assert.strict.deepStrictEqual(r.info.types, ['function', 'function'])
+
+        //R1: import 後宿主 process 全部事件之監聽數皆不增
+        assert.strict.deepStrictEqual(r.info.delta, {})
+
+        //R1: 產物明文不含 process 監聽之註冊
+        for (let fp of [fpTar, fpTarEs]) {
+            assert.strict.ok(!hasProcessListen(fp), `${path.basename(fp)} 明文含process監聽註冊`)
+        }
     })
 
 })

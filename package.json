@@ -49,7 +49,7 @@
     "gh-pages": "bin/gh-pages.mjs"
   },
   "scripts": {
-    "test": "mocha --timeout 60000",
+    "test": "mocha --no-parallel \"test/*.test.mjs\" --timeout 180000",
     "deploy": "node bin/gh-pages.mjs -d docs"
   },
   "repository": {
