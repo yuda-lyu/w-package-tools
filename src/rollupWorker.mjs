@@ -66,17 +66,22 @@ function mergeCore(runin, fpSrcNW, fpSrcWW) {
 /**
  * 使用rollup轉譯檔案，並封裝至前端web worker與後端worker內
  *
+ * 原始碼之預設匯出(type='function'時須有；type='object'時取預設匯出，無預設匯出則以具名匯出之命名空間為物件)以CommonJS模組包裝執行後取得，與worker之內部程式碼互不可見，worker內為嚴格模式；
+ * 呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
+ * 設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
+ * 瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。
+ *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
  * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
- * @param {Array} opt.funNames 輸入模組可被呼叫的函數名稱陣列
- * @param {Array} [opt.evNames=[]] 輸入模組可監聽的函數名稱陣列，預設[]
+ * @param {Array} opt.funNames 輸入模組可被呼叫的函數名稱陣列，各名稱須為非空字串，且不得為回傳物件之介面名稱(EventEmitter之方法與欄位如emit、on、once、off、terminate、__proto__等)，否則建置時reject
+ * @param {Array} [opt.evNames=[]] 輸入模組可監聽的事件名稱陣列，只支援type='function'且execFunctionByInstance=false(工廠，由工廠回傳物件之on轉送事件)，其餘模式給予即建置時reject，預設[]
  * @param {String} opt.fpSrc 輸入原始碼檔案位置字串
  * @param {String} opt.fpTar 輸入轉譯完程式碼檔案儲存位置字串
  * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
  * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，其中'iife'僅支援runin為'browser'，預設'es'
- * @param {String} [opt.targets='new'] 輸入轉譯等級字串，可選'new'、'old'，預設'new'
+ * @param {String} [opt.targets=null] 輸入轉譯等級字串，可選'new'、'old'，給予時worker內外各層皆依此值轉譯；未給時worker內之使用者程式碼以'new'、外層與合併層以'old'轉譯，預設null
  * @param {String} [opt.runin='both'] 輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
  * @param {Boolean} [opt.execFunctionByInstance=true] 輸入若模組類型為物件type='function'時，是否將function視為使用獨立實體執行並自動銷毀實體布林值，例如原模組就是一個運算函數，不需要回傳eventemmitter監聽事件，預設true
@@ -133,10 +138,11 @@ async function rollupWorker(opt = {}) {
         formatOut = 'es'
     }
 
-    //targets
-    let targets = opt.targets
-    if (!w.isbol(targets)) {
-        targets = 'new' //於瀏覽器端，因程式碼用字串+blob方式作為web worker初始化之方式, 無法支援ie11(會需要改安全性)只好放棄, 且若被CSP檔那只能由伺服器改設定, 故此處直接改用最新語法new打包
+    //targetsOuter, 合併層之轉譯等級: 給'new'或'old'即依值; 未給為'old'(與既有產物相同; 原以isbol檢查字串而給值無效, worker內外層之預設見rollupWorkerCore)
+    let targets = _.get(opt, 'targets', null)
+    let targetsOuter = 'old'
+    if (targets === 'new' || targets === 'old') {
+        targetsOuter = targets
     }
 
     //runin
@@ -246,7 +252,7 @@ async function rollupWorker(opt = {}) {
             //不沿用設定
             name: nameDist,
             formatOut, //rollupCode須使用formatIn(可不給)與formatOut
-            targets,
+            targets: targetsOuter,
             bSourcemap: false, //rollupCode不提供sourcemap
             bBanner: false, //rollupCode不提供banner
             runin: runin === 'nodejs' ? 'nodejs' : 'browser', //outer執行環境若為單獨指定沒問題, 若指定為both, 則強制視為運行於browser

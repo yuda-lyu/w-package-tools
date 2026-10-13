@@ -478,7 +478,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
 
     })
 
-    describe('clearExportCode: bMinify不影響產物正確性(規則帳本R7)', function() {
+    describe('預設匯出取自CommonJS模組之exports: bMinify與name不影響產物正確性(規則帳本R7)', function() {
 
         it('bMinify false且name與原始碼default export同名: 產物可正常呼叫', async function() {
             let wf = await impFresh(fpUnminSame)
@@ -490,7 +490,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
             let wf = await impFresh(fpUnminDiff)
             let r = await settle(wf('ok'))
 
-            //R7: bMinify只影響體積, 不得影響產物能否使用
+            //R7: bMinify只影響體積, name只影響對外名稱, 皆不得影響產物能否使用
             assert.strict.deepStrictEqual(r, { state: 'resolve', v: 'OK' })
         })
 

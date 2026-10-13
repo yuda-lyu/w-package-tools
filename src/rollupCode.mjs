@@ -43,9 +43,9 @@ async function rollupCode(codeSrc, opt = {}) {
         formatOut = 'umd'
     }
 
-    //targets
+    //targets, 可選'new'、'old', 其餘為'old'(原以isbol檢查字串而恆為'old', 給值無效)
     let targets = _.get(opt, 'targets', null)
-    if (!w.isbol(targets)) {
+    if (targets !== 'new' && targets !== 'old') {
         targets = 'old'
     }
 
@@ -110,30 +110,31 @@ async function rollupCode(codeSrc, opt = {}) {
     //把欲轉換之程式碼寫入檔案
     fs.writeFileSync(fpSrc, codeSrc, 'utf8')
 
-    //opt //沿用設定
-    // opt.fdSrc = ''
-    opt.fdTar = '' //不給輸出資料夾則為回傳程式碼
-    // opt.fn = fpSrc
-    opt.fpSrc = fpSrc //直接給含隨機字串檔名
-    opt.hookNameDist = () => {
-        return name //直接給模組名
+    //o, 沿用設定但另建物件, 不改寫呼叫端之opt
+    let o = {
+        ...opt,
+        fdTar: '', //不給輸出資料夾則為回傳程式碼
+        fpSrc, //直接給含隨機字串檔名
+        hookNameDist: () => {
+            return name //直接給模組名
+        },
+        format: formatOut, //rollupFile須使用format
+        targets,
+        bSourcemap: false,
+        bBanner: false,
+        runin,
+        bNodePolyfill,
+        bMinify,
+        keepFnames,
+        mangleReserved,
+        mainFields,
+        globals,
+        external,
+        bLog,
     }
-    opt.format = formatOut //rollupFile須使用format
-    opt.targets = targets
-    opt.bSourcemap = false
-    opt.bBanner = false
-    opt.runin = runin
-    opt.bNodePolyfill = bNodePolyfill
-    opt.bMinify = bMinify
-    opt.keepFnames = keepFnames
-    opt.mangleReserved = mangleReserved
-    opt.mainFields = mainFields
-    opt.globals = globals
-    opt.external = external
-    opt.bLog = bLog
 
     //rollupFile
-    let code = await rollupFile(opt)
+    let code = await rollupFile(o)
         .finally(() => {
 
             //unlinkSync, 不論轉譯成功失敗都刪除檔案

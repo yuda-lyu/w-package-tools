@@ -72,14 +72,14 @@ import getPks from './getPks.mjs'
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.fn 輸入原始碼檔案名稱字串，檔案需含副檔名，不含所在資料夾
- * @param {String} [opt.fdSrc='./'] 輸入原始碼檔案所在資料夾字串，預設'./'
- * @param {String} [opt.fdTar=''] 輸入轉譯檔案至儲存資料夾字串，預設''
+ * @param {String} [opt.fdSrc='./'] 輸入原始碼檔案所在資料夾字串，給定時須為既存資料夾否則reject(不改用'./')，未給才為'./'，預設'./'
+ * @param {String} [opt.fdTar=''] 輸入轉譯檔案至儲存資料夾字串，給定時為寫檔模式(資料夾不存在則建立，為檔案或無法建立則reject)並回傳'finish'；未給時為回傳程式碼模式，於記憶體產出、不寫入任何檔案且不產生sourcemap，回傳轉譯後程式碼字串，預設''
  * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
  * @param {String} [opt.format='umd'] 輸入轉譯格式字串，可選'umd'、'iife'、'es'，預設'umd'
  * @param {String} [opt.targets='old'] 輸入轉譯等級字串，可選'new'、'old'，預設'old'
  * @param {String} [opt.ext='js'] 輸入轉譯檔案副檔名字串，可選'js'、'mjs'，預設'js'
- * @param {Boolean} [opt.bSourcemap=true] 輸入轉譯檔案是否提供sourcemap布林值，預設true
+ * @param {Boolean} [opt.bSourcemap=true] 輸入轉譯檔案是否提供sourcemap布林值，僅寫檔模式有效(回傳程式碼模式一律不產生)，預設true
  * @param {Boolean} [opt.bBanner=true] 輸入轉譯檔案是否帶有開頭banner布林值，預設true
  * @param {String} [opt.runin='browser'] 輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'
  * @param {Boolean} [opt.bResolveExtPath=true] 輸入是否啟用[深層子路徑無副檔名引用之補全解析]布林值，針對套件(如echarts-gl)以無副檔名寫法深層引用他套件(如'zrender/lib/core/LRU')、而被引用套件exports末端為萬用對應"./*"導致rollup載入ENOENT之情形，先試原樣解析、失敗才補.js重試，因自有套件會逐層被自有套件引用故預設需開啟，預設true
@@ -94,6 +94,20 @@ import getPks from './getPks.mjs'
  */
 async function rollupFile(opt = {}) {
 
+    //rollupFileCore
+    let r = await rollupFileCore(opt)
+
+    //回傳程式碼模式回傳程式碼, 寫檔模式回傳'finish'
+    if (r.bReturnCode) {
+        return r.code
+    }
+    return 'finish'
+}
+
+
+//rollupFileCore, 內部用(非公開API): 轉譯並回傳{ bReturnCode, code, exports }, exports為rollup之chunk.exports(回傳程式碼模式才有), 供rollupWorkerCore於建置期檢查預設匯出; 此資訊不經公開opt交出
+async function rollupFileCore(opt = {}) {
+
     //bLog
     let bLog = _.get(opt, 'bLog', null)
     if (!w.isbol(bLog)) {
@@ -106,35 +120,40 @@ async function rollupFile(opt = {}) {
     //env
     let env = process.env.NODE_ENV
 
-    //fdSrc
-    let fdSrc = _.get(opt, 'fdSrc', null)
-    if (!w.fsIsFolder(fdSrc)) {
-        fdSrc = './'
-    }
-
-    //fdTar
+    //fdTar, 給定即為寫檔模式, 資料夾不存在則建立, 為檔案或無法建立即reject: 不可靜默改走回傳程式碼模式而不產出(呼叫端以為已寫檔, 等同吞錯); 未給才為回傳程式碼模式
     let fdTar = _.get(opt, 'fdTar', null)
+    let bReturnCode = false
     if (w.isestr(fdTar)) {
         if (!w.fsIsFolder(fdTar)) {
-            w.fsCreateFolder(fdTar)
+            w.fsCreateFolder(fdTar) //失敗時不拋錯(回傳error物件), 由下方之檢查判定
         }
-        else {
-            //none
+        if (!w.fsIsFolder(fdTar)) {
+            return Promise.reject(`invalid opt.fdTar[${fdTar}]: not a folder and can not be created`)
         }
     }
     else {
         fdTar = ''
+        bReturnCode = true
     }
 
     //fn
     let fn = _.get(opt, 'fn', '')
 
-    //fpSrc, 欲轉譯的檔案
+    //fpSrc, 欲轉譯的檔案; 未給fpSrc時以fdSrc與fn組成, fdSrc給定即須為既存資料夾(路徑不可用即reject, 不靜默改用'./'), 未給才為'./'
     let fpSrc = ''
     if (w.isestr(_.get(opt, 'fpSrc', null))) {
         fpSrc = opt.fpSrc
     }
     else {
+        let fdSrc = _.get(opt, 'fdSrc', null)
+        if (w.isestr(fdSrc)) {
+            if (!w.fsIsFolder(fdSrc)) {
+                return Promise.reject(`invalid opt.fdSrc[${fdSrc}]: not a folder`)
+            }
+        }
+        else {
+            fdSrc = './'
+        }
         fpSrc = path.resolve(fdSrc, fn)
     }
 
@@ -407,14 +426,12 @@ async function rollupFile(opt = {}) {
         }))
     }
 
-    //fpTar, 轉譯後檔案
-    let bReturnCode = false
+    //fpTar, 轉譯後檔案; 回傳程式碼模式不寫檔, 此名稱只供rollup為產出命名
     let fpTar = ''
-    if (w.fsIsFolder(fdTar)) {
+    if (!bReturnCode) {
         fpTar = path.resolve(fdTar, `${nameDist}.${format}.${extOut}`)
     }
     else {
-        bReturnCode = true
         fpTar = `./temp-${w.genID()}`
     }
     // console.log('fpTar', fpTar)
@@ -435,34 +452,35 @@ async function rollupFile(opt = {}) {
         name: nameDist,
         file: fpTar,
         inlineDynamicImports: true, //有些套件例如pyodide內會使用動態加載技術, 故得使用inlineDynamicImports
-        sourcemap: bSourcemap,
+        sourcemap: bReturnCode ? false : bSourcemap, //回傳程式碼模式不產生sourcemap: 無檔可指, 產出則回傳碼末行指向不存在之檔案(帳本R14)
         sourcemapExcludeSources: true,
     }
 
     //bundle
     let bundle = await rollup(inputOptions)
 
-    //output
-    // const { output } = await bundle.generate(outputOptions)
-    // console.log('output', output)
-
-    //write
-    await bundle.write(outputOptions)
-
-    //bReturnCode
+    //回傳程式碼模式以generate於記憶體產出, 不寫任何檔案(cwd零寫入, 帳本R14); 寫檔模式才write
     let code = ''
+    let exports = []
     if (bReturnCode) {
 
-        //若轉譯成功則讀取轉換後之程式碼
-        code = fs.readFileSync(fpTar, 'utf8')
+        //generate
+        let { output } = await bundle.generate(outputOptions)
 
-        //unlinkSync
-        try {
-            fs.unlinkSync(fpTar)
+        //check, 回傳程式碼模式只能交出單一程式碼, 產出多項(外掛emitFile之asset等)即reject, 不可靜默丟失
+        if (output.length > 1) {
+            return Promise.reject(`return-code mode of rollupFile can not output multiple files: ${_.join(_.map(output, 'fileName'), ', ')}`)
         }
-        catch (err) {
-            console.log(err)
-        }
+
+        //code, exports
+        code = output[0].code
+        exports = output[0].exports
+
+    }
+    else {
+
+        //write
+        await bundle.write(outputOptions)
 
     }
 
@@ -471,13 +489,15 @@ async function rollupFile(opt = {}) {
         console.log('\x1b[32m%s\x1b[0m', 'output: ' + w.getFileName(fpTar))
     }
 
-    if (bReturnCode) {
-        return code
+    return {
+        bReturnCode,
+        code,
+        exports,
     }
-    return 'finish'
 }
 
 
+export { rollupFileCore }
 export default rollupFile
 </code></pre>
         </article>
@@ -493,7 +513,7 @@ export default rollupFile
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Oct 13 2026 11:06:44 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Oct 13 2026 23:14:21 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

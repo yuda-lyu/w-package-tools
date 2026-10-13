@@ -1,11 +1,23 @@
 import fs from 'fs'
+import vm from 'vm'
 import _ from 'lodash-es'
+import EventEmitter from 'eventemitter3'
 import w from './wsemip.umd.js'
-import rollupFile from './rollupFile.mjs'
+import { rollupFileCore } from './rollupFile.mjs'
 import rollupCode from './rollupCode.mjs'
 
 
 let cmain = 'main' //'__system__main__'
+
+
+//funNamesReserved, 回傳物件(EventEmitter實體)之對外介面名稱: 原型方法、實例欄位、terminate與__proto__;
+//funNames以字串鍵掛到回傳物件, 與此類名稱同名即覆寫對外介面(事件監聽、終止), 結構上無法共存, 故於建置時reject(帳本R11)
+let funNamesReserved = _.uniq([
+    ...Object.getOwnPropertyNames(EventEmitter.prototype),
+    ...Object.keys(new EventEmitter()),
+    'terminate',
+    '__proto__',
+])
 
 
 function str2b64(str) {
@@ -13,189 +25,23 @@ function str2b64(str) {
 }
 
 
-function clearExportCode(code, name) {
-
-    //clec, cjs會轉譯成為「module.exports = OOO;」
-    let clec = () => {
-        let err = ''
-        let c = `module.exports = ${name};`
-        let s = _.split(code, c)
-        if (_.size(s) < 2) {
-            err = `找不到 '${c}'`
-            return { err }
-        }
-        else if (_.size(s) > 2) {
-            err = `出現多個 '${c}'`
-            return { err }
-        }
-        return _.get(s, 0)
-    }
-
-    //clecm, cjs會轉譯與壓縮成為「module.exports=OOO;」
-    let clecm = () => {
-        let err = ''
-        let c = `module.exports=${name};`
-        let s = _.split(code, c)
-        if (_.size(s) < 2) {
-            err = `找不到 '${c}'`
-            return { err }
-        }
-        else if (_.size(s) > 2) {
-            err = `出現多個 '${c}'`
-            return { err }
-        }
-        return _.get(s, 0)
-    }
-
-    //cleim, cjs會轉譯與壓縮成為「module.exports=程式碼」, 因同樣會出現module.exports, 故須等前面cjs兩種都偵測完再偵測
-    let cleim = () => {
-        let c = `module.exports=`
-        if (code.indexOf(c) >= 0) {
-            code = code.replace(`module.exports=`, `let ${name}=`)
-            return code
-        }
-        //找不到須回err使後續判斷續行, 不可回undefined: undefined會被check當成成功, inner程式碼成為字面undefined, 建置不報錯而執行期才壞
-        let err = `找不到 '${c}'`
-        return { err }
-    }
-
-    //clecg, cjs未壓縮且name與原始碼default export不同名時(bMinify為false常見), 結尾為「module.exports = 其他名稱;」, 改以let宣告name指向該名稱;
-    //以結尾錨定, 避免誤中被包裝之相依套件內仍保留之module.exports
-    let clecg = () => {
-        let m = code.match(/module\.exports\s*=\s*([A-Za-z_$][\w$]*)\s*;?\s*$/)
-        if (!m) {
-            let err = `找不到結尾之 'module.exports = 名稱;'`
-            return { err }
-        }
-        let c = code.slice(0, m.index)
-        if (m[1] !== name) {
-            c += `let ${name} = ${m[1]};\n` //同名時name已於程式碼內宣告, 只去掉匯出敘述
-        }
-        return c
-    }
-
-    //cled, es6會轉譯成為「export default OOO;」
-    let cled = () => {
-        let err = ''
-        let c = `export default ${name};`
-        let s = _.split(code, c)
-        if (_.size(s) < 2) {
-            err = `找不到 '${c}'`
-            return { err }
-        }
-        else if (_.size(s) > 2) {
-            err = `出現多個 '${c}'`
-            return { err }
-        }
-        return _.get(s, 0)
-    }
-
-    //clead, es6有專案設定導致轉譯成為「export { OOO as default };」
-    let clead = () => {
-        let err = ''
-        let c = `export { ${name} as default };`
-        let s = _.split(code, c)
-        if (_.size(s) < 2) {
-            err = `找不到 '${c}'`
-            return { err }
-        }
-        else if (_.size(s) > 2) {
-            err = `出現多個 '${c}'`
-            return { err }
-        }
-        return _.get(s, 0)
-    }
-
-    //cleadm, es6有專案設定導致轉譯與壓縮成為「export{OOO as default};」
-    let cleadm = () => {
-        let err = ''
-        let c = `export{${name} as default};`
-        let s = _.split(code, c)
-        if (_.size(s) < 2) {
-            err = `找不到 '${c}'`
-            return { err }
-        }
-        else if (_.size(s) > 2) {
-            err = `出現多個 '${c}'`
-            return { err }
-        }
-        return _.get(s, 0)
-    }
-
-    //clec
-    let rec = clec()
-
-    //check
-    if (!w.isestr(_.get(rec, 'err'))) {
-        return rec
-    }
-
-    //clecm
-    let recm = clecm()
-
-    //check
-    if (!w.isestr(_.get(recm, 'err'))) {
-        return recm
-    }
-
-    //cleim
-    let reim = cleim()
-
-    //check
-    if (!w.isestr(_.get(reim, 'err'))) {
-        return reim
-    }
-
-    //clecg
-    let recg = clecg()
-
-    //check
-    if (!w.isestr(_.get(recg, 'err'))) {
-        return recg
-    }
-
-    //cled
-    let red = cled()
-
-    //check
-    if (!w.isestr(_.get(red, 'err'))) {
-        return red
-    }
-
-    //clead
-    let read = clead()
-
-    //check
-    if (!w.isestr(_.get(read, 'err'))) {
-        return read
-    }
-
-    //cleadm
-    let readm = cleadm()
-
-    //check
-    if (!w.isestr(_.get(readm, 'err'))) {
-        return readm
-    }
-
-    //err, 全部比對皆失敗: 明確拋錯使建置失敗, 不可產出無法使用之產物
-    console.log(rec.err, recm.err, reim.err, recg.err, red.err, read.err, readm.err)
-    throw new Error(`can not clear export default of name[${name}]`)
-}
-
-
 function genInnerWebWorkerCodeEv(evName) {
+
+    //evName以JSON字串插入(不以引號拼接): 名稱含引號等字元時不得破壞inner(使用者可控之名稱不得成為膠水碼之語法, 帳本R11)
+    let jsn = JSON.stringify(evName)
+    let jsd = JSON.stringify(`payload of event[${evName}]`)
+
     let c = `
 
-    r.on('${evName}',(msg) => {
+    r.on(${jsn},(msg) => {
 
         //sendMessage
         let res = {
             mode: 'emit',
-            evName: '${evName}',
+            evName: ${jsn},
             msg,
         }
-        sendMessage(res, 'payload of event[${evName}]')
+        sendMessage(res, ${jsd})
 
     })
 
@@ -214,21 +60,23 @@ function genInnerWebWorkerCodeEvs(evNames) {
 }
 
 
-function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
+function addInnerWebWorkerCode(code, evNames, opt = {}) {
 
     //evs
     let evs = genInnerWebWorkerCodeEvs(evNames)
 
-    //cnwt
-    let cnwt = ''
+    //cppa、cppv, nodejs版之parentPort以inner函數之引數傳入: 引數由左至右求值, 於使用者程式碼之前取得(維持原取得順序), 且不成為腳本頂層名稱
+    let cppa = ''
+    let cppv = ''
     if (opt.runin === 'nodejs') {
-        cnwt = `
-        //import { parentPort } from 'worker_threads'
-        let { parentPort } = require('worker_threads') //inner以new Worker(code, { eval: true })執行, eval字串預設以CommonJS解析(與package.json之type無關, 僅由--input-type決定), 故得使用require
-        //設計限制: 宿主以--input-type=module啟動時worker繼承該參數, inner被當ESM解析而require失效, 屬不支援之執行方式
-        //若要於nodejs worker內使用無法轉譯的原生套件例如fs, 避免使用頂層import加載使用, 因無法轉譯會直接保留
-        //並因eval字串為CommonJS而不接受import, 故出現錯誤無法轉譯
-        `
+        cppa = 'parentPort, '
+        cppv = `
+//import { parentPort } from 'worker_threads'
+require('worker_threads').parentPort, //inner以new Worker(code, { eval: true })執行, eval字串預設以CommonJS解析(與package.json之type無關, 僅由--input-type決定), 故得使用require
+//設計限制: 宿主以--input-type=module啟動時worker繼承該參數, inner被當ESM解析而require失效, 屬不支援之執行方式
+//若要於nodejs worker內使用無法轉譯的原生套件例如fs, 避免使用頂層import加載使用, 因無法轉譯會直接保留
+//並因eval字串為CommonJS而不接受import, 故出現錯誤無法轉譯
+`
     }
 
     //crvk, 瀏覽器worker由blob URL載入, 載入後即自行revoke(同Vite之inline worker作法), 避免長時運行之頁面隨呼叫次數累積blob; 未載入即中止、載入失敗、建立失敗時由outer層revoke
@@ -250,19 +98,32 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
         return `self.postMessage(${v})`
     }
 
-    //ciit
+    //ciit, 使用者模組之預設匯出為mdDefault(取自CommonJS模組包裝之module.exports, 不以opt.name或文字比對取得)
     let ciit = ''
     if (opt.type === 'function' && opt.execFunctionByInstance) {
         ciit = `
         r = {
-            ${cmain}: ${name}
+            ${cmain}: mdDefault
         }
         `
     }
     else {
         ciit = `
-        r = ${name}(...input)
+        r = mdDefault(...input)
         `
+    }
+
+    //cthis, 呼叫instance之方法時之this(帳本R13): 工廠回傳之物件、object之方法以所屬物件為this(同obj.method());
+    //function每次呼叫新建時instance為合成之{ main }, 不得作為this(同直接呼叫使用者函數, this為undefined)
+    let cthis = 'instance'
+    if (opt.type === 'function' && opt.execFunctionByInstance) {
+        cthis = 'undefined'
+    }
+
+    //cmd, 使用者程式碼之module: nodejs之eval worker提供CommonJS之module(含require、id等), 沿用以維持Node之模組語意(如lodash以module.require取util.types, 不改走已棄用之process.binding); 瀏覽器無module才新建
+    let cmd = '{ exports: {} }'
+    if (opt.runin === 'nodejs') {
+        cmd = `(typeof module === 'object' && module !== null) ? module : { exports: {} }`
     }
 
     //crm, 另綁messageerror: 宿主送來之訊息於worker端反序列化失敗時worker永遠收不到該呼叫, 且無法得知屬於哪個呼叫, 故通知外層整批reject呼叫中之pending以免懸置
@@ -286,12 +147,14 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
         `
     }
 
-    let c = `
-${cnwt}
+    //使用者程式碼與inner各在函數作用域(兄弟, 不巢狀), 皆不在腳本頂層(帳本R7): 使用者頂層宣告不與inner名稱或worker全域(self、postMessage等)共用作用域, inner之名稱亦不為使用者程式碼所見;
+    //使用者程式碼以CommonJS模組包裝函數執行(同Node之模組包裝), 預設匯出取module.exports(rollup以__esModule標示預設與具名並存者);
+    //腳本開頭之'use strict'與使用者程式碼開頭之'use strict'(cjs輸出)使inner與使用者程式碼皆為嚴格模式(同rollup一般輸出); 原本inner之敘述在使用者之'use strict'之前, 該指令失效而整份為非嚴格
+    let c = `'use strict'
 
 ${crvk}
 
-${code}
+;(function (${cppa}mdDefault) {
 
 let instance = null
 let initFail = null //初始化失敗(工廠函數拋錯等)時之{ err }, 以物件包裝因錯誤值可為任意值; 後續呼叫以其原始錯誤回應
@@ -378,7 +241,7 @@ async function run(data) {
                 init(...input)
             }
             else if(type === 'object'){
-                instance = ${name}
+                instance = mdDefault
             }
 
         }
@@ -411,14 +274,17 @@ async function run(data) {
                 throw initFail.err
             }
 
-            //fun
-            let fun = instance[data.fun]
+            //fun, 須為函數, 否則以具名訊息拒絕(不得為對undefined取值或呼叫之誤導TypeError)
+            let fun = (instance !== null && instance !== undefined) ? instance[data.fun] : undefined
+            if (typeof fun !== 'function') {
+                throw new Error('function[' + data.fun + '] is not a function in worker')
+            }
 
             //input
             let input = data.input
 
-            //exec, 以await取值: 非async函數回傳非promise時亦可交付, 不得因呼叫.then而失敗
-            msg = await fun(...input)
+            //exec, 以await取值: 非async函數回傳非promise時亦可交付, 不得因呼叫.then而失敗; 以Reflect.apply指定this(見cthis)
+            msg = await Reflect.apply(fun, ${cthis}, input)
             state = 'success'
 
         }
@@ -479,105 +345,21 @@ try{
 }
 catch(err){}
 
-`
+})(${cppv}(function () {
 
-    return c
-}
+    //使用者程式碼(cjs), 以CommonJS模組包裝函數執行; 與上方inner之函數為兄弟作用域, 互不可見
+    let mdUser = ${cmd}
+    ;(function (module, exports) {
+${code}
+    }).call(mdUser.exports, mdUser, mdUser.exports)
 
+    //預設匯出: rollup以__esModule標示預設與具名並存者, 取其default; 否則module.exports即預設匯出(只有具名匯出者為命名空間物件)
+    return (mdUser.exports && mdUser.exports.__esModule && 'default' in mdUser.exports) ? mdUser.exports.default : mdUser.exports
 
-function genOuterWebWorkerCodeFun(funName) {
-    let c = `
-
-function ${funName}(){
-
-    //pm
-    let pm = genPm()
-
-    //check, worker已死(崩潰、異常退出、主動中止或建立失敗)後之呼叫立即reject(原因見errDead), 不得懸置或因worker已釋放而同步拋錯
-    if (bDead) {
-        pm.reject(errDead)
-        return pm
-    }
-
-    //id
-    let id = genID()
-
-    //dataSend
-    let dataSend = {
-        mode:'call',
-        id,
-        fun: '${funName}',
-        input: [...arguments], //若直接用arguments會無法轉譯
-    }
-
-    //postMessage, 引數無法結構化複製時postMessage同步拋DataCloneError: 改以reject回報(回傳promise之API不得同步拋錯, 否則每次呼叫新建模式之finally未接上而worker遺留);
-    //須送出成功才登記pending, 否則殘留之pending日後於terminate或worker崩潰時被整批reject而無人處理(宿主未處理rejection, nodejs預設即exit 1); postMessage為非同步送達, 同tick內登記無競態
-    try {
-        wk.postMessage(dataSend)
-    }
-    catch (err) {
-        pm.reject(err)
-        return pm
-    }
-
-    //pendings, 登記pending promise, 供worker崩潰或異常退出時整批reject
-    pendings[id] = pm
-
-    //once
-    ev.once(id, (res) => {
-        delete pendings[id]
-        if (res.state === 'success') {
-            pm.resolve(res.msg)
-        }
-        else {
-            pm.reject(res.msg)
-        }
-    })
-
-    return pm
-}
+})())
 
 `
 
-    return c
-}
-
-
-function genOuterWebWorkerCodeFuns(funNames) {
-    let c = ''
-    for (let i = 0; i < funNames.length; i++) {
-        let funName = funNames[i]
-        c += genOuterWebWorkerCodeFun(funName)
-    }
-    return c
-}
-
-
-function genOuterWebWorkerCodeInstanceObj(funName) {
-    let c = `
-
-    ${funName}: async function(){
-    let input = [...arguments]
-    let nww = wrapWorker()
-    let r = await nww.${funName}(...input)
-        .finally(() => {
-            nww.terminate() //每次執行完不論成功失敗都要中止worker
-        })
-    return r
-},
-
-`
-
-    return c
-}
-
-
-function genOuterWebWorkerCodeInstanceObjs(funNames) {
-    let c = ''
-    for (let i = 0; i < funNames.length; i++) {
-        let funName = funNames[i]
-        c += genOuterWebWorkerCodeInstanceObj(funName)
-    }
     return c
 }
 
@@ -625,13 +407,8 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         funNames = [cmain]
     }
 
-    //genOuterWebWorkerCodeFuns
-    let cfs = genOuterWebWorkerCodeFuns(funNames)
-
-    //cev
-    let cev = _.join(_.map(funNames, (funName) => {
-        return `ev.${funName} = ${funName}`
-    }), '\n')
+    //cfns, funNames以JSON陣列插入, 各名稱只作為字串鍵使用, 不宣告為具名函數、不拼接為識別子(使用者可控之名稱不得成為膠水碼之識別子, 帳本R11)
+    let cfns = JSON.stringify(funNames)
 
     //cnw
     let cnw = ''
@@ -699,13 +476,17 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     else {
         if (opt.execObjectFunsByInstance) {
             cwt = `
-            let funs = {
-                ${genOuterWebWorkerCodeInstanceObjs(funNames)}
-            }
             ww = evem()
-            for(let k in funs){
-                let v = funs[k]
-                ww[k] = v
+            for (let funName of ${cfns}) {
+                ww[funName] = async function () {
+                    let input = [...arguments]
+                    let nww = wrapWorker()
+                    let r = await nww[funName](...input)
+                        .finally(() => {
+                            nww.terminate() //每次執行完不論成功失敗都要中止worker
+                        })
+                    return r
+                }
             }
             `
         }
@@ -778,14 +559,6 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         `
     }
 
-    //cmn
-    let cmn = ''
-    if (opt.type === 'function' && opt.execFunctionByInstance) {
-        cmn = `
-        ev.${cmain} = ${cmain}
-        `
-    }
-
     let c = `
 ${cipwt}
 import EventEmitter from 'eventemitter3'
@@ -846,21 +619,21 @@ function protectShell() {
 
     function wrapWorker() {
 
-        //evem
+        //evem, ev為回傳之對外物件(事件與呼叫函數); emitEv於掛載funNames前取得, 內部發送事件不經ev之屬性(帳本R11)
         let ev = evem()
+        let emitEv = ev.emit.bind(ev)
 
-        //pendings, 呼叫中promise登記表; bDead, worker已死標記(死後呼叫立即reject); errDead, 死後呼叫之reject原因; bTerminated, 由terminate()主動中止標記(exit事件不視為異常)
+        //pendings, 呼叫中promise登記表(以呼叫id為鍵, 由recvMessage依回傳之id settle; 內部協定不經對外之ev); bDead, worker已死標記(死後呼叫立即reject); errDead, 死後呼叫之reject原因; bTerminated, 由terminate()主動中止標記(exit事件不視為異常)
         let pendings = {}
         let bDead = false
         let errDead = 'worker is dead'
         let bTerminated = false
 
         function rejectPendings(err) {
-            //整批reject呼叫中之pending, 為pending清理之單一擁有者: pending promise之settle僅靠worker回傳return訊息, worker崩潰或被中止即永無回音
+            //整批reject呼叫中之pending, 為pending異常清理之單一擁有者: pending promise之settle僅靠worker回傳return訊息, worker崩潰或被中止即永無回音
             for (let id in pendings) {
                 let pm = pendings[id]
                 delete pendings[id]
-                ev.removeAllListeners(id) //清除genOuterWebWorkerCodeFun內對應once監聽, 避免監聽器殘留
                 pm.reject(err)
             }
         }
@@ -868,7 +641,7 @@ function protectShell() {
         function emitError(err) {
             //先整批reject pending, 錯誤發生時呼叫端不得永久懸置
             rejectPendings(err)
-            ev.emit('error', err)
+            emitEv('error', err)
         }
 
         ${curl}
@@ -943,7 +716,46 @@ function protectShell() {
 
         }
 
-        ${cfs}
+        //genCaller, 產生呼叫worker內方法之函數: 以funName為字串鍵掛到ev, 不以funName宣告具名函數, 與outer之內部函數(init、terminate、recvMessage、genPm等)不共用名稱(帳本R11)
+        function genCaller(funName) {
+            return function () {
+
+                //pm
+                let pm = genPm()
+
+                //check, worker已死(崩潰、異常退出、主動中止或建立失敗)後之呼叫立即reject(原因見errDead), 不得懸置或因worker已釋放而同步拋錯
+                if (bDead) {
+                    pm.reject(errDead)
+                    return pm
+                }
+
+                //id
+                let id = genID()
+
+                //dataSend
+                let dataSend = {
+                    mode: 'call',
+                    id,
+                    fun: funName,
+                    input: [...arguments], //若直接用arguments會無法轉譯
+                }
+
+                //postMessage, 引數無法結構化複製時postMessage同步拋DataCloneError: 改以reject回報(回傳promise之API不得同步拋錯, 否則每次呼叫新建模式之finally未接上而worker遺留);
+                //須送出成功才登記pending, 否則殘留之pending日後於terminate或worker崩潰時被整批reject而無人處理(宿主未處理rejection, nodejs預設即exit 1); postMessage為非同步送達, 同tick內登記無競態
+                try {
+                    wk.postMessage(dataSend)
+                }
+                catch (err) {
+                    pm.reject(err)
+                    return pm
+                }
+
+                //pendings, 登記pending promise, 由recvMessage依id settle, worker崩潰或異常退出時由rejectPendings整批reject
+                pendings[id] = pm
+
+                return pm
+            }
+        }
 
         function recvMessage(data) {
             // console.log('outer worker recv:', data)
@@ -963,15 +775,24 @@ function protectShell() {
             if(mode === 'emit'){
 
                 //emit
-                ev.emit(dataRecv.evName, dataRecv.msg)
+                emitEv(dataRecv.evName, dataRecv.msg)
 
             }
 
-            //return
+            //return, 依id取出登記之pending並settle(正常settle之唯一處, 異常清理在rejectPendings); 已被整批reject者略過
             if(mode === 'return'){
 
-                //emit
-                ev.emit(dataRecv.id, dataRecv)
+                //pm
+                let pm = pendings[dataRecv.id]
+                if (pm) {
+                    delete pendings[dataRecv.id]
+                    if (dataRecv.state === 'success') {
+                        pm.resolve(dataRecv.msg)
+                    }
+                    else {
+                        pm.reject(dataRecv.msg)
+                    }
+                }
 
             }
 
@@ -999,8 +820,10 @@ function protectShell() {
 
         }
 
-        ${cev}
-        ${cmn}
+        //呼叫函數以字串鍵掛載(funNames之保留名已於建置時排除, 不覆寫ev之對外介面)
+        for (let funName of ${cfns}) {
+            ev[funName] = genCaller(funName)
+        }
         ev.terminate = terminate
         return ev
     }
@@ -1027,20 +850,25 @@ export default ww
 /**
  * 使用rollup轉譯檔案，並封裝至前端web worker內或後端nodejs worker內
  *
+ * 原始碼之預設匯出(type='function'時須有；type='object'時取預設匯出，無預設匯出則以具名匯出之命名空間為物件)以CommonJS模組包裝執行後取得，與worker之內部程式碼互不可見，worker內為嚴格模式；
+ * 呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
+ * 設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
+ * 瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。
+ *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
  * @param {String} [opt.type='object'] 輸入模組類型字串，可選'function'、'object'。若使用'function'，於初始化後可呼叫terminate銷毀；若使用'object'，預設execObjectFunsByInstance為true，執行完指定函數後亦自動銷毀，若改execObjectFunsByInstance為false，就一樣得於初始化後呼叫terminate銷毀。回傳函數或物件。轉譯後會掛載模組名稱至window下，若type使用'function'時則window['模組名稱']為函數，得自己初始化才能呼叫其內函數或監聽事件；若type使用'object'時則window['模組名稱']為物件，可直接呼叫其內函數預設'object'
  * @param {Boolean} [opt.execFunctionByInstance=true] 輸入若模組類型為物件type='function'時，是否將function視為使用獨立實體執行並自動銷毀實體布林值，例如原模組就是一個運算函數，不需要回傳eventemmitter監聽事件，預設true
  * @param {Boolean} [opt.execObjectFunsByInstance=true] 輸入若模組類型為物件type='object'時，各函式是否使用獨立實體執行布林值，例如使用到stream的各函式會因共用同一個實體導致降速，故各函數需自動有各自實體，預設true
- * @param {Array} [opt.funNames=[]] 輸入模組可被呼叫的函數名稱陣列，預設[]
- * @param {Array} [opt.evNames=[]] 輸入模組可監聽的函數名稱陣列，預設[]
+ * @param {Array} [opt.funNames=[]] 輸入模組可被呼叫的函數名稱陣列，各名稱須為非空字串，且不得為回傳物件之介面名稱(EventEmitter之方法與欄位如emit、on、once、off、terminate、__proto__等)，否則建置時reject，預設[]
+ * @param {Array} [opt.evNames=[]] 輸入模組可監聽的事件名稱陣列，只支援type='function'且execFunctionByInstance=false(工廠，由工廠回傳物件之on轉送事件)，其餘模式給予即建置時reject，預設[]
  * @param {String} opt.fpSrc 輸入原始碼檔案位置字串
  * @param {Boolean} [opt.bReturnCode=false] 輸入是否回傳轉譯後程式碼而不輸出布林值，設定為true時則fpTar失效，預設false
  * @param {String} opt.fpTar 輸入轉譯完程式碼檔案儲存位置字串
  * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
  * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，其中'iife'僅支援runin為'browser'，預設'es'
- * @param {String} [opt.targets='new'] 輸入轉譯等級字串，可選'new'、'old'，預設'new'
+ * @param {String} [opt.targets=null] 輸入轉譯等級字串，可選'new'、'old'，給予時worker內外層皆依此值轉譯；未給時worker內之使用者程式碼以'new'、外層以'old'轉譯，預設null
  * @param {String} [opt.runin='browser'] 輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
  * @param {Boolean} [opt.bMinify=true] 輸入轉譯檔案是否進行壓縮布林值，預設true
@@ -1089,10 +917,34 @@ async function rollupWorkerCore(opt = {}) {
         }
     }
 
+    //check funNames, function每次呼叫新建時outer只用內部之main, 其餘模式之funNames為回傳物件之呼叫函數: 須為非空字串, 且不得為回傳物件之介面名稱(結構上無法共存, 帳本R11、R12)
+    if (!(type === 'function' && execFunctionByInstance)) {
+        for (let funName of funNames) {
+            if (!w.isestr(funName)) {
+                return Promise.reject(`invalid opt.funNames: [${funName}] is not a non-empty string`)
+            }
+            if (funNamesReserved.includes(funName)) {
+                return Promise.reject(`opt.funNames[${funName}] is reserved by the returned object(EventEmitter): ${_.join(funNamesReserved, ', ')}`)
+            }
+        }
+    }
+
     //evNames, 可不給予監聽事件
     let evNames = _.get(opt, 'evNames', null)
     if (!w.isarr(evNames)) {
         evNames = []
+    }
+
+    //check evNames, 事件由工廠回傳物件之on轉送, 只支援type為function且execFunctionByInstance為false; 其餘模式之evNames無作用或使每次呼叫失敗, 於建置時reject(帳本R12)
+    if (_.size(evNames) > 0) {
+        if (!(type === 'function' && !execFunctionByInstance)) {
+            return Promise.reject(`opt.evNames only supports type[function] with execFunctionByInstance[false], but type is [${type}] and execFunctionByInstance is [${execFunctionByInstance}]`)
+        }
+        for (let evName of evNames) {
+            if (!w.isestr(evName)) {
+                return Promise.reject(`invalid opt.evNames: [${evName}] is not a non-empty string`)
+            }
+        }
     }
 
     //fpSrc
@@ -1137,10 +989,14 @@ async function rollupWorkerCore(opt = {}) {
         formatOut = 'es'
     }
 
-    //targets
-    let targets = opt.targets
-    if (!w.isbol(targets)) {
-        targets = 'new' //於瀏覽器端，因程式碼用字串+blob方式作為web worker初始化之方式, 無法支援ie11(會需要改安全性)只好放棄, 且若被CSP檔那只能由伺服器改設定, 故此處直接改用最新語法new打包
+    //targets, 給'new'或'old'即worker內外各層依值; 未給時inner(使用者程式碼)以'new'、outer以'old'轉譯, 與既有產物相同(原以isbol檢查字串而給值無效)
+    //inner預設new: 於瀏覽器端，因程式碼用字串+blob方式作為web worker初始化之方式, 無法支援ie11(會需要改安全性)只好放棄, 且若被CSP檔那只能由伺服器改設定, 故直接改用最新語法new打包
+    let targets = _.get(opt, 'targets', null)
+    let targetsInner = 'new'
+    let targetsOuter = 'old'
+    if (targets === 'new' || targets === 'old') {
+        targetsInner = targets
+        targetsOuter = targets
     }
 
     //runin
@@ -1216,14 +1072,14 @@ async function rollupWorkerCore(opt = {}) {
         fdSrc: w.getPathParent(fpSrc),
         // fdTar: '', //沒給代表回傳程式碼
         format: 'cjs', //rollupFile須使用format
-        targets,
+        targets: targetsInner,
         bSourcemap: false, //預設值為true得關閉
         bBanner: false,
         runin,
         bNodePolyfill,
         bMinify,
         keepFnames,
-        mangleReserved: [name, ...mangleReserved],
+        mangleReserved, //inner以module.exports取預設匯出, 不再需保留name之名稱
         mainFields,
         globals: {},
         external: [],
@@ -1245,16 +1101,30 @@ async function rollupWorkerCore(opt = {}) {
         ...rpOpt.external,
         ...external,
     ]
-    let codeTransOri = await rollupFile(rpOpt)
+    let rFile = await rollupFileCore(rpOpt)
+    let codeTransOri = rFile.code
     // fs.writeFileSync(`./z-1-node[${runin}]-1-codeTransOri.js`, codeTransOri, 'utf8')
 
-    //clearExportCode
-    let codeTransClr = clearExportCode(codeTransOri, name)
-    // fs.writeFileSync(`./z-1-node[${runin}]-2-codeTransClr.js`, codeTransClr, 'utf8')
+    //check, 建置期檢查匯出(以rollup之chunk.exports判定, 非文字比對): type為function須有預設匯出, object須有預設或具名匯出; 不通過即reject, 不產出執行期才以誤導訊息失敗之產物(帳本R12)
+    let exportsUser = _.isArray(rFile.exports) ? rFile.exports : []
+    if (type === 'function' && !exportsUser.includes('default')) {
+        return Promise.reject(`module[${fn}] has no default export, type[function] requires a default export, exports[${_.join(exportsUser, ', ')}]`)
+    }
+    if (type === 'object' && _.size(exportsUser) === 0) {
+        return Promise.reject(`module[${fn}] has no export, type[object] requires a default export or named exports`)
+    }
 
-    //addInnerWebWorkerCode
-    let codeTransAdd = addInnerWebWorkerCode(codeTransClr, name, evNames, { runin, type, execFunctionByInstance, execObjectFunsByInstance })
+    //addInnerWebWorkerCode, 使用者程式碼原樣嵌入(以CommonJS模組包裝函數執行, 不以文字比對清除匯出敘述)
+    let codeTransAdd = addInnerWebWorkerCode(codeTransOri, evNames, { runin, type, execFunctionByInstance, execObjectFunsByInstance })
     // fs.writeFileSync(`./z-1-node[${runin}]-3-codeTransAdd.js`, codeTransAdd, 'utf8')
+
+    //check, inner以base64內嵌於產物而不經rollup解析: 建置期以vm.Script只編譯不執行, 語法錯誤即reject, 不產出載入即壞之產物(帳本R12)
+    try {
+        new vm.Script(codeTransAdd, { filename: `inner of ${fn}` }) // eslint-disable-line no-new
+    }
+    catch (err) {
+        return Promise.reject(`inner of worker[${fn}] has syntax error: ${err.message}`)
+    }
 
     //addOuterWebWorkerCode
     let codeMerge = addOuterWebWorkerCode(codeTransAdd, funNames, { runin, type, execFunctionByInstance, execObjectFunsByInstance })
@@ -1265,7 +1135,7 @@ async function rollupWorkerCore(opt = {}) {
         //不沿用設定
         name: nameDist,
         formatOut, //rollupCode使用formatIn(可不給)與formatOut
-        targets,
+        targets: targetsOuter,
         bSourcemap: false, //rollupCode不提供sourcemap
         bBanner: false, //rollupCode不提供banner
         runin,

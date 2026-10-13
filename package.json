@@ -1,6 +1,6 @@
 {
   "name": "w-package-tools",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "dependencies": {
     "@babel/cli": "^7.21.0",
     "@babel/core": "^7.21.3",
@@ -62,5 +62,8 @@
     "build"
   ],
   "author": "yuda-lyu(semisphere)",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
 }
