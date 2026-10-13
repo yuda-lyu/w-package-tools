@@ -3015,7 +3015,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入原始碼檔案所在資料夾字串，預設'./'</p></td>
+            <td class="description last"><p>輸入原始碼檔案所在資料夾字串，給定時須為既存資料夾否則reject(不改用'./')，未給才為'./'，預設'./'</p></td>
         </tr>
 
     
@@ -3055,7 +3055,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入轉譯檔案至儲存資料夾字串，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案至儲存資料夾字串，給定時為寫檔模式(資料夾不存在則建立，為檔案或無法建立則reject)並回傳'finish'；未給時為回傳程式碼模式，於記憶體產出、不寫入任何檔案且不產生sourcemap，回傳轉譯後程式碼字串，預設''</p></td>
         </tr>
 
     
@@ -3295,7 +3295,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入轉譯檔案是否提供sourcemap布林值，預設true</p></td>
+            <td class="description last"><p>輸入轉譯檔案是否提供sourcemap布林值，僅寫檔模式有效(回傳程式碼模式一律不產生)，預設true</p></td>
         </tr>
 
     
@@ -4976,7 +4976,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組可監聽的函數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入模組可監聽的事件名稱陣列，parfor不支援事件轉送(內部為function每次呼叫新建)，給予即建置時reject，預設[]</p></td>
         </tr>
 
     
@@ -5203,12 +5203,12 @@
             
                 <td class="default">
                 
-                    <code>'new'</code>
+                    <code>null</code>
                 
                 </td>
             
 
-            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'new'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，給予時各層皆依此值轉譯；未給時worker內之使用者程式碼以'new'、其餘各層以'old'轉譯，預設null</p></td>
         </tr>
 
     
@@ -6200,13 +6200,17 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案，並封裝至前端web worker與後端worker內</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案，並封裝至前端web worker與後端worker內</p>
+<p>原始碼之預設匯出(type='function'時須有；type='object'時取預設匯出，無預設匯出則以具名匯出之命名空間為物件)以CommonJS模組包裝執行後取得，與worker之內部程式碼互不可見，worker內為嚴格模式；
+呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
+設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
+瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line92">line 92</a>
+        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line97">line 97</a>
     </li></ul></dd>
     
 
@@ -6430,7 +6434,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組可被呼叫的函數名稱陣列</p></td>
+            <td class="description last"><p>輸入模組可被呼叫的函數名稱陣列，各名稱須為非空字串，且不得為回傳物件之介面名稱(EventEmitter之方法與欄位如emit、on、once、off、terminate、__proto__等)，否則建置時reject</p></td>
         </tr>
 
     
@@ -6470,7 +6474,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組可監聽的函數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入模組可監聽的事件名稱陣列，只支援type='function'且execFunctionByInstance=false(工廠，由工廠回傳物件之on轉送事件)，其餘模式給予即建置時reject，預設[]</p></td>
         </tr>
 
     
@@ -6697,12 +6701,12 @@
             
                 <td class="default">
                 
-                    <code>'new'</code>
+                    <code>null</code>
                 
                 </td>
             
 
-            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'new'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，給予時worker內外各層皆依此值轉譯；未給時worker內之使用者程式碼以'new'、外層與合併層以'old'轉譯，預設null</p></td>
         </tr>
 
     
@@ -7189,13 +7193,17 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案，並封裝至前端web worker內或後端nodejs worker內</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案，並封裝至前端web worker內或後端nodejs worker內</p>
+<p>原始碼之預設匯出(type='function'時須有；type='object'時取預設匯出，無預設匯出則以具名匯出之命名空間為物件)以CommonJS模組包裝執行後取得，與worker之內部程式碼互不可見，worker內為嚴格模式；
+呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
+設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
+瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line1054">line 1054</a>
+        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line882">line 882</a>
     </li></ul></dd>
     
 
@@ -7503,7 +7511,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組可被呼叫的函數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入模組可被呼叫的函數名稱陣列，各名稱須為非空字串，且不得為回傳物件之介面名稱(EventEmitter之方法與欄位如emit、on、once、off、terminate、__proto__等)，否則建置時reject，預設[]</p></td>
         </tr>
 
     
@@ -7543,7 +7551,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入模組可監聽的函數名稱陣列，預設[]</p></td>
+            <td class="description last"><p>輸入模組可監聽的事件名稱陣列，只支援type='function'且execFunctionByInstance=false(工廠，由工廠回傳物件之on轉送事件)，其餘模式給予即建置時reject，預設[]</p></td>
         </tr>
 
     
@@ -7810,12 +7818,12 @@
             
                 <td class="default">
                 
-                    <code>'new'</code>
+                    <code>null</code>
                 
                 </td>
             
 
-            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，預設'new'</p></td>
+            <td class="description last"><p>輸入轉譯等級字串，可選'new'、'old'，給予時worker內外層皆依此值轉譯；未給時worker內之使用者程式碼以'new'、外層以'old'轉譯，預設null</p></td>
         </tr>
 
     
@@ -8418,7 +8426,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Oct 13 2026 11:06:44 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Oct 13 2026 23:14:21 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
