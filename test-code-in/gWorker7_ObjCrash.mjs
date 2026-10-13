@@ -1,4 +1,5 @@
 //測試worker崩潰行為專用fixture(object模式), 各函數模擬不同崩潰型態
+import { parentPort } from 'worker_threads'
 
 
 async function tok(p1) {
@@ -29,6 +30,12 @@ async function thang() {
     return new Promise(() => {}) //永不settle, 模擬呼叫中之pending(供驗主動terminate時之處置)
 }
 
+async function tmsgerr() {
+    //模擬宿主送來之訊息於worker端反序列化失敗: Node之MessagePort可直接emit事件; 本呼叫永不settle, 驗外層是否整批reject呼叫中之pending
+    parentPort.emit('messageerror', new Error('msgerr-in'))
+    return new Promise(() => {})
+}
+
 
 let gWorker7_ObjCrash = {
     tok,
@@ -37,6 +44,7 @@ let gWorker7_ObjCrash = {
     texit0,
     texit5,
     thang,
+    tmsgerr,
 }
 
 

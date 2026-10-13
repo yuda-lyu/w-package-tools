@@ -67,7 +67,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         await rollupWorker({
             name: 'gWorkerCrashTest_Obj',
             type: 'object',
-            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang'],
+            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang', 'tmsgerr'],
             fpSrc: path.resolve(fdSrc, 'gWorker7_ObjCrash.mjs'),
             fpTar: fpObj,
             formatOut: 'umd',
@@ -79,7 +79,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         await rollupWorker({
             name: 'gWorkerCrashTest_ObjP',
             type: 'object',
-            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang'],
+            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang', 'tmsgerr'],
             fpSrc: path.resolve(fdSrc, 'gWorker7_ObjCrash.mjs'),
             fpTar: fpObjP,
             formatOut: 'umd',
@@ -182,6 +182,25 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         }
         try {
             return await fn()
+        }
+        finally {
+            wt.Worker = WorkerOri
+        }
+    }
+
+    //withCtorSpy: 期間內攔截worker_threads.Worker之建構以取得實體(供對其送出模擬事件), 結束必還原; fn不可await呼叫本身, 否則等待永不settle之呼叫而卡住
+    let withCtorSpy = async (fn) => {
+        let WorkerOri = wt.Worker
+        let created = []
+        wt.Worker = class extends WorkerOri {
+            constructor(...args) {
+                super(...args)
+                created.push(this)
+            }
+        }
+        try {
+            let r = await fn()
+            return { r, created }
         }
         finally {
             wt.Worker = WorkerOri
@@ -390,6 +409,70 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
             assert.strict.deepStrictEqual(res.type, 'object', '建立失敗時匯出不得為null')
             assert.strict.deepStrictEqual(res.r.state, 'reject')
             assert.strict.ok(String((res.r.e && res.r.e.message) || res.r.e).includes('ctor-fail-objp'))
+        })
+
+    })
+
+    describe('訊息反序列化失敗(messageerror)時呼叫端必有結果(規則帳本R3)', function() {
+
+        //註: 真實之反序列化失敗難以製造, 以Node於該情形發出之事件模擬(〔模擬事件〕): 宿主端對Worker實體emit, worker端由fixture對parentPort emit
+
+        it('宿主端(worker回傳之訊息)反序列化失敗, 持久實體: 呼叫中之pending須reject並發error事件, worker仍可服務', async function() {
+            let { r: wo, created } = await withCtorSpy(() => impCopy(fpObjP))
+            assert.strict.deepStrictEqual(created.length, 1)
+            let evErrs = []
+            wo.on('error', (err) => {
+                evErrs.push(String((err && err.message) || err))
+            })
+
+            let pm = wo.thang()
+            created[0].emit('messageerror', new Error('msgerr-out'))
+            let r1 = await settle(pm)
+
+            //R3: 無法得知失敗之訊息屬哪個呼叫, 須整批reject呼叫中之pending而非懸置
+            assert.strict.deepStrictEqual(r1.state, 'reject', 'messageerror時呼叫中之pending應reject, 不得懸置')
+            assert.strict.ok(String((r1.e && r1.e.message) || r1.e).includes('msgerr-out'))
+
+            //R3: 有訊息遺失須讓監聽者知道
+            assert.strict.deepStrictEqual(evErrs, ['msgerr-out'])
+
+            //R3: worker本身仍可服務, 不標死亡
+            let r2 = await settle(wo.tok(1))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:1' })
+            wo.terminate()
+        })
+
+        it('宿主端反序列化失敗, function每次呼叫新建: 呼叫須reject', async function() {
+            let wf = await impFresh(fpFun)
+            let { r: obj, created } = await withCtorSpy(() => ({ pm: wf('hang') })) //包成物件回傳, 不await永不settle之呼叫
+            assert.strict.deepStrictEqual(created.length, 1)
+            created[0].emit('messageerror', new Error('msgerr-out-fun'))
+            let r = await settle(obj.pm)
+
+            //R3: 同上
+            assert.strict.deepStrictEqual(r.state, 'reject', 'messageerror時呼叫應reject, 不得懸置')
+            assert.strict.ok(String((r.e && r.e.message) || r.e).includes('msgerr-out-fun'))
+        })
+
+        it('worker端(宿主送去之訊息)反序列化失敗, 持久實體: 呼叫中之pending須reject, worker仍可服務', async function() {
+            let wo = await impCopy(fpObjP)
+            let evErrs = []
+            wo.on('error', (err) => {
+                evErrs.push(String((err && err.message) || err))
+            })
+
+            //fixture之tmsgerr於worker內對parentPort發出messageerror且本身永不settle
+            let r1 = await settle(wo.tmsgerr())
+
+            //R3: worker端收不到宿主之訊息時須通知外層, 呼叫中之pending整批reject而非懸置
+            assert.strict.deepStrictEqual(r1.state, 'reject', 'worker端messageerror時呼叫中之pending應reject, 不得懸置')
+            assert.strict.ok(String((r1.e && r1.e.message) || r1.e).includes('msgerr-in'))
+            assert.strict.deepStrictEqual(evErrs, ['msgerr-in'])
+
+            //R3: worker仍可服務
+            let r2 = await settle(wo.tok(2))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:2' })
+            wo.terminate()
         })
 
     })

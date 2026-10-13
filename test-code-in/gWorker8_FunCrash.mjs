@@ -21,6 +21,9 @@ async function gWorker8_FunCrash(act) {
     if (act === 'exit5') {
         process.exit(5) //worker直接退出, exit code 5, 無error事件
     }
+    if (act === 'hang') {
+        return new Promise(() => {}) //永不settle, 模擬呼叫中之pending(供驗messageerror等事件之處置)
+    }
     return 'unknown'
 }
 

@@ -224,9 +224,10 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     if (opt.runin === 'nodejs') {
         cnwt = `
         //import { parentPort } from 'worker_threads'
-        let { parentPort } = require('worker_threads') //因package.json不給type=module故無法支援es6 import, 得使用require
+        let { parentPort } = require('worker_threads') //inner以new Worker(code, { eval: true })執行, eval字串預設以CommonJS解析(與package.json之type無關, 僅由--input-type決定), 故得使用require
+        //設計限制: 宿主以--input-type=module啟動時worker繼承該參數, inner被當ESM解析而require失效, 屬不支援之執行方式
         //若要於nodejs worker內使用無法轉譯的原生套件例如fs, 避免使用頂層import加載使用, 因無法轉譯會直接保留
-        //並因import位於worker外層限定為require區(package.json不給type=module), 故出現錯誤無法轉譯
+        //並因eval字串為CommonJS而不接受import, 故出現錯誤無法轉譯
         `
     }
 
@@ -258,17 +259,23 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
         `
     }
 
-    //crm
+    //crm, 另綁messageerror: 宿主送來之訊息於worker端反序列化失敗時worker永遠收不到該呼叫, 且無法得知屬於哪個呼叫, 故通知外層整批reject呼叫中之pending以免懸置
     let crm = ''
     if (opt.runin === 'nodejs') {
         crm = `
         parentPort.on('message', recvMessage)
+        parentPort.on('messageerror', (err) => {
+            sendMessage({ mode: 'messageerror', msg: err })
+        })
         `
     }
     else {
         crm = `
         self.onmessage = function (e) {
             recvMessage(e.data)
+        }
+        self.onmessageerror = function () {
+            sendMessage({ mode: 'messageerror', msg: 'worker messageerror' }) //依規範messageerror之事件data為null, 故以固定訊息通知
         }
         `
     }
@@ -640,12 +647,17 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
                 emitFatal('worker exit, code['+code+']')
             }
         })
+        wk.on('messageerror', (err) => {
+            //worker回傳之訊息於宿主端反序列化失敗: 無法得知屬於哪個呼叫, 整批reject呼叫中之pending以免懸置(代價為同時進行中之其他呼叫一併reject); worker仍可服務故不標死亡
+            emitError(err)
+        })
         `
     }
     else {
         cte = `
-        wk.onmessageerror  = function (e) {
-            emitError(e.data)
+        wk.onmessageerror  = function () {
+            //同nodejs之messageerror處置; 依規範messageerror之事件data為null, 故以固定訊息reject
+            emitError('worker messageerror')
         }
         `
     }
@@ -832,7 +844,7 @@ function protectShell() {
             let mode = dataRecv.mode
 
             //check
-            if(mode !== 'emit' && mode !== 'return'){
+            if(mode !== 'emit' && mode !== 'return' && mode !== 'messageerror'){
                 return
             }
 
@@ -850,6 +862,11 @@ function protectShell() {
                 //emit
                 ev.emit(dataRecv.id, dataRecv)
 
+            }
+
+            //messageerror, worker端收不到(反序列化失敗)宿主送去之訊息: 無法得知屬於哪個呼叫, 整批reject呼叫中之pending以免懸置; worker仍可服務故不標死亡
+            if(mode === 'messageerror'){
+                emitError(dataRecv.msg)
             }
 
         }
