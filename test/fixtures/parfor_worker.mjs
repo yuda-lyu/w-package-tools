@@ -10,6 +10,9 @@ let core = (job) => {
     if (job && job.bad === true) {
         throw new Error('intentional job failure') //測試「單 job 失敗不炸批」用
     }
+    if (job && job.exit0 === true) {
+        process.exit(0) //測試「worker 中途以 code 0 退出須整批 fail-fast」用
+    }
     return base + job.v * 2
 }
 

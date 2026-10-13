@@ -1,8 +1,15 @@
 import assert from 'assert'
+import { createRequire, syncBuiltinESMExports } from 'module'
 import parfor from '../src/parfor.mjs'
 
 
 let fpWorker = new URL('./fixtures/parfor_worker.mjs', import.meta.url)
+
+//settle, 5秒內須settle, 否則視為懸置
+let settle = (pm) => Promise.race([
+    pm.then((v) => ({ state: 'resolve', v })).catch((e) => ({ state: 'reject', e })),
+    new Promise((resolve) => setTimeout(() => resolve({ state: 'hang' }), 5000)),
+])
 
 
 describe('parfor', function() {
@@ -94,6 +101,88 @@ describe('parfor', function() {
         await assert.rejects(async () => {
             await parfor(fpBad, [{ v: 1 }], { returnResult: true })
         })
+    })
+
+    it('worker 中途以 code 0 退出: 整批 fail-fast 拋錯(不得懸置)', async function() {
+        //takeLimit 1: 第 2 個 job 令唯一的 worker process.exit(0), 該 job 永不回報
+        let jobs = [{ v: 1 }, { v: 2, exit0: true }, { v: 3 }]
+        let r = await settle(parfor(fpWorker, jobs, { takeLimit: 1, returnResult: true }))
+
+        //規則帳本R8: finish 前之任何 worker 退出(含 code 0)皆為異常, 須 fail-fast 而非懸置
+        assert.strict.deepStrictEqual(r.state, 'reject', 'worker 以 code 0 中途退出時 parfor 應 reject, 不得懸置')
+        assert.strict.ok(String(r.e && r.e.message).includes('code 0'))
+    })
+
+    it('cb 拋錯: 整批 fail-fast 拋錯(不得成為宿主未捕捉例外)', async function() {
+        let jobs = [{ v: 1 }, { v: 2 }]
+        let r = await settle(parfor(fpWorker, jobs, {
+            takeLimit: 1,
+            cb: () => {
+                throw new Error('cb-boom')
+            },
+        }))
+
+        //規則帳本R8: cb 錯誤傳染至 parfor(與 rollupParfor 一致)
+        assert.strict.deepStrictEqual(r.state, 'reject', 'cb 拋錯時 parfor 應 reject')
+        assert.strict.ok(String(r.e && r.e.message).includes('cb-boom'))
+    })
+
+    it('job 無法結構化複製: 整批 fail-fast 拋錯(不得成為宿主未捕捉例外)', async function() {
+        //第 2 個 job 含函數, 於 message 監聽內派工時 postMessage 同步拋 DataCloneError
+        let jobs = [{ v: 1 }, { v: 2, f: () => 1 }, { v: 3 }]
+        let r = await settle(parfor(fpWorker, jobs, { takeLimit: 1, returnResult: true }))
+
+        //規則帳本R8: 派工失敗須 fail-fast
+        assert.strict.deepStrictEqual(r.state, 'reject', 'job 無法複製時 parfor 應 reject')
+        assert.strict.ok(String(r.e).includes('could not be cloned'), `實得: ${r.e}`)
+    })
+
+    it('建立第 2 個 worker 失敗: 整批 fail-fast 拋錯, 已建之 worker 須被 terminate, 失敗後不再呼叫 cb', async function() {
+        //令 worker_threads.Worker 第 2 次建構時拋錯(syncBuiltinESMExports 使 parfor.mjs 之 ESM 具名匯入同步更新)
+        let wt = createRequire(import.meta.url)('worker_threads')
+        let WorkerOri = wt.Worker
+        let created = []
+        wt.Worker = class extends WorkerOri {
+            constructor(...args) {
+                if (created.length >= 1) {
+                    throw new Error('ctor-fail-2nd')
+                }
+                super(...args)
+                created.push(this)
+            }
+        }
+        syncBuiltinESMExports()
+        let nCb = 0
+        let r
+        try {
+            r = await settle(parfor(fpWorker, [{ v: 1 }, { v: 2 }, { v: 3 }], {
+                takeLimit: 3,
+                cb: () => {
+                    nCb++
+                },
+            }))
+        }
+        finally {
+            wt.Worker = WorkerOri
+            syncBuiltinESMExports()
+        }
+
+        //規則帳本R8: 建立失敗須 fail-fast 並帶原始錯誤
+        assert.strict.deepStrictEqual(r.state, 'reject')
+        assert.strict.ok(String(r.e && r.e.message).includes('ctor-fail-2nd'))
+
+        //規則帳本R8: 已建之 worker 須被 terminate(不得遺留而撐住宿主)
+        assert.strict.deepStrictEqual(created.length, 1)
+        let wk0 = created[0]
+        let exited = wk0.threadId === -1 || await Promise.race([
+            new Promise((resolve) => wk0.once('exit', () => resolve(true))),
+            new Promise((resolve) => setTimeout(() => resolve(false), 3000)),
+        ])
+        assert.strict.ok(exited, '已建之 worker 應已被 terminate')
+
+        //規則帳本R8: 整批已失敗後, 陸續到達之結果不得再呼叫 cb
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        assert.strict.deepStrictEqual(nCb, 0, '失敗後不得再呼叫 cb')
     })
 
 })

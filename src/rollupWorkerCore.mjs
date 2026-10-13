@@ -54,6 +54,24 @@ function clearExportCode(code, name) {
             code = code.replace(`module.exports=`, `let ${name}=`)
             return code
         }
+        //找不到須回err使後續判斷續行, 不可回undefined: undefined會被check當成成功, inner程式碼成為字面undefined, 建置不報錯而執行期才壞
+        let err = `找不到 '${c}'`
+        return { err }
+    }
+
+    //clecg, cjs未壓縮且name與原始碼default export不同名時(bMinify為false常見), 結尾為「module.exports = 其他名稱;」, 改以let宣告name指向該名稱;
+    //以結尾錨定, 避免誤中被包裝之相依套件內仍保留之module.exports
+    let clecg = () => {
+        let m = code.match(/module\.exports\s*=\s*([A-Za-z_$][\w$]*)\s*;?\s*$/)
+        if (!m) {
+            let err = `找不到結尾之 'module.exports = 名稱;'`
+            return { err }
+        }
+        let c = code.slice(0, m.index)
+        if (m[1] !== name) {
+            c += `let ${name} = ${m[1]};\n` //同名時name已於程式碼內宣告, 只去掉匯出敘述
+        }
+        return c
     }
 
     //cled, es6會轉譯成為「export default OOO;」
@@ -128,6 +146,14 @@ function clearExportCode(code, name) {
         return reim
     }
 
+    //clecg
+    let recg = clecg()
+
+    //check
+    if (!w.isestr(_.get(recg, 'err'))) {
+        return recg
+    }
+
     //cled
     let red = cled()
 
@@ -152,9 +178,9 @@ function clearExportCode(code, name) {
         return readm
     }
 
-    //err
-    console.log(red.err, read.err, readm.err)
-    throw new Error('can not clear export default')
+    //err, 全部比對皆失敗: 明確拋錯使建置失敗, 不可產出無法使用之產物
+    console.log(rec.err, recm.err, reim.err, recg.err, red.err, read.err, readm.err)
+    throw new Error(`can not clear export default of name[${name}]`)
 }
 
 
@@ -400,9 +426,9 @@ function ${funName}(){
     //pm
     let pm = genPm()
 
-    //check, worker已死(崩潰或異常退出)後之呼叫立即reject, 不得懸置
+    //check, worker已死(崩潰、異常退出、主動中止或建立失敗)後之呼叫立即reject(原因見errDead), 不得懸置或因worker已釋放而同步拋錯
     if (bDead) {
-        pm.reject('worker is dead')
+        pm.reject(errDead)
         return pm
     }
 
@@ -710,19 +736,25 @@ function protectShell() {
         //evem
         let ev = evem()
 
-        //pendings, 呼叫中promise登記表; bDead, worker已死標記(死後呼叫立即reject); bTerminated, 由terminate()主動中止標記(exit事件不視為異常)
+        //pendings, 呼叫中promise登記表; bDead, worker已死標記(死後呼叫立即reject); errDead, 死後呼叫之reject原因; bTerminated, 由terminate()主動中止標記(exit事件不視為異常)
         let pendings = {}
         let bDead = false
+        let errDead = 'worker is dead'
         let bTerminated = false
 
-        function emitError(err) {
-            //先整批reject pending: 錯誤發生時呼叫端不得永久懸置(pending promise之settle僅靠worker回傳return訊息, worker崩潰即永無回音)
+        function rejectPendings(err) {
+            //整批reject呼叫中之pending, 為pending清理之單一擁有者: pending promise之settle僅靠worker回傳return訊息, worker崩潰或被中止即永無回音
             for (let id in pendings) {
                 let pm = pendings[id]
                 delete pendings[id]
                 ev.removeAllListeners(id) //清除genOuterWebWorkerCodeFun內對應once監聽, 避免監聽器殘留
                 pm.reject(err)
             }
+        }
+
+        function emitError(err) {
+            //先整批reject pending, 錯誤發生時呼叫端不得永久懸置
+            rejectPendings(err)
             ev.emit('error', err)
         }
 
@@ -742,6 +774,7 @@ function protectShell() {
                 ${cnw}
             }
             catch (err) {
+                errDead = err //保存建立失敗之原始錯誤(如瀏覽器CSP阻擋)供後續呼叫reject: 此時ev尚未回傳, emit之error無人能監聽而遺失
                 emitFatal(err)
             }
 
@@ -751,16 +784,22 @@ function protectShell() {
         let wk = genWorker(code)
 
         //check, 於瀏覽器端可能會遭遇IE11安全性問題, 或被CSP的worker-src或script-src設定阻擋
-        if (!wk) {
-            emitFatal('invalid worker')
-            return null
+        //建立失敗時不回傳null而照常回傳ev: 後續呼叫以原始錯誤reject, 而非由呼叫端對null取值得到誤導之TypeError
+        if (!wk && !bDead) {
+            errDead = 'invalid worker'
+            emitFatal(errDead)
         }
 
         function terminate() {
             if (wk) {
                 bTerminated = true //先標記再中止, 使exit事件不被視為異常
+                if (!bDead) {
+                    bDead = true //中止後之新呼叫立即reject, 不得因worker已釋放而同步拋錯
+                    errDead = 'worker has been terminated'
+                }
                 wk.terminate()
                 wk = undefined
+                rejectPendings('worker has been terminated') //呼叫中之pending一併reject: 主動中止後worker不再回應, 不reject即永久懸置; 屬預期操作故不emit error
             }
             else {
                 emitError('worker has been terminated')
@@ -815,17 +854,22 @@ function protectShell() {
 
         }
         
-        //bind recvMessage
-        ${crm}
+        //建立成功才綁定事件與初始化(建立失敗時wk為undefined, 已標記死亡)
+        if (wk) {
 
-        //bind emitFatal
-        ${cee}
+            //bind recvMessage
+            ${crm}
 
-        //bind emitFatal(nodejs exit)或emitError(browser messageerror) for special condition
-        ${cte}
+            //bind emitFatal
+            ${cee}
 
-        //init
-        init([...arguments]) //若直接用arguments會無法轉譯
+            //bind emitFatal(nodejs exit)或emitError(browser messageerror) for special condition
+            ${cte}
+
+            //init
+            init([...arguments]) //若直接用arguments會無法轉譯
+
+        }
 
         ${cev}
         ${cmn}

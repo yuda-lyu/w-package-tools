@@ -4,45 +4,48 @@ import { spawnSync } from 'child_process'
 
 //子程序腳本: 以乾淨宿主import指定產物, 回報匯出型別與import前後process全部事件監聽數之差異; 依mode再拋出宿主未捕捉例外或未處理rejection
 //why用子程序: 於mocha行程內量測必然失真——mocha自掛process監聽, 且UMD(CJS)產物以檔名快取, 加查詢字串重複import不會重新求值頂層, 註冊不會再發生而假通過
+//why用CommonJS之-e(於async函數內動態import): 不可用--input-type=module, 子程序內建立之eval worker會繼承execArgv而把inner之cjs程式碼當ESM, require失效使worker靜默壞掉
 let CHILD = `
-import { pathToFileURL } from 'url'
-let [mode, tag, ...fps] = process.argv.slice(1)
-let snap = () => {
-    let r = {}
-    for (let k of process.eventNames()) {
-        r[String(k)] = process.listenerCount(k)
+(async () => {
+    let { pathToFileURL } = require('url')
+    let [mode, tag, ...fps] = process.argv.slice(1)
+    let snap = () => {
+        let r = {}
+        for (let k of process.eventNames()) {
+            r[String(k)] = process.listenerCount(k)
+        }
+        return r
     }
-    return r
-}
-let s0 = snap()
-let types = []
-for (let fp of fps) {
-    let m = await import(pathToFileURL(fp).href)
-    types.push(m.default === null ? 'null' : typeof m.default)
-}
-let s1 = snap()
-let delta = {}
-for (let k of new Set([...Object.keys(s0), ...Object.keys(s1)])) {
-    let d = (s1[k] || 0) - (s0[k] || 0)
-    if (d !== 0) {
-        delta[k] = d
+    let s0 = snap()
+    let types = []
+    for (let fp of fps) {
+        let m = await import(pathToFileURL(fp).href)
+        types.push(m.default === null ? 'null' : typeof m.default)
     }
-}
-console.log('HOSTPROBE=' + JSON.stringify({ imported: fps.length, types, delta }))
-if (mode === 'none') {
-    process.exit(0) //持久實體產物於import時即建worker, 不主動結束子程序會懸置
-}
-let err = new Error(tag) //先建立再拋出: Node之fatal輸出含拋出處之來源行, 以變數拋出則訊息不會因來源行而重複出現
-if (mode === 'throw') {
-    setTimeout(() => {
-        throw err
-    }, 50)
-}
-if (mode === 'reject') {
-    setTimeout(() => {
-        Promise.reject(err)
-    }, 50)
-}
+    let s1 = snap()
+    let delta = {}
+    for (let k of new Set([...Object.keys(s0), ...Object.keys(s1)])) {
+        let d = (s1[k] || 0) - (s0[k] || 0)
+        if (d !== 0) {
+            delta[k] = d
+        }
+    }
+    console.log('HOSTPROBE=' + JSON.stringify({ imported: fps.length, types, delta }))
+    if (mode === 'none') {
+        process.exit(0) //持久實體產物於import時即建worker, 不主動結束子程序會懸置
+    }
+    let err = new Error(tag) //先建立再拋出: Node之fatal輸出含拋出處之來源行, 以變數拋出則訊息不會因來源行而重複出現
+    if (mode === 'throw') {
+        setTimeout(() => {
+            throw err
+        }, 50)
+    }
+    if (mode === 'reject') {
+        setTimeout(() => {
+            Promise.reject(err)
+        }, 50)
+    }
+})()
 `
 
 
@@ -57,7 +60,7 @@ if (mode === 'reject') {
 function hostProbe(fps, opt = {}) {
     let mode = opt.mode || 'none'
     let tag = `hostprobe-${mode}-${Date.now()}` //動態組字, 錯誤訊息不以字面值出現在子程序原始碼內
-    let r = spawnSync(process.execPath, ['--input-type=module', '-e', CHILD, mode, tag, ...fps], { encoding: 'utf8', timeout: 60000 })
+    let r = spawnSync(process.execPath, ['-e', CHILD, mode, tag, ...fps], { encoding: 'utf8', timeout: 60000 })
     let stdout = r.stdout || ''
     let stderr = r.stderr || ''
     let m = stdout.match(/HOSTPROBE=(.*)/)

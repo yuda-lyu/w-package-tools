@@ -25,6 +25,10 @@ async function texit5() {
     process.exit(5) //worker直接退出, exit code 5, 無error事件
 }
 
+async function thang() {
+    return new Promise(() => {}) //永不settle, 模擬呼叫中之pending(供驗主動terminate時之處置)
+}
+
 
 let gWorker7_ObjCrash = {
     tok,
@@ -32,6 +36,7 @@ let gWorker7_ObjCrash = {
     tcrash,
     texit0,
     texit5,
+    thang,
 }
 
 
