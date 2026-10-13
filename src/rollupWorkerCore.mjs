@@ -195,7 +195,7 @@ function genInnerWebWorkerCodeEv(evName) {
             evName: '${evName}',
             msg,
         }
-        sendMessage(res)
+        sendMessage(res, 'payload of event[${evName}]')
 
     })
 
@@ -231,17 +231,23 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
         `
     }
 
-    //csm
-    let csm = ''
-    if (opt.runin === 'nodejs') {
-        csm = `
-        parentPort.postMessage(data)
+    //crvk, 瀏覽器worker由blob URL載入, 載入後即自行revoke(同Vite之inline worker作法), 避免長時運行之頁面隨呼叫次數累積blob; 未載入即中止、載入失敗、建立失敗時由outer層revoke
+    let crvk = ''
+    if (opt.runin !== 'nodejs') {
+        crvk = `
+        try {
+            (self.URL || self.webkitURL).revokeObjectURL(self.location.href)
+        }
+        catch (err) {}
         `
     }
-    else {
-        csm = `
-        self.postMessage(data)
-        `
+
+    //csm, 送出原語, 輸入為欲送出之變數名稱
+    let csm = (v) => {
+        if (opt.runin === 'nodejs') {
+            return `parentPort.postMessage(${v})`
+        }
+        return `self.postMessage(${v})`
     }
 
     //ciit
@@ -265,7 +271,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
         crm = `
         parentPort.on('message', recvMessage)
         parentPort.on('messageerror', (err) => {
-            sendMessage({ mode: 'messageerror', msg: err })
+            sendMessage({ mode: 'messageerror', msg: err }, 'messageerror of worker')
         })
         `
     }
@@ -275,7 +281,7 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
             recvMessage(e.data)
         }
         self.onmessageerror = function () {
-            sendMessage({ mode: 'messageerror', msg: 'worker messageerror' }) //依規範messageerror之事件data為null, 故以固定訊息通知
+            sendMessage({ mode: 'messageerror', msg: 'worker messageerror' }, 'messageerror of worker') //依規範messageerror之事件data為null, 故以固定訊息通知
         }
         `
     }
@@ -283,9 +289,12 @@ function addInnerWebWorkerCode(code, name, evNames, opt = {}) {
     let c = `
 ${cnwt}
 
+${crvk}
+
 ${code}
 
 let instance = null
+let initFail = null //初始化失敗(工廠函數拋錯等)時之{ err }, 以物件包裝因錯誤值可為任意值; 後續呼叫以其原始錯誤回應
 function init(input){
 
     //init
@@ -300,8 +309,46 @@ function init(input){
 
 }
 
-function sendMessage(data) {
-    ${csm}
+function sendMessage(data, desc) {
+    try {
+        ${csm('data')}
+    }
+    catch (err) {
+        //data含無法結構化複製之內容(函數、Symbol等)時postMessage同步拋DataCloneError: 不處理則拋於呼叫路徑外, 於nodejs成worker未捕捉錯誤而崩潰(持久與工廠實體從此死亡), 於瀏覽器成未處理rejection而呼叫永久懸置;
+        //依訊息類型改送可複製之字串說明(desc為內容之描述), 使呼叫端得到具名原因且worker續可服務; 兜底再失敗即放棄, 不可遞迴
+        let msg = ''
+        try {
+            msg = desc + ' could not be cloned: ' + String((err && err.message) || err)
+        }
+        catch (e) {}
+        let dataSafe = null
+        if (data.mode === 'return') {
+            dataSafe = {
+                mode: 'return',
+                id: data.id,
+                fun: data.fun,
+                state: 'error',
+                msg,
+            }
+        }
+        else if (data.mode === 'emit') {
+            dataSafe = {
+                mode: 'emit',
+                evName: 'error',
+                msg,
+            }
+        }
+        else {
+            dataSafe = {
+                mode: data.mode, //messageerror之通知不可略過, 否則外層呼叫中之pending懸置
+                msg,
+            }
+        }
+        try {
+            ${csm('dataSafe')}
+        }
+        catch (e) {}
+    }
 }
 
 async function run(data) {
@@ -336,17 +383,20 @@ async function run(data) {
 
         }
         catch(err){
-        
+
+            //initFail
+            initFail = { err }
+
             //sendMessage
             let res = {
                 mode: 'emit',
                 evName: 'error',
                 msg: err,
             }
-            sendMessage(res)
+            sendMessage(res, 'init error')
 
         }
-            
+
     }
 
     //check
@@ -356,29 +406,39 @@ async function run(data) {
 
         try{
 
+            //check, 初始化失敗時instance為null, 以初始化之原始錯誤回應(同建立失敗之處置), 不得對null取值而得誤導之TypeError
+            if (initFail) {
+                throw initFail.err
+            }
+
             //fun
             let fun = instance[data.fun]
 
             //input
             let input = data.input
 
-            //exec
-            await fun(...input)
-                .then((suc) => {
-                    state='success'
-                    msg=suc
-                })
-                .catch((err) => {
-                    state='error'
-                    msg=err
-                })
+            //exec, 以await取值: 非async函數回傳非promise時亦可交付, 不得因呼叫.then而失敗
+            msg = await fun(...input)
+            state = 'success'
 
         }
         catch(err){
             state = 'error'
             msg = err
         }
-        
+
+        //desc, 回應內容無法結構化複製時兜底說明之描述
+        let desc = ''
+        if (state === 'success') {
+            desc = 'return value of function[' + data.fun + ']'
+        }
+        else if (initFail) {
+            desc = 'init error'
+        }
+        else {
+            desc = 'rejected value of function[' + data.fun + ']'
+        }
+
         //sendMessage
         let res = {
             mode: 'return',
@@ -387,7 +447,7 @@ async function run(data) {
             state,
             msg,
         }
-        sendMessage(res)
+        sendMessage(res, desc)
 
     }
 
@@ -413,7 +473,7 @@ try{
     //錯誤雖已經error事件傳至外層reject pending, 但無pending且呼叫端未監聽error時(eventemitter3無監聽者時emit不拋錯)此輸出為唯一痕跡, 故保留;
     //本監聽於被包裝程式碼執行之後才安裝, 載入期之錯誤不經此記錄
     process.on('uncaughtExceptionMonitor', (err) => {
-        console.log('inner:uncaughtExceptionMonitor', err)
+        console.error('inner:uncaughtExceptionMonitor', err) //診斷輸出至stderr(同Node未捕捉錯誤之慣例), worker之stdio轉送至宿主, 不得混入宿主stdout之資料流
     })
 
 }
@@ -442,9 +502,6 @@ function ${funName}(){
     //id
     let id = genID()
 
-    //pendings, 登記pending promise, 供worker崩潰或異常退出時整批reject
-    pendings[id] = pm
-
     //dataSend
     let dataSend = {
         mode:'call',
@@ -453,8 +510,18 @@ function ${funName}(){
         input: [...arguments], //若直接用arguments會無法轉譯
     }
 
-    //postMessage
-    wk.postMessage(dataSend)
+    //postMessage, 引數無法結構化複製時postMessage同步拋DataCloneError: 改以reject回報(回傳promise之API不得同步拋錯, 否則每次呼叫新建模式之finally未接上而worker遺留);
+    //須送出成功才登記pending, 否則殘留之pending日後於terminate或worker崩潰時被整批reject而無人處理(宿主未處理rejection, nodejs預設即exit 1); postMessage為非同步送達, 同tick內登記無競態
+    try {
+        wk.postMessage(dataSend)
+    }
+    catch (err) {
+        pm.reject(err)
+        return pm
+    }
+
+    //pendings, 登記pending promise, 供worker崩潰或異常退出時整批reject
+    pendings[id] = pm
 
     //once
     ev.once(id, (res) => {
@@ -577,7 +644,33 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         cnw = `
         let blob = new Blob([code]) //blob for Chrome 8+, Firefox 6+, Safari 6.0+, Opera 15+
         let URL = window.URL || window.webkitURL
-        return new Worker(URL.createObjectURL(blob))
+        urlBlob = URL.createObjectURL(blob)
+        return new Worker(urlBlob)
+        `
+    }
+
+    //curl, worker程式碼之blob URL之釋放: 瀏覽器端由inner於載入後自行revoke, 未載入即中止、載入失敗、建立失敗時由此revoke(重複revoke為no-op), 不revoke則長時運行之頁面隨呼叫次數累積
+    let curl = ''
+    if (opt.runin === 'nodejs') {
+        curl = `
+        function revokeUrlBlob() {
+            //nodejs以eval字串建立worker, 無blob URL須revoke
+        }
+        `
+    }
+    else {
+        curl = `
+        let urlBlob = null
+        function revokeUrlBlob() {
+            if (urlBlob) {
+                try {
+                    let URL = window.URL || window.webkitURL
+                    URL.revokeObjectURL(urlBlob)
+                }
+                catch (err) {}
+                urlBlob = null
+            }
+        }
         `
     }
 
@@ -623,7 +716,7 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
         }
     }
 
-    //cee, worker之error屬致命錯誤(worker隨後死亡), 用emitFatal標記死亡並整批reject pending
+    //cee, worker之error屬致命錯誤, 用emitFatal標記死亡並整批reject pending
     let cee = ''
     if (opt.runin === 'nodejs') {
         cee = `
@@ -632,7 +725,14 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
     }
     else {
         cee = `
-        wk.onerror = emitFatal
+        wk.onerror = function (e) {
+            emitFatal(e)
+            //瀏覽器worker內之未捕捉錯誤不會使worker結束(nodejs則自行結束), 已標記死亡須主動中止以釋放執行緒;
+            //不清空wk, 使其後使用者之terminate照常(wk已清空時terminate會發error事件)
+            if (wk) {
+                wk.terminate()
+            }
+        }
         `
     }
 
@@ -648,7 +748,8 @@ function addOuterWebWorkerCode(code, funNames, opt = {}) {
             }
         })
         wk.on('messageerror', (err) => {
-            //worker回傳之訊息於宿主端反序列化失敗: 無法得知屬於哪個呼叫, 整批reject呼叫中之pending以免懸置(代價為同時進行中之其他呼叫一併reject); worker仍可服務故不標死亡
+            //worker回傳之訊息於宿主端反序列化失敗: 無法得知屬於哪個呼叫, 整批reject呼叫中之pending以免懸置(代價為同時進行中之其他呼叫一併reject, 其後到之回傳因監聽已移除而略過); worker仍可服務故不標死亡;
+            //註: MessagePort依序遞送且messageerror就地觸發, 精確歸屬可依序號達成, 因罕見且成熟產品(piscina、workerpool)皆未處理messageerror而不實作
             emitError(err)
         })
         `
@@ -770,6 +871,8 @@ function protectShell() {
             ev.emit('error', err)
         }
 
+        ${curl}
+
         function emitFatal(err) {
             //致命錯誤: worker已無法再服務(崩潰,異常退出,建立失敗), 標記死亡使後續呼叫立即reject; 已標記則不重複發送
             if (bDead) {
@@ -777,6 +880,7 @@ function protectShell() {
             }
             bDead = true
             emitError(err)
+            revokeUrlBlob() //載入失敗或建立失敗時worker未及自行revoke
         }
 
         function genWorker(code) {
@@ -811,6 +915,7 @@ function protectShell() {
                 }
                 wk.terminate()
                 wk = undefined
+                revokeUrlBlob() //未載入即中止時worker未及自行revoke(如引數無法複製而立即中止)
                 rejectPendings('worker has been terminated') //呼叫中之pending一併reject: 主動中止後worker不再回應, 不reject即永久懸置; 屬預期操作故不emit error
             }
             else {
@@ -827,8 +932,14 @@ function protectShell() {
                 input: [...arguments], //若直接用arguments會無法轉譯
             }
 
-            //postMessage
-            wk.postMessage(dataSend)
+            //postMessage, 初始化引數無法結構化複製時postMessage同步拋錯: 先中止已建之worker(否則遺留而撐住宿主)再原樣拋出, 維持工廠函數(同步回傳之API)以同步拋錯回報之既有契約
+            try {
+                wk.postMessage(dataSend)
+            }
+            catch (err) {
+                terminate()
+                throw err
+            }
 
         }
 
@@ -840,8 +951,8 @@ function protectShell() {
             //dataRecv
             let dataRecv = data
 
-            //mode
-            let mode = dataRecv.mode
+            //mode, worker內使用者程式碼自行送出之非協定訊息(含null)一律略過, 不得於宿主拋錯
+            let mode = dataRecv && dataRecv.mode
 
             //check
             if(mode !== 'emit' && mode !== 'return' && mode !== 'messageerror'){
@@ -928,7 +1039,7 @@ export default ww
  * @param {String} opt.fpTar 輸入轉譯完程式碼檔案儲存位置字串
  * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
- * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
+ * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，其中'iife'僅支援runin為'browser'，預設'es'
  * @param {String} [opt.targets='new'] 輸入轉譯等級字串，可選'new'、'old'，預設'new'
  * @param {String} [opt.runin='browser'] 輸入執行環境字串，可選'nodejs'、'browser'，預設'browser'
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
@@ -1037,6 +1148,11 @@ async function rollupWorkerCore(opt = {}) {
     if (runin !== 'nodejs' && runin !== 'browser') {
         console.log(`invalid runin[${runin}], set to 'browser'`)
         runin = 'browser'
+    }
+
+    //check, iife以全域識別子傳入external模組, nodejs版outer引用之worker_threads於任何環境皆非全域變數, 產物會建置成功而載入即拋ReferenceError, 故iife僅支援runin為browser
+    if (formatOut === 'iife' && runin !== 'browser') {
+        return Promise.reject(`formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
     }
 
     //bNodePolyfill

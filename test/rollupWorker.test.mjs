@@ -2,9 +2,11 @@ import path from 'path'
 import fs from 'fs'
 import assert from 'assert'
 import { pathToFileURL } from 'url'
-import { createRequire } from 'module'
 import rollupWorker from '../src/rollupWorker.mjs'
 import hostProbe, { hasProcessListen } from './tools/hostProbe.mjs'
+import childRun from './tools/childRun.mjs'
+import createBrowserSim from './tools/browserSim.mjs'
+import { withCtorFail, withCtorSpy, waitExit } from './tools/workerCtor.mjs'
 
 
 describe('rollupWorker worker崩潰處理與宿主隔離', function() {
@@ -15,11 +17,13 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
     let fpObj = path.resolve(fdTar, 'gWorkerCrashTest_Obj.wk.umd.js') //object+execObjectFunsByInstance(預設)
     let fpObjP = path.resolve(fdTar, 'gWorkerCrashTest_ObjP.wk.umd.js') //object持久實體(execObjectFunsByInstance=false)
     let fpBoth = path.resolve(fdTar, 'gWorkerCrashTest_Both.wk.umd.js') //function, runin both(產物內含nodejs與browser兩個outer)
-    let fpBrowser = path.resolve(fdTar, 'gWorkerCrashTest_Browser.wk.umd.js') //function, runin browser(於Node引用以驗outer頂層副作用)
+    let fpBrowser = path.resolve(fdTar, 'gWorkerCrashTest_Browser.wk.umd.js') //function, runin browser(於Node引用以驗outer頂層副作用; 於vm模擬瀏覽器驗瀏覽器端行為)
     let fpEs = path.resolve(fdTar, 'gWorkerCrashTest_Es.wk.mjs') //function, nodejs, formatOut es(es內容須用.mjs副檔名才會被node當ESM載入)
     let fpUnminSame = path.resolve(fdTar, 'gWorkerCrashTest_UnminSame.wk.umd.js') //function, bMinify false, name與原始碼default export同名
     let fpUnminDiff = path.resolve(fdTar, 'gWorkerCrashTest_UnminDiff.wk.umd.js') //function, bMinify false, name與原始碼default export不同名
-    let fps = [fpFun, fpObj, fpObjP, fpBoth, fpBrowser, fpEs, fpUnminSame, fpUnminDiff]
+    let fpFac = path.resolve(fdTar, 'gWorkerCloneTest_Fac.wk.umd.js') //function工廠(execFunctionByInstance=false, 同w-pubsub client用法), nodejs
+    let fpFacBr = path.resolve(fdTar, 'gWorkerCloneTest_FacBr.wk.umd.js') //function工廠, runin browser(於vm模擬瀏覽器驗瀏覽器端行為)
+    let fps = [fpFun, fpObj, fpObjP, fpBoth, fpBrowser, fpEs, fpUnminSame, fpUnminDiff, fpFac, fpFacBr]
     let copies = [] //impCopy所建之複本, after時刪除
 
     //全域uncaught/unhandled計數, 崩潰處理不得外溢
@@ -34,6 +38,12 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         new Promise((resolve) => setTimeout(() => resolve({ state: 'hang' }), 4000)),
     ])
 
+    //msgOf, 錯誤訊息字串(錯誤可能為Error、字串或模擬瀏覽器之事件物件)
+    let msgOf = (e) => String((e && e.message) || e)
+
+    //sleep
+    let sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
     before(async function() {
         this.timeout(60000)
 
@@ -44,7 +54,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
             fs.mkdirSync(fdTar, { recursive: true })
         }
 
-        //先刪舊產物: rollupWorker會吞掉建置錯誤而照常resolve, 不先刪則建置失敗時可能沿用舊檔而假通過
+        //先刪舊產物: 建置失敗時不會覆寫目標檔, 不先刪則可能沿用舊檔而假通過
         for (let fp of fps) {
             try {
                 fs.unlinkSync(fp)
@@ -67,7 +77,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         await rollupWorker({
             name: 'gWorkerCrashTest_Obj',
             type: 'object',
-            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang', 'tmsgerr'],
+            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang', 'tmsgerr', 'tpostnull'],
             fpSrc: path.resolve(fdSrc, 'gWorker7_ObjCrash.mjs'),
             fpTar: fpObj,
             formatOut: 'umd',
@@ -79,7 +89,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         await rollupWorker({
             name: 'gWorkerCrashTest_ObjP',
             type: 'object',
-            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang', 'tmsgerr'],
+            funNames: ['tok', 'treject', 'tcrash', 'texit0', 'texit5', 'thang', 'tmsgerr', 'tpostnull'],
             fpSrc: path.resolve(fdSrc, 'gWorker7_ObjCrash.mjs'),
             fpTar: fpObjP,
             formatOut: 'umd',
@@ -145,6 +155,31 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
             bLog: false,
         })
 
+        //function工廠(execFunctionByInstance=false), nodejs: 驗結構化複製失敗之處置
+        let optFac = {
+            type: 'function',
+            execFunctionByInstance: false,
+            funNames: ['tok', 'tsync', 'tretfn', 'trejfn', 'temitLater', 'temitNow', 'temitOk', 'thang'],
+            evNames: ['evt'],
+            fpSrc: path.resolve(fdSrc, 'gWorker9_FunClone.mjs'),
+            formatOut: 'umd',
+            bLog: false,
+        }
+        await rollupWorker({
+            ...optFac,
+            name: 'gWorkerCloneTest_Fac',
+            fpTar: fpFac,
+            runin: 'nodejs',
+        })
+
+        //function工廠, runin browser: 於vm模擬瀏覽器驗瀏覽器端行為
+        await rollupWorker({
+            ...optFac,
+            name: 'gWorkerCloneTest_FacBr',
+            fpTar: fpFacBr,
+            runin: 'browser',
+        })
+
         //產物須確實產出(防建置失敗被吞)
         for (let fp of fps) {
             assert.strict.ok(fs.existsSync(fp) && fs.statSync(fp).size > 0, `產物應已產出: ${path.basename(fp)}`)
@@ -171,41 +206,7 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
         return mod.default
     }
 
-    //withCtorFail: 期間內令worker_threads.Worker建構時拋出指定訊息之錯誤(UMD產物於呼叫時才取用模組物件之Worker), 結束必還原
-    let wt = createRequire(import.meta.url)('worker_threads')
-    let withCtorFail = async (msg, fn) => {
-        let WorkerOri = wt.Worker
-        wt.Worker = class {
-            constructor() {
-                throw new Error(msg)
-            }
-        }
-        try {
-            return await fn()
-        }
-        finally {
-            wt.Worker = WorkerOri
-        }
-    }
-
-    //withCtorSpy: 期間內攔截worker_threads.Worker之建構以取得實體(供對其送出模擬事件), 結束必還原; fn不可await呼叫本身, 否則等待永不settle之呼叫而卡住
-    let withCtorSpy = async (fn) => {
-        let WorkerOri = wt.Worker
-        let created = []
-        wt.Worker = class extends WorkerOri {
-            constructor(...args) {
-                super(...args)
-                created.push(this)
-            }
-        }
-        try {
-            let r = await fn()
-            return { r, created }
-        }
-        finally {
-            wt.Worker = WorkerOri
-        }
-    }
+    //withCtorFail、withCtorSpy、waitExit: 見tools/workerCtor.mjs(UMD產物於建立worker時才取用模組物件之Worker, 故可暫換攔截)
 
     //impFresh: 取得產物之預設匯出供呼叫用; 註: UMD(CJS)產物以檔名快取, 加查詢字串不會重新求值頂層(同一行程內取得的是同一實例), 僅ESM產物會重新求值,
     //故量測import之副作用(如宿主監聽註冊)不可在本行程內做, 須用乾淨子程序(見tools/hostProbe.mjs)
@@ -298,12 +299,12 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
 
     describe('宿主隔離: 產物import不得於宿主註冊process監聽(規則帳本R1)', function() {
 
-        it('import nodejs/object/持久實體/both/browser/es/未壓縮各型產物後, 宿主process全部事件之監聽數皆不增', function() {
+        it('import nodejs/object/持久實體/both/browser/es/未壓縮/工廠各型產物後, 宿主process全部事件之監聽數皆不增', function() {
             let r = hostProbe(fps, { mode: 'none' })
 
             //正向對照: 子程序須確實載入全部產物, 防import失敗或路徑錯誤而因「沒有監聽」假通過
             assert.strict.ok(r.info !== null, `子程序未回報: ${r.stderr}`)
-            assert.strict.deepStrictEqual(r.info.types, ['function', 'object', 'object', 'function', 'undefined', 'function', 'function', 'function'])
+            assert.strict.deepStrictEqual(r.info.types, ['function', 'object', 'object', 'function', 'undefined', 'function', 'function', 'function', 'function', 'undefined'])
 
             //R1: outer層不於宿主註冊任何process監聽(含uncaughtExceptionMonitor)
             assert.strict.deepStrictEqual(r.info.delta, {})
@@ -491,6 +492,358 @@ describe('rollupWorker worker崩潰處理與宿主隔離', function() {
 
             //R7: bMinify只影響體積, 不得影響產物能否使用
             assert.strict.deepStrictEqual(r, { state: 'resolve', v: 'OK' })
+        })
+
+    })
+
+    describe('結構化複製失敗: worker回傳之內容無法複製時呼叫端必有具名結果且worker續可服務(規則帳本R3⑥)', function() {
+
+        //Node修正前: inner之postMessage同步拋DataCloneError於呼叫路徑外, worker崩潰(呼叫只得空訊息Error, 持久與工廠實體從此死亡); 瀏覽器修正前為永久懸置(見「瀏覽器端」)
+
+        it('回傳值無法複製(工廠): 呼叫以具名原因reject, 之後呼叫照常', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('normal')
+            let r1 = await settle(ev.tretfn())
+            assert.strict.deepStrictEqual(r1.state, 'reject')
+            assert.strict.ok(msgOf(r1.e).includes('return value of function[tretfn] could not be cloned'), `實得: ${msgOf(r1.e)}`)
+            let r2 = await settle(ev.tok(1))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:1' }, 'worker不得因此崩潰')
+            ev.terminate()
+        })
+
+        it('reject值無法複製(工廠): 呼叫以具名原因reject, 之後呼叫照常', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('normal')
+            let r1 = await settle(ev.trejfn())
+            assert.strict.deepStrictEqual(r1.state, 'reject')
+            assert.strict.ok(msgOf(r1.e).includes('rejected value of function[trejfn] could not be cloned'), `實得: ${msgOf(r1.e)}`)
+            let r2 = await settle(ev.tok(2))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:2' }, 'worker不得因此崩潰')
+            ev.terminate()
+        })
+
+        it('回傳值無法複製(function每次呼叫新建): 呼叫以具名原因reject', async function() {
+            let wf = await impFresh(fpFun)
+            let r = await settle(wf('retfn'))
+            assert.strict.deepStrictEqual(r.state, 'reject')
+            assert.strict.ok(msgOf(r.e).includes('return value of function[') && msgOf(r.e).includes('could not be cloned'), `實得: ${msgOf(r.e)}`)
+        })
+
+        it('事件內容無法複製且於呼叫路徑外emit(工廠): 改發error事件說明, 原事件不送達, worker續可服務', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('normal')
+            let evErrs = []
+            let evts = []
+            ev.on('error', (err) => {
+                evErrs.push(msgOf(err))
+            })
+            ev.on('evt', (msg) => {
+                evts.push(msg)
+            })
+            let r1 = await settle(ev.temitLater())
+            assert.strict.deepStrictEqual(r1, { state: 'resolve', v: 'scheduled' })
+            await sleep(300)
+            assert.strict.deepStrictEqual(evErrs.length, 1, `實得: ${JSON.stringify(evErrs)}`)
+            assert.strict.ok(evErrs[0].includes('payload of event[evt] could not be cloned'), `實得: ${evErrs[0]}`)
+            assert.strict.deepStrictEqual(evts, [])
+            let r2 = await settle(ev.tok(3))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:3' }, 'worker不得因此崩潰')
+            ev.terminate()
+        })
+
+        it('事件內容無法複製且於呼叫路徑內emit(工廠): 該呼叫照常resolve並改發error事件說明', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('normal')
+            let evErrs = []
+            ev.on('error', (err) => {
+                evErrs.push(msgOf(err))
+            })
+            let r1 = await settle(ev.temitNow())
+            assert.strict.deepStrictEqual(r1, { state: 'resolve', v: 'emitted' }, '事件送出失敗不得改變使用者函數之結果')
+            assert.strict.deepStrictEqual(evErrs.length, 1, `實得: ${JSON.stringify(evErrs)}`)
+            assert.strict.ok(evErrs[0].includes('payload of event[evt] could not be cloned'), `實得: ${evErrs[0]}`)
+            ev.terminate()
+        })
+
+        it('事件內容可複製(基準, 工廠): 監聽者收到原內容', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('normal')
+            let evts = []
+            ev.on('evt', (msg) => {
+                evts.push(msg)
+            })
+            let r1 = await settle(ev.temitOk(7))
+            assert.strict.deepStrictEqual(r1, { state: 'resolve', v: 'emitted' })
+            assert.strict.deepStrictEqual(evts, ['payload:7'])
+            ev.terminate()
+        })
+
+        it('非async函數(工廠): 回傳值照常交付, 不得因呼叫.then而失敗', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('normal')
+            let r1 = await settle(ev.tsync(1))
+            assert.strict.deepStrictEqual(r1, { state: 'resolve', v: 'sync:1' })
+            ev.terminate()
+        })
+
+        it('初始化失敗(工廠, 錯誤可複製): 發error事件, 其後呼叫以初始化之原始錯誤reject(不得為對null取值之TypeError)', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('initThrow')
+            let evErrs = []
+            ev.on('error', (err) => {
+                evErrs.push(msgOf(err))
+            })
+            let r1 = await settle(ev.tok(1))
+            assert.strict.deepStrictEqual(r1.state, 'reject')
+            assert.strict.ok(msgOf(r1.e).includes('init-fail'), `應收到初始化之原始錯誤, 實得: ${msgOf(r1.e)}`)
+            assert.strict.deepStrictEqual(evErrs, ['init-fail'])
+            ev.terminate()
+        })
+
+        it('初始化失敗(工廠, 錯誤無法複製): error事件與其後呼叫皆得具名說明, worker不崩潰', async function() {
+            let fac = await impFresh(fpFac)
+            let ev = fac('initThrowFun')
+            let evErrs = []
+            ev.on('error', (err) => {
+                evErrs.push(msgOf(err))
+            })
+            let r1 = await settle(ev.tok(1))
+            assert.strict.deepStrictEqual(r1.state, 'reject')
+            assert.strict.ok(msgOf(r1.e).includes('init error could not be cloned'), `實得: ${msgOf(r1.e)}`)
+            assert.strict.deepStrictEqual(evErrs.length, 1, `實得: ${JSON.stringify(evErrs)}`)
+            assert.strict.ok(evErrs[0].includes('init error could not be cloned'), `實得: ${evErrs[0]}`)
+            ev.terminate()
+        })
+
+    })
+
+    describe('結構化複製失敗: 宿主送出之引數無法複製時回reject、不殘留pending、不遺留worker(規則帳本R3⑦)', function() {
+
+        it('持久實體: 呼叫回傳rejected promise(不同步拋錯), 之後呼叫照常, terminate不產生未處理rejection', async function() {
+            let wo = await impCopy(fpObjP)
+            let pm = null
+            assert.strict.doesNotThrow(() => {
+                pm = wo.tok(() => 1)
+            }, '回傳promise之API不得同步拋錯')
+            let r1 = await settle(pm)
+            assert.strict.deepStrictEqual(r1.state, 'reject')
+            assert.strict.ok(msgOf(r1.e).includes('could not be cloned'), `實得: ${msgOf(r1.e)}`)
+            let r2 = await settle(wo.tok(1))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:1' })
+
+            //失敗之呼叫不得殘留pending: 否則terminate時被整批reject而無人處理, 成宿主未處理rejection(Node預設即exit 1)
+            let n0 = nUncaught
+            wo.terminate()
+            await sleep(200)
+            assert.strict.deepStrictEqual(nUncaught - n0, 0)
+        })
+
+        it('function每次呼叫新建: 呼叫reject且該次建立之worker須被終止(不得遺留而撐住宿主)', async function() {
+            let wf = await impFresh(fpFun)
+            let { r: obj, created } = await withCtorSpy(() => ({ pm: wf(() => 1) }))
+            let r = await settle(obj.pm)
+            assert.strict.deepStrictEqual(r.state, 'reject')
+            assert.strict.ok(msgOf(r.e).includes('could not be cloned'), `實得: ${msgOf(r.e)}`)
+            assert.strict.deepStrictEqual(created.length, 1)
+            assert.strict.ok(await waitExit(created[0]), '該次建立之worker應已被終止')
+        })
+
+        it('object每次呼叫新建: 呼叫reject且該次建立之worker須被終止(不得遺留而撐住宿主)', async function() {
+            let wo = await impFresh(fpObj)
+            let { r: obj, created } = await withCtorSpy(() => ({ pm: wo.tok(() => 1) }))
+            let r = await settle(obj.pm)
+            assert.strict.deepStrictEqual(r.state, 'reject')
+            assert.strict.ok(msgOf(r.e).includes('could not be cloned'), `實得: ${msgOf(r.e)}`)
+            assert.strict.deepStrictEqual(created.length, 1)
+            assert.strict.ok(await waitExit(created[0]), '該次建立之worker應已被終止')
+        })
+
+        it('工廠初始化引數無法複製: 維持同步拋錯(工廠為同步API之既有契約), 且已建之worker須被終止', async function() {
+            let fac = await impFresh(fpFac)
+            let { r: err, created } = await withCtorSpy(() => {
+                try {
+                    fac(() => 1)
+                    return null
+                }
+                catch (e) {
+                    return e
+                }
+            })
+            assert.strict.ok(err !== null, '工廠初始化引數無法複製時應同步拋錯')
+            assert.strict.ok(msgOf(err).includes('could not be cloned'), `實得: ${msgOf(err)}`)
+            assert.strict.deepStrictEqual(created.length, 1)
+            assert.strict.ok(await waitExit(created[0]), '已建之worker應已被終止')
+        })
+
+    })
+
+    describe('worker內使用者程式碼自送之非協定訊息須略過(規則帳本R3)', function() {
+
+        it('持久實體: worker內postMessage(null)不得於宿主拋錯, 呼叫照常', async function() {
+            let wo = await impCopy(fpObjP)
+            let n0 = nUncaught
+            let r = await settle(wo.tpostnull())
+            assert.strict.deepStrictEqual(r, { state: 'resolve', v: 'posted' })
+            await sleep(100)
+            assert.strict.deepStrictEqual(nUncaught - n0, 0, '外層收到非協定訊息時不得於宿主拋錯')
+            wo.terminate()
+        })
+
+    })
+
+    describe('診斷輸出通道(規則帳本R2)', function() {
+
+        it('worker崩潰之inner monitor輸出須在stderr, 不得混入宿主stdout之資料流', function() {
+            let r = childRun(`
+    let { pathToFileURL } = require('url')
+    let m = await import(pathToFileURL(process.argv[1]).href)
+    await m.default('crash').catch(() => {})
+    await new Promise((resolve) => setTimeout(resolve, 500)) //worker之stdio為非同步轉送至宿主, 稍候使輸出到齊
+`, [fpFun], { timeout: 30000 })
+            let count = (s) => s.split('inner:uncaughtExceptionMonitor').length - 1
+            assert.strict.deepStrictEqual(r.timedOut, false)
+            assert.strict.deepStrictEqual(count(r.stdout), 0, `stdout: ${r.stdout}`)
+            assert.strict.deepStrictEqual(count(r.stderr), 1, `stderr: ${r.stderr}`)
+        })
+
+    })
+
+    describe('瀏覽器端: 結構化複製失敗與資源釋放(vm模擬瀏覽器, 規則帳本R3⑥、R10)', function() {
+
+        let codeOf = (fp) => fs.readFileSync(fp, 'utf8')
+
+        it('回傳值、reject值無法複製(工廠): 呼叫以具名原因reject而非永久懸置, 之後呼叫照常', async function() {
+            let sim = createBrowserSim()
+            let fac = sim.load(codeOf(fpFacBr), 'gWorkerCloneTest_FacBr')
+            let ev = fac('normal')
+            let r1 = await settle(ev.tretfn())
+            assert.strict.deepStrictEqual(r1.state, 'reject', '瀏覽器worker內未處理rejection不觸發error事件, 不兜底即永久懸置')
+            assert.strict.ok(msgOf(r1.e).includes('return value of function[tretfn] could not be cloned'), `實得: ${msgOf(r1.e)}`)
+            let r2 = await settle(ev.trejfn())
+            assert.strict.deepStrictEqual(r2.state, 'reject')
+            assert.strict.ok(msgOf(r2.e).includes('rejected value of function[trejfn] could not be cloned'), `實得: ${msgOf(r2.e)}`)
+            let r3 = await settle(ev.tok(1))
+            assert.strict.deepStrictEqual(r3, { state: 'resolve', v: 'ok:1' })
+            ev.terminate()
+        })
+
+        it('事件內容無法複製且於呼叫路徑外emit(工廠): 改發error事件說明, worker不被標死', async function() {
+            let sim = createBrowserSim()
+            let fac = sim.load(codeOf(fpFacBr), 'gWorkerCloneTest_FacBr')
+            let ev = fac('normal')
+            let evErrs = []
+            ev.on('error', (err) => {
+                evErrs.push(msgOf(err))
+            })
+            let r1 = await settle(ev.temitLater())
+            assert.strict.deepStrictEqual(r1, { state: 'resolve', v: 'scheduled' })
+            await sleep(300)
+            assert.strict.deepStrictEqual(evErrs.length, 1, `實得: ${JSON.stringify(evErrs)}`)
+            assert.strict.ok(evErrs[0].includes('payload of event[evt] could not be cloned'), `實得: ${evErrs[0]}`)
+            let r2 = await settle(ev.tok(2))
+            assert.strict.deepStrictEqual(r2, { state: 'resolve', v: 'ok:2' }, 'worker不得被標死')
+            ev.terminate()
+        })
+
+        it('正常呼叫(function每次呼叫新建): blob URL於worker載入後由worker自行撤銷, 呼叫後worker被終止', async function() {
+            let sim = createBrowserSim()
+            let wf = sim.load(codeOf(fpBrowser), 'gWorkerCrashTest_Browser')
+            let r = await settle(wf('ok'))
+            assert.strict.deepStrictEqual(r, { state: 'resolve', v: 'OK' })
+            assert.strict.deepStrictEqual(sim.urls.created.length, 1)
+            assert.strict.deepStrictEqual(sim.urls.revoked, [{ url: sim.urls.created[0], by: 'worker' }], '應由worker載入後自行撤銷(同Vite之inline worker)')
+            assert.strict.ok(sim.workers[0].nTerminate >= 1)
+        })
+
+        it('引數無法複製(function每次呼叫新建): 呼叫reject, worker未載入即被終止且blob URL由頁面撤銷', async function() {
+            let sim = createBrowserSim()
+            let wf = sim.load(codeOf(fpBrowser), 'gWorkerCrashTest_Browser')
+            let r = await settle(wf(() => 1))
+            assert.strict.deepStrictEqual(r.state, 'reject')
+            assert.strict.ok(msgOf(r.e).includes('could not be cloned'), `實得: ${msgOf(r.e)}`)
+            assert.strict.ok(sim.workers[0].nTerminate >= 1, 'worker應被終止')
+            assert.strict.deepStrictEqual(sim.urls.revoked, [{ url: sim.urls.created[0], by: 'page' }], 'worker未載入即終止, 須由頁面撤銷')
+        })
+
+        it('worker腳本載入失敗(function每次呼叫新建): 呼叫reject而非懸置, worker被終止且blob URL由頁面撤銷', async function() {
+            let sim = createBrowserSim({ failLoad: true })
+            let wf = sim.load(codeOf(fpBrowser), 'gWorkerCrashTest_Browser')
+            let r = await settle(wf('ok'))
+            assert.strict.deepStrictEqual(r.state, 'reject')
+            assert.strict.ok(sim.workers[0].nTerminate >= 1, 'worker應被終止')
+            assert.strict.deepStrictEqual(sim.urls.revoked, [{ url: sim.urls.created[0], by: 'page' }], '載入失敗時worker未及自行撤銷, 須由頁面撤銷')
+        })
+
+        it('new Worker同步拋錯(function每次呼叫新建): 呼叫以原始錯誤reject且blob URL由頁面撤銷', async function() {
+            let sim = createBrowserSim({ failCtor: 'ctor-fail-br' })
+            let wf = sim.load(codeOf(fpBrowser), 'gWorkerCrashTest_Browser')
+            let r = await settle(wf('ok'))
+            assert.strict.deepStrictEqual(r.state, 'reject')
+            assert.strict.ok(msgOf(r.e).includes('ctor-fail-br'), `實得: ${msgOf(r.e)}`)
+            assert.strict.deepStrictEqual(sim.urls.created.length, 1)
+            assert.strict.deepStrictEqual(sim.urls.revoked, [{ url: sim.urls.created[0], by: 'page' }])
+        })
+
+        it('worker執行期未捕捉錯誤(工廠): 呼叫中之pending reject, 已標死之worker須被終止, 其後使用者terminate不誤發error事件', async function() {
+            let sim = createBrowserSim()
+            let fac = sim.load(codeOf(fpFacBr), 'gWorkerCloneTest_FacBr')
+            let ev = fac('normal')
+            let evErrs = []
+            ev.on('error', (err) => {
+                evErrs.push(msgOf(err))
+            })
+            let r0 = await settle(ev.tok(1))
+            assert.strict.deepStrictEqual(r0, { state: 'resolve', v: 'ok:1' })
+            let pm = ev.thang()
+            sim.workers[0].fireError('boom-br')
+            let r1 = await settle(pm)
+            assert.strict.deepStrictEqual(r1.state, 'reject')
+            assert.strict.ok(sim.workers[0].nTerminate >= 1, '瀏覽器worker不因未捕捉錯誤而結束, 標死後須主動終止以釋放執行緒')
+            let r2 = await settle(ev.tok(2))
+            assert.strict.deepStrictEqual(r2.state, 'reject')
+            assert.strict.ok(msgOf(r2.e).includes('worker is dead'), `實得: ${msgOf(r2.e)}`)
+            ev.terminate()
+            assert.strict.deepStrictEqual(evErrs.length, 1, `使用者其後之terminate不得誤發error事件, 實得: ${JSON.stringify(evErrs)}`)
+        })
+
+    })
+
+    describe('瀏覽器端: iife產物(vm模擬瀏覽器, 規則帳本R9)', function() {
+
+        let fpIife = path.resolve(fdTar, 'gWorkerCrashTest_Iife.wk.iife.js') //function, runin browser, formatOut iife
+
+        before(async function() {
+            this.timeout(60000)
+            try {
+                fs.unlinkSync(fpIife)
+            }
+            catch (err) {}
+            await rollupWorker({
+                name: 'gWorkerCrashTest_Iife',
+                type: 'function',
+                fpSrc: path.resolve(fdSrc, 'gWorker8_FunCrash.mjs'),
+                fpTar: fpIife,
+                formatOut: 'iife',
+                runin: 'browser',
+                bLog: false,
+            })
+            assert.strict.ok(fs.existsSync(fpIife) && fs.statSync(fpIife).size > 0, '產物應已產出')
+        })
+
+        after(function() {
+            try {
+                fs.unlinkSync(fpIife)
+            }
+            catch (err) {}
+        })
+
+        it('iife×browser產物可載入並呼叫, 且產物明文不含process監聽之註冊', async function() {
+            let sim = createBrowserSim()
+            let wf = sim.load(fs.readFileSync(fpIife, 'utf8'), 'gWorkerCrashTest_Iife')
+            assert.strict.deepStrictEqual(typeof wf, 'function')
+            let r = await settle(wf('ok'))
+            assert.strict.deepStrictEqual(r, { state: 'resolve', v: 'OK' })
+            assert.strict.ok(!hasProcessListen(fpIife))
         })
 
     })

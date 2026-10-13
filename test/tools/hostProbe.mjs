@@ -1,12 +1,11 @@
 import fs from 'fs'
-import { spawnSync } from 'child_process'
+import childRun from './childRun.mjs'
 
 
 //子程序腳本: 以乾淨宿主import指定產物, 回報匯出型別與import前後process全部事件監聽數之差異; 依mode再拋出宿主未捕捉例外或未處理rejection
 //why用子程序: 於mocha行程內量測必然失真——mocha自掛process監聽, 且UMD(CJS)產物以檔名快取, 加查詢字串重複import不會重新求值頂層, 註冊不會再發生而假通過
-//why用CommonJS之-e(於async函數內動態import): 不可用--input-type=module, 子程序內建立之eval worker會繼承execArgv而把inner之cjs程式碼當ESM, require失效使worker靜默壞掉
+//子程序以CommonJS之-e執行(理由見childRun)
 let CHILD = `
-(async () => {
     let { pathToFileURL } = require('url')
     let [mode, tag, ...fps] = process.argv.slice(1)
     let snap = () => {
@@ -45,7 +44,6 @@ let CHILD = `
             Promise.reject(err)
         }, 50)
     }
-})()
 `
 
 
@@ -60,9 +58,9 @@ let CHILD = `
 function hostProbe(fps, opt = {}) {
     let mode = opt.mode || 'none'
     let tag = `hostprobe-${mode}-${Date.now()}` //動態組字, 錯誤訊息不以字面值出現在子程序原始碼內
-    let r = spawnSync(process.execPath, ['-e', CHILD, mode, tag, ...fps], { encoding: 'utf8', timeout: 60000 })
-    let stdout = r.stdout || ''
-    let stderr = r.stderr || ''
+    let r = childRun(CHILD, [mode, tag, ...fps], { timeout: 60000 })
+    let stdout = r.stdout
+    let stderr = r.stderr
     let m = stdout.match(/HOSTPROBE=(.*)/)
     let count = (s) => s.split(`Error: ${tag}`).length - 1
     return {

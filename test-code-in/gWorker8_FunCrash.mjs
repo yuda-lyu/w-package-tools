@@ -24,6 +24,9 @@ async function gWorker8_FunCrash(act) {
     if (act === 'hang') {
         return new Promise(() => {}) //永不settle, 模擬呼叫中之pending(供驗messageerror等事件之處置)
     }
+    if (act === 'retfn') {
+        return () => 1 //回傳值無法結構化複製
+    }
     return 'unknown'
 }
 

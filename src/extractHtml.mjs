@@ -112,24 +112,14 @@ async function extractHtml(opt = {}) {
     h = h.contents //取contents
     //console.log('prettyhtml', h)
 
-    //write html
+    //write html, 寫檔錯誤原樣往外拋(reject), 呼叫端才能得知產製失敗
     if (w.isestr(fpHtml)) {
-        try {
-            fs.writeFileSync(fpHtml, h, 'utf8')
-        }
-        catch (err) {
-            console.log(err)
-        }
+        fs.writeFileSync(fpHtml, h, 'utf8')
     }
 
     //write action
     if (w.isestr(fpAction)) {
-        try {
-            fs.writeFileSync(fpAction, action, 'utf8')
-        }
-        catch (err) {
-            console.log(err)
-        }
+        fs.writeFileSync(fpAction, action, 'utf8')
     }
 
 }

@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { createRequire, syncBuiltinESMExports } from 'module'
 import parfor from '../src/parfor.mjs'
+import { waitExit } from './tools/workerCtor.mjs'
 
 
 let fpWorker = new URL('./fixtures/parfor_worker.mjs', import.meta.url)
@@ -69,11 +70,11 @@ describe('parfor', function() {
         let jobs = [{ v: 0 }, { v: 1, bad: true }, { v: 2 }]
         let cbResults = new Array(jobs.length)
 
-        //parfor 對失敗 job 會 console.log(這是預期的 production 行為). 暫時攔截 console.log,
+        //parfor 對失敗 job 會以 console.error 記錄(這是預期的 production 行為; 診斷輸出走 stderr, 不混入宿主 stdout 之資料流). 暫時攔截 console.error,
         //避免「預期內的錯誤」污染 npm test 輸出, 同時把「有記錄失敗」轉成正向斷言.
         let logs = []
-        let oriLog = console.log
-        console.log = (...args) => {
+        let oriErr = console.error
+        console.error = (...args) => {
             logs.push(args.map(String).join(' '))
         }
         let results
@@ -86,7 +87,7 @@ describe('parfor', function() {
             })
         }
         finally {
-            console.log = oriLog //無論成敗都還原, 不影響後續測試輸出
+            console.error = oriErr //無論成敗都還原, 不影響後續測試輸出
         }
 
         assert.strict.deepStrictEqual(results[0], 0)
@@ -125,6 +126,16 @@ describe('parfor', function() {
         //規則帳本R8: cb 錯誤傳染至 parfor(與 rollupParfor 一致)
         assert.strict.deepStrictEqual(r.state, 'reject', 'cb 拋錯時 parfor 應 reject')
         assert.strict.ok(String(r.e && r.e.message).includes('cb-boom'))
+    })
+
+    it('job 於 worker 端反序列化失敗(worker 協定第 6 條): 整批 fail-fast 拋出原始錯誤(不得懸置)', async function() {
+        //第 2 個 job 模擬於 worker 端反序列化失敗(該 job 不會送達, 改由 port 發出 messageerror); fixture 依協定第 6 條於 messageerror 監聽內拋出
+        let jobs = [{ v: 1 }, { v: 2, msgerr: true }, { v: 3 }]
+        let r = await settle(parfor(fpWorker, jobs, { takeLimit: 1, returnResult: true }))
+
+        //規則帳本R8: 經 worker error 路徑整批 fail-fast, 帶原始錯誤
+        assert.strict.deepStrictEqual(r.state, 'reject', 'job 於 worker 端反序列化失敗時 parfor 應 reject, 不得懸置')
+        assert.strict.ok(String(r.e && r.e.message).includes('msgerr-in'), `實得: ${r.e}`)
     })
 
     it('job 無法結構化複製: 整批 fail-fast 拋錯(不得成為宿主未捕捉例外)', async function() {
@@ -173,12 +184,7 @@ describe('parfor', function() {
 
         //規則帳本R8: 已建之 worker 須被 terminate(不得遺留而撐住宿主)
         assert.strict.deepStrictEqual(created.length, 1)
-        let wk0 = created[0]
-        let exited = wk0.threadId === -1 || await Promise.race([
-            new Promise((resolve) => wk0.once('exit', () => resolve(true))),
-            new Promise((resolve) => setTimeout(() => resolve(false), 3000)),
-        ])
-        assert.strict.ok(exited, '已建之 worker 應已被 terminate')
+        assert.strict.ok(await waitExit(created[0]), '已建之 worker 應已被 terminate')
 
         //規則帳本R8: 整批已失敗後, 陸續到達之結果不得再呼叫 cb
         await new Promise((resolve) => setTimeout(resolve, 500))

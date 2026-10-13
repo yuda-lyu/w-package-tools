@@ -37,6 +37,12 @@ async function tmsgerr() {
 }
 
 
+async function tpostnull() {
+    parentPort.postMessage(null) //使用者程式碼自行送出非協定訊息(null), 外層須略過而不得於宿主拋錯
+    return 'posted'
+}
+
+
 let gWorker7_ObjCrash = {
     tok,
     treject,
@@ -45,6 +51,7 @@ let gWorker7_ObjCrash = {
     texit5,
     thang,
     tmsgerr,
+    tpostnull,
 }
 
 

@@ -17,6 +17,7 @@ import { Worker } from 'worker_threads'
  *   3. 單 job 失敗回 { k, err }(err 為字串)→ 不炸批,主程序印錯後續跑。
  *   4. worker 載入 / init 失敗(import 錯、workerData 處理 throw)→ 整批 fail-fast 拋錯(不默跑)。
  *   5. worker 不得自行退出:整批完成前之任何退出(含 process.exit(0))、worker 建立失敗、結果反序列化失敗、job 無法結構化複製、cb 拋錯 → 皆整批 fail-fast 拋錯並 terminate 全部 worker(不懸置、不遺留)。
+ *   6. worker entry 須綁 parentPort.on('messageerror', (err) => { throw err }):job 於 worker 端反序列化失敗時該 job 不會送達、主程序無從得知,拋出即成 worker 未捕捉例外 → 經第 4、5 條之 error 路徑整批 fail-fast(帶原始錯誤);未綁者遇此情形整批懸置。
  *
  * 適用:CPU 密集的純計算(大量迴圈、數值運算、回測撮合),且工作可拆成多個彼此獨立的 job
  * 不適用:I/O 密集任務(讀檔、網路請求),這類用單執行緒 Promise 並行即可,開 worker 反而多付啟動與傳輸成本
@@ -93,7 +94,7 @@ async function parfor(fpWorker, jobs, opt = {}) {
                         return //整批已結束(含失敗)後陸續到達之結果略過, 不再呼叫 cb
                     }
                     if (m && typeof m.err === 'string') {
-                        console.log(`parfor: job ${m.k} 失敗(不炸批):`, m.err)
+                        console.error(`parfor: job ${m.k} 失敗(不炸批):`, m.err) //診斷輸出至stderr, 不混入宿主stdout之資料流
                     }
                     else if (results) {
                         results[m.k] = m.r

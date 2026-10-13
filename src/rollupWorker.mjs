@@ -75,7 +75,7 @@ function mergeCore(runin, fpSrcNW, fpSrcWW) {
  * @param {String} opt.fpTar 輸入轉譯完程式碼檔案儲存位置字串
  * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
- * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，預設'es'
+ * @param {String} [opt.formatOut='es'] 輸入欲轉譯成js格式字串，可選'umd'、'iife'、'es'，其中'iife'僅支援runin為'browser'，預設'es'
  * @param {String} [opt.targets='new'] 輸入轉譯等級字串，可選'new'、'old'，預設'new'
  * @param {String} [opt.runin='both'] 輸入執行環境字串，可選'both'、'nodejs'、'browser'，預設'both'
  * @param {Boolean} [opt.bNodePolyfill=false] 輸入轉譯是否自動加入Nodejs polyfill布林值，主要把Nodejs語法(例如fs)轉為瀏覽器端語法，預設false
@@ -145,6 +145,14 @@ async function rollupWorker(opt = {}) {
         runin = 'both'
     }
 
+    //check, iife以全域識別子傳入external模組, nodejs版outer引用之worker_threads於任何環境皆非全域變數, 產物載入即拋ReferenceError, 故iife僅支援runin為browser
+    if (formatOut === 'iife' && runin !== 'browser') {
+        return Promise.reject(`formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
+    }
+
+    //formatOutCore, 中介產物須可被合併層import, iife無export故改用es; 其餘格式沿用使其產物不變
+    let formatOutCore = formatOut === 'iife' ? 'es' : formatOut
+
     //bMinify
     let bMinify = _.get(opt, 'bMinify', null)
     if (!w.isbol(bMinify)) {
@@ -206,6 +214,7 @@ async function rollupWorker(opt = {}) {
             codeNW = await rollupWorkerCore({
                 ...opt, //沿用設定
                 //rollupWorkerCore須使用formatIn(可不給)與formatOut
+                formatOut: formatOutCore,
                 runin: 'nodejs',
                 bReturnCode: true,
                 bLog: false,
@@ -219,6 +228,7 @@ async function rollupWorker(opt = {}) {
             codeWW = await rollupWorkerCore({
                 ...opt, //沿用設定
                 //rollupWorkerCore須使用formatIn(可不給)與formatOut
+                formatOut: formatOutCore,
                 runin: 'browser',
                 bReturnCode: true,
                 bLog: false,
@@ -267,35 +277,25 @@ async function rollupWorker(opt = {}) {
 
     }
 
-    //core
+    //core, 建置錯誤原樣往外拋(同rollupFile、rollupCode、rollupWorkerCore), 呼叫端才能中止後續產製; 不可catch後只印出, 否則呼叫端照常往下而發布舊產物或缺產物
     await core()
-        .catch((err) => {
-            console.log(err)
-        })
         .finally(() => {
 
-            //unlinkSync, 不論轉譯成功失敗都刪除檔案
+            //rmSync, 不論轉譯成功失敗都刪除暫存檔; 失敗時部分暫存檔尚未建立, 以force略過不存在者, 不印出ENOENT(會被誤認為真因)
+            let fps = [fpSrcMg]
             if (runin === 'both' || runin === 'nodejs') {
-                try {
-                    fs.unlinkSync(fpSrcNW)
-                }
-                catch (err) {
-                    console.log(err)
-                }
+                fps.push(fpSrcNW)
             }
             if (runin === 'both' || runin === 'browser') {
+                fps.push(fpSrcWW)
+            }
+            for (let fp of fps) {
                 try {
-                    fs.unlinkSync(fpSrcWW)
+                    fs.rmSync(fp, { force: true })
                 }
                 catch (err) {
                     console.log(err)
                 }
-            }
-            try {
-                fs.unlinkSync(fpSrcMg)
-            }
-            catch (err) {
-                console.log(err)
             }
 
         })

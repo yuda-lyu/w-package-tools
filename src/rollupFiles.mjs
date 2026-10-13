@@ -38,15 +38,12 @@ async function rollupFiles(opt = {}) {
         fns = [fns]
     }
 
-    //pmSeries
+    //pmSeries, 建置錯誤原樣往外拋(同rollupFile), 呼叫端才能中止後續產製; 註: 目標資料夾已於開頭清空, 失敗時其內為空或僅有先前檔案之產物
     return w.pmSeries(fns, (fn) => {
         let o = { ...opt } //沿用設定
         o.fn = fn
         return rollupFile(o)
     })
-        .catch((err) => {
-            console.log(err)
-        })
 
 }
 

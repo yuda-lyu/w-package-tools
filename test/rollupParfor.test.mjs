@@ -3,6 +3,8 @@ import fs from 'fs'
 import assert from 'assert'
 import rollupParfor from '../src/rollupParfor.mjs'
 import hostProbe, { hasProcessListen } from './tools/hostProbe.mjs'
+import childRun from './tools/childRun.mjs'
+import createBrowserSim from './tools/browserSim.mjs'
 
 
 describe('rollupParfor', function() {
@@ -18,7 +20,7 @@ describe('rollupParfor', function() {
         if (!fs.existsSync(fdTar)) {
             fs.mkdirSync(fdTar, { recursive: true })
         }
-        //先刪舊產物: rollupParfor會吞掉建置錯誤而照常resolve, 不先刪則建置失敗時可能沿用舊檔而假通過
+        //先刪舊產物: 建置失敗時不會覆寫目標檔, 不先刪則可能沿用舊檔而假通過
         for (let fp of [fpTar, fpTarEs]) {
             try {
                 fs.unlinkSync(fp)
@@ -170,6 +172,82 @@ describe('rollupParfor', function() {
         for (let fp of [fpTar, fpTarEs]) {
             assert.strict.ok(!hasProcessListen(fp), `${path.basename(fp)} 明文含process監聽註冊`)
         }
+    })
+
+    it('job 無法結構化複製: parfor reject 且宿主可自行退出(不得遺留 parforCore worker, 規則帳本R3⑦)', function() {
+        //沿用第一個測試產出的 umd bundle; 以乾淨子程序驗宿主能否自行退出(遺留 worker 時子程序懸置至逾時)
+        assert.strict.ok(fs.existsSync(fpTar), 'umd 產物應已產出')
+        let r = childRun(`
+    let { pathToFileURL } = require('url')
+    let m = await import(pathToFileURL(process.argv[1]).href)
+    let e = await m.default([{ count: 10, p1: 1, p2: 'a', f: () => 1 }], { takeLimit: 1, returnResult: true }).then(() => null, (err) => err)
+    console.log('PFRES=' + JSON.stringify(String((e && e.message) || e)))
+`, [fpTar], { timeout: 20000 })
+        assert.strict.deepStrictEqual(r.timedOut, false, '宿主應可自行退出(不得遺留 worker)')
+        assert.strict.deepStrictEqual(r.status, 0, `stderr: ${r.stderr}`)
+        let m = r.stdout.match(/PFRES=(.*)/)
+        assert.strict.ok(m && JSON.parse(m[1]).includes('could not be cloned'), `parfor 應以 DataCloneError reject, stdout: ${r.stdout}`)
+    })
+
+    describe('formatOut=iife(僅支援 runin browser, 規則帳本R9)', function() {
+
+        let nameIife = 'gParforTest_Iife'
+        let fpTarIife = path.resolve(fdTar, `${nameIife}.pf.iife.js`)
+
+        before(async function() {
+            this.timeout(60000)
+            try {
+                fs.unlinkSync(fpTarIife)
+            }
+            catch (err) {}
+            await rollupParfor({
+                name: nameIife,
+                fpSrc,
+                fpTar: fpTarIife,
+                runin: 'browser',
+                formatOut: 'iife',
+                bLog: false,
+            })
+            assert.strict.ok(fs.existsSync(fpTarIife) && fs.statSync(fpTarIife).size > 0, '產物應已產出')
+        })
+
+        after(function() {
+            try {
+                fs.unlinkSync(fpTarIife)
+            }
+            catch (err) {}
+        })
+
+        it('iife×browser 產物於 vm 模擬瀏覽器可載入並平行計算', async function() {
+            let sim = createBrowserSim()
+            let parfor = sim.load(fs.readFileSync(fpTarIife, 'utf8'), nameIife)
+            assert.strict.deepStrictEqual(typeof parfor, 'function')
+
+            let count = 1000
+            let pgs = [
+                { count, p1: 11, p2: 'a' },
+                { count, p1: 12, p2: 'b' },
+                { count, p1: 13, p2: 'c' },
+            ]
+            let got = {}
+            let res = await parfor(pgs, {
+                takeLimit: 2,
+                cb: (r, k) => {
+                    got[k] = r
+                },
+                returnResult: true,
+            })
+            assert.strict.deepStrictEqual(res.length, pgs.length)
+            pgs.forEach((pg, k) => {
+                assert.strict.ok(String(res[k]).includes('p1:' + pg.p1), `res[${k}] 應含 p1:${pg.p1}`)
+                assert.strict.ok(String(got[k]).includes('p1:' + pg.p1), `cb got[${k}] 應含 p1:${pg.p1}`)
+            })
+
+            //R10: 每個 worker 皆被終止, 其 blob URL 皆已撤銷
+            assert.strict.ok(sim.workers.length > 0 && sim.workers.every((wk) => wk.nTerminate >= 1))
+            assert.strict.deepStrictEqual(sim.urls.revoked.length, sim.urls.created.length)
+        })
+
     })
 
 })
