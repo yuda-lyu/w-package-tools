@@ -3,6 +3,7 @@ import path from 'path'
 import { isBuiltin } from 'module'
 import * as acorn from 'acorn'
 import * as eslintScope from 'eslint-scope'
+import { wptError } from './wptCommon.mjs'
 
 
 //buildCheck, 內部用(非公開API): 建置期檢查(帳本R16、R17)與清空資料夾(帳本R18)
@@ -535,39 +536,65 @@ function sleepSync(ms) {
 //cleanFolderStrict, 清空資料夾(不存在則建立): 非success即拋錯
 //  拒絕: 非字串或空字串、根目錄、cwd與其上層(如由錯誤之路徑算出'/'時不得清空整個磁碟)、目標本身為連結
 //  重試: EBUSY、EPERM(Windows下被占用之資料夾)、ENOTEMPTY、ENOENT(並發清空同一資料夾時項目已被他方刪除); Node之fs.rmSync之maxRetries於Windows對EPERM不生效(v24.19.0實測), 故自寫迴圈
+//  錯誤: 一律為帶WPT_CLEAN_FOLDER碼之Error(含前置lstat檢查失敗者), 訊息以已知之絕對路徑、code、syscall與嘗試次數組成, 不引用Node fs錯誤之message與path(Windows下路徑含非ASCII時為亂碼), cause為原錯誤(帳本R19④)
+//  比較: 根目錄、cwd與其上層之比較於win32不分大小寫(檔案系統不分大小寫, 如磁碟機代號c:與C:, 字串相等不等於同一目錄)
 function cleanFolderStrict(w, fd, opt = {}) {
     let retries = opt.retries === undefined ? 10 : opt.retries
     let delay = opt.delay === undefined ? 300 : opt.delay
+    let valid = typeof fd === 'string' && fd.trim() !== ''
+    let showFd = () => {
+        try {
+            return String(fd)
+        }
+        catch (err) {
+            return Object.prototype.toString.call(fd) //無原型物件等無法轉字串者
+        }
+    }
+    let abs = valid ? path.resolve(fd) : showFd()
     let fail = (msg, cause) => {
-        let err = new Error(`can not clean folder[${fd}]: ${msg}`)
+        let err = wptError('WPT_CLEAN_FOLDER', `can not clean folder[${abs}]: ${msg}`)
         if (cause !== undefined) {
             err.cause = cause
         }
         return err
     }
-    if (typeof fd !== 'string' || fd.trim() === '') {
+
+    //describe, Error之原因文字: 有code者以code與syscall(與嘗試次數)組成, 不引用message; 無code者(非fs錯誤, 如wsemi內部之TypeError)其message不含fs路徑亂碼, 保留之
+    let describe = (e, n) => {
+        let at = n > 0 ? ` attempts[${n}]` : ''
+        if (e.code) {
+            return `code[${e.code}]${e.syscall ? ` syscall[${e.syscall}]` : ''}${at}`
+        }
+        return `${e.name}: ${e.message}${at}`
+    }
+    if (!valid) {
         throw fail('path must be a non-empty string')
     }
-    let abs = path.resolve(fd)
-    let cwd = process.cwd()
-    if (abs === path.parse(abs).root || abs === cwd || cwd.startsWith(abs.endsWith(path.sep) ? abs : abs + path.sep)) {
+    let norm = (p) => (process.platform === 'win32' ? p.toLowerCase() : p)
+    let nAbs = norm(abs)
+    let nCwd = norm(process.cwd())
+    if (nAbs === norm(path.parse(abs).root) || nAbs === nCwd || nCwd.startsWith(nAbs.endsWith(path.sep) ? nAbs : nAbs + path.sep)) {
         throw fail(`refuse to clean the filesystem root, the current working directory or its ancestor (${abs})`)
     }
+    let st = null
     try {
-        if (fs.lstatSync(abs).isSymbolicLink()) {
-            throw fail('target is a symbolic link or junction, not a folder')
-        }
+        st = fs.lstatSync(abs)
     }
     catch (err) {
         if (err.code !== 'ENOENT') {
-            throw err
+            throw fail(describe(err, 0), err) //如POSIX下上層為檔案之ENOTDIR、權限不足、路徑含NUL: 亦為帶碼Error, 不原樣拋出原始fs錯誤
         }
     }
+    if (st && st.isSymbolicLink()) {
+        throw fail('target is a symbolic link or junction, not a folder')
+    }
     let last = null
+    let attempts = 0
     for (let i = 0; i <= retries; i++) {
         if (i > 0) {
             sleepSync(delay)
         }
+        attempts++
         let r
         try {
             r = w.fsCleanFolder(fd)
@@ -584,7 +611,7 @@ function cleanFolderStrict(w, fd, opt = {}) {
             break
         }
     }
-    throw fail(last instanceof Error ? last.message : String(last), last)
+    throw fail(last instanceof Error ? describe(last, attempts) : String(last), last) //wsemip以字串回報者(如input path is not a folder)為wsemi自撰文字, 無路徑
 }
 
 

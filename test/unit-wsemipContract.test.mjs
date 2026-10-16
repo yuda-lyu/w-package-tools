@@ -97,13 +97,13 @@ describe('內附wsemip之契約守門(規則帳本R18、wsemip版本敏感站點
                 }
             })
 
-            it(`${nm}: 暫時性錯誤持續 → 重試耗盡後拋「can not clean folder[路徑]: 原因」且cause為原錯誤`, function() {
+            it(`${nm}: 暫時性錯誤持續 → 重試耗盡後拋「can not clean folder[絕對路徑]: code[…] attempts[…]」且cause為原錯誤`, function() {
                 let err = mkErr('EBUSY', 'EBUSY: resource busy')
                 let r = strictOf([mk(err)], fd)
-                //R18①: 最終拋can not clean folder[<fd>]: <原因>, cause為原錯誤; retries=2即共3次嘗試
+                //R18①、R19④: 最終拋can not clean folder[<絕對路徑>]: code[<code>] attempts[<次數>](不引用Node之message), cause為原錯誤; retries=2即共3次嘗試
                 assert.strict.deepStrictEqual(r.ok, false)
                 assert.strict.deepStrictEqual(r.calls, 3)
-                assert.strict.deepStrictEqual(msgOf(r.e), `can not clean folder[${fd}]: EBUSY: resource busy`)
+                assert.strict.deepStrictEqual(msgOf(r.e), `can not clean folder[${path.resolve(fd)}]: code[EBUSY] attempts[3]`)
                 assert.strict.deepStrictEqual(r.e.cause, err)
             })
 
@@ -114,7 +114,7 @@ describe('內附wsemip之契約守門(規則帳本R18、wsemip版本敏感站點
                     //R18①: 其他錯誤不重試(EACCES等權限錯誤不重試)
                     assert.strict.deepStrictEqual(r.ok, false, code)
                     assert.strict.deepStrictEqual(r.calls, 1, code)
-                    assert.strict.deepStrictEqual(msgOf(r.e), `can not clean folder[${fd}]: ${code}: denied`)
+                    assert.strict.deepStrictEqual(msgOf(r.e), `can not clean folder[${path.resolve(fd)}]: code[${code}] attempts[1]`)
                     assert.strict.deepStrictEqual(r.e.cause, err)
                 }
             })
@@ -125,7 +125,7 @@ describe('內附wsemip之契約守門(規則帳本R18、wsemip版本敏感站點
             //R18①: 非success之回傳依錯誤碼處置, 無code之字串不重試
             assert.strict.deepStrictEqual(r.ok, false)
             assert.strict.deepStrictEqual(r.calls, 1)
-            assert.strict.deepStrictEqual(msgOf(r.e), `can not clean folder[${fd}]: input path is not a folder`)
+            assert.strict.deepStrictEqual(msgOf(r.e), `can not clean folder[${path.resolve(fd)}]: input path is not a folder`)
             assert.strict.deepStrictEqual(r.e.cause, 'input path is not a folder')
         })
     })
@@ -247,6 +247,21 @@ describe('內附wsemip之契約守門(規則帳本R18、wsemip版本敏感站點
                 r = e
             }
             assert.strict.ok(r instanceof Error && /is not a folder/.test(r.message), msgOf(r))
+        })
+    })
+
+    describe('內附三個bundle之版本(規則帳本R18: wsemip、wpf、wpf_pmSeries須同版; 不同版即須於帳本說明)', function() {
+
+        it('src/wsemip.umd.js、src/wpf.umd.js、src/wpf_pmSeries.umd.js之banner版本一致', function() {
+            //wsemi之同一輪發布會同時重產wsemip(toolfp/dist)與wpf、wpf_pmSeries(toolparfor/dist); 升wsemip而漏看wpf曾使wpf落後一整輪(帳本R18)
+            let vers = {}
+            for (let nm of ['wsemip', 'wpf', 'wpf_pmSeries']) {
+                let head = fs.readFileSync(`./src/${nm}.umd.js`, 'utf8').slice(0, 300)
+                let m = head.match(new RegExp(`^/\\*!\\s*\\r?\\n \\* ${nm} v(\\d+\\.\\d+\\.\\d+)`))
+                assert.strict.ok(m, `${nm}.umd.js開頭無版本banner: ${JSON.stringify(head.slice(0, 80))}`)
+                vers[nm] = m[1]
+            }
+            assert.strict.deepStrictEqual(new Set(Object.values(vers)).size, 1, `三個內附bundle版本不一致: ${JSON.stringify(vers)}`)
         })
     })
 

@@ -5,6 +5,7 @@ import w from './wsemip.umd.js'
 import pathResolve from './pathResolve.mjs'
 import rollupWorker from './rollupWorker.mjs'
 import rollupFile from './rollupFile.mjs'
+import { rejectWpt, rmTempFile } from './wptCommon.mjs'
 
 
 function genParforCoreCode(fpPmSeries, fpCore) {
@@ -42,6 +43,7 @@ function genParforCoreCode(fpPmSeries, fpCore) {
 }
 
 
+//genParforCode, 產生parfor程式碼(產物自含, 模板內無法import wptCommon, 故其cb檢查就地建立與wptError同形狀之Error: 帶WPT_PARFOR_NO_CB碼, 帳本R19站點27)
 function genParforCode(fpWpf, fpParforCore) {
     let c = `
     import get from 'lodash-es/get.js'
@@ -63,7 +65,9 @@ function genParforCode(fpWpf, fpParforCore) {
     
         //check
         if (!returnResult && !w.isfun(cb)) {
-            return Promise.reject('cb is not a function, need to set opt.returnResult to true')
+            let err = new Error('cb is not a function, need to set opt.returnResult to true')
+            err.code = 'WPT_PARFOR_NO_CB'
+            return Promise.reject(err)
         }
     
         //takeLimit
@@ -208,25 +212,25 @@ async function rollupParfor(opt = {}) {
     //name
     let name = _.get(opt, 'name', null)
     if (!w.isestr(name)) {
-        return Promise.reject('invalid opt.name')
+        return rejectWpt('WPT_INVALID_NAME', 'invalid opt.name')
     }
 
     //fpSrc
     let fpSrc = _.get(opt, 'fpSrc', null)
     if (!w.fsIsFile(fpSrc)) {
-        return Promise.reject('opt.fpSrc is not file')
+        return rejectWpt('WPT_INVALID_FPSRC', 'opt.fpSrc is not file')
     }
 
     //fpTar
     let fpTar = _.get(opt, 'fpTar', null)
     if (!w.isestr(fpTar)) {
-        return Promise.reject('invalid opt.fpTar')
+        return rejectWpt('WPT_INVALID_FPTAR', 'invalid opt.fpTar')
     }
 
     //type
     let type = _.get(opt, 'type', null)
     if (w.isestr(type) && type !== 'function') {
-        return Promise.reject(`opt.type need to set 'function'`)
+        return rejectWpt('WPT_INVALID_TYPE', `opt.type need to set 'function'`)
     }
 
     //formatOut, umd為瀏覽器端直接使用, es為供vue-cli或webpack使用
@@ -243,7 +247,7 @@ async function rollupParfor(opt = {}) {
 
     //check, iife以全域識別子傳入external模組, nodejs版outer引用之worker_threads於任何環境皆非全域變數, 產物載入即拋ReferenceError, 故iife僅支援runin為browser
     if (formatOut === 'iife' && runin !== 'browser') {
-        return Promise.reject(`formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
+        return rejectWpt('WPT_IIFE_RUNIN', `formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
     }
 
     //bLog
@@ -326,16 +330,11 @@ async function rollupParfor(opt = {}) {
 
     //core, 建置錯誤原樣往外拋(同rollupFile、rollupCode、rollupWorkerCore), 呼叫端才能中止後續產製; 不可catch後只印出, 否則呼叫端照常往下而發布舊產物或缺產物
     await core()
-        .finally(() => {
+        .finally(async () => {
 
-            //rmSync, 不論轉譯成功失敗都刪除暫存檔; 失敗時部分暫存檔尚未建立, 以force略過不存在者, 不印出ENOENT(會被誤認為真因)
+            //rmTempFile, 不論轉譯成功失敗都刪除暫存檔; 失敗時部分暫存檔尚未建立, 以force略過不存在者, 不印出ENOENT(會被誤認為真因); 刪除失敗只留一行警告, 不印Error物件、不拋錯(帳本R20)
             for (let fp of [fpTempParforCoreSrc, fpTempParforCoreTar, fpTempParforSrc]) {
-                try {
-                    fs.rmSync(fp, { force: true })
-                }
-                catch (err) {
-                    console.log(err)
-                }
+                await rmTempFile(fp)
             }
 
         })

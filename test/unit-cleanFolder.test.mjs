@@ -66,7 +66,9 @@ describe('清空資料夾失敗即錯誤(規則帳本R18)', function() {
             let r = throwsOf(() => cleanFolder(target))
             //R18: 目標為檔案、無法建立即拋錯
             assert.strict.deepStrictEqual(r.thrown, true, `target[${target}] 未拋錯`)
-            assert.strict.ok(msgOf(r.e).includes(`can not clean folder[${target}]`), msgOf(r.e))
+            //R19④: 括號內為絕對路徑(輸入非字串時為String(fd))
+            let shown = typeof target === 'string' ? path.resolve(target) : String(target)
+            assert.strict.ok(msgOf(r.e).includes(`can not clean folder[${shown}]`), msgOf(r.e))
         }
         assert.strict.deepStrictEqual(fs.readFileSync(fp, 'utf8'), 'x', '目標檔案不得被改動')
     })

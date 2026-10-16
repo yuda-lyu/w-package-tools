@@ -2,6 +2,7 @@ import _ from 'lodash-es'
 import w from './wsemip.umd.js'
 import rollupFile from './rollupFile.mjs'
 import { cleanFolderStrict } from './buildCheck.mjs'
+import { rejectWpt } from './wptCommon.mjs'
 
 
 /**
@@ -30,15 +31,20 @@ import { cleanFolderStrict } from './buildCheck.mjs'
  */
 async function rollupFiles(opt = {}) {
 
-    //cleanFolderStrict, 給定fdTar(寫檔模式)時先清空, 失敗(含暫時性占用重試後仍失敗)即reject, 不續行建置(帳本R18); 未給fdTar為回傳程式碼模式, 不清空
-    if (w.isestr(opt.fdTar)) {
-        cleanFolderStrict(w, opt.fdTar)
-    }
-
     //fns
     let fns = opt.fns
     if (_.isString(fns)) {
         fns = [fns]
+    }
+
+    //check, fns須為字串或陣列(物件容器仍沿用pmSeries之處理): 於清空fdTar之前檢查並以帶碼Error拒絕, 否則先清空輸出資料夾, 其後由wsemip之pmSeries以字串'rs is not an array or object'拒絕, 無堆疊亦無碼而不被下游偵測(帳本R19站點29)
+    if (!w.isarr(fns) && !w.isobj(fns)) {
+        return rejectWpt('WPT_INVALID_FNS', 'invalid opt.fns: need a file name string or an array of file name strings')
+    }
+
+    //cleanFolderStrict, 給定fdTar(寫檔模式)時先清空, 失敗(含暫時性占用重試後仍失敗)即reject, 不續行建置(帳本R18); 未給fdTar為回傳程式碼模式, 不清空
+    if (w.isestr(opt.fdTar)) {
+        cleanFolderStrict(w, opt.fdTar)
     }
 
     //pmSeries, 建置錯誤原樣往外拋(同rollupFile), 呼叫端才能中止後續產製; 註: 目標資料夾已於開頭清空, 失敗時其內為空或僅有先前檔案之產物

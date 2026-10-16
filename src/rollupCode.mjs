@@ -2,6 +2,7 @@ import fs from 'fs'
 import _ from 'lodash-es'
 import w from './wsemip.umd.js'
 import rollupFile from './rollupFile.mjs'
+import { rejectWpt, rmTempFile } from './wptCommon.mjs'
 
 
 /**
@@ -30,7 +31,7 @@ async function rollupCode(codeSrc, opt = {}) {
     //name
     let name = _.get(opt, 'name', null)
     if (!w.isestr(name)) {
-        return Promise.reject('invalid opt.name')
+        return rejectWpt('WPT_INVALID_NAME', 'invalid opt.name')
     }
 
     //formatIn
@@ -139,15 +140,10 @@ async function rollupCode(codeSrc, opt = {}) {
 
     //rollupFile
     let code = await rollupFile(o)
-        .finally(() => {
+        .finally(async () => {
 
-            //unlinkSync, 不論轉譯成功失敗都刪除檔案
-            try {
-                fs.unlinkSync(fpSrc)
-            }
-            catch (err) {
-                console.log(err)
-            }
+            //rmTempFile, 不論轉譯成功失敗都刪除檔案; 刪除失敗只留一行警告, 不印Error物件、不拋錯(帳本R20)
+            await rmTempFile(fpSrc)
 
         })
 

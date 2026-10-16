@@ -6,6 +6,7 @@ import w from './wsemip.umd.js'
 // import rollupWebWorker from './rollupWebWorker.mjs'
 import rollupWorkerCore from './rollupWorkerCore.mjs'
 import rollupCode from './rollupCode.mjs'
+import { rejectWpt, rmTempFile } from './wptCommon.mjs'
 
 
 function mergeNodejs(fpSrcNW) {
@@ -100,13 +101,13 @@ async function rollupWorker(opt = {}) {
     //name
     let name = _.get(opt, 'name', null)
     if (!w.isestr(name)) {
-        return Promise.reject('invalid opt.name')
+        return rejectWpt('WPT_INVALID_NAME', 'invalid opt.name')
     }
 
     //fpSrc
     let fpSrc = _.get(opt, 'fpSrc', null)
     if (!w.fsIsFile(fpSrc)) {
-        return Promise.reject('opt.fpSrc is not file')
+        return rejectWpt('WPT_INVALID_FPSRC', 'opt.fpSrc is not file')
     }
 
     //fn
@@ -115,7 +116,7 @@ async function rollupWorker(opt = {}) {
     //fpTar
     let fpTar = _.get(opt, 'fpTar', null)
     if (!w.isestr(fpTar)) {
-        return Promise.reject('invalid opt.fpTar')
+        return rejectWpt('WPT_INVALID_FPTAR', 'invalid opt.fpTar')
     }
 
     //nameDistType
@@ -154,7 +155,7 @@ async function rollupWorker(opt = {}) {
 
     //check, iife以全域識別子傳入external模組, nodejs版outer引用之worker_threads於任何環境皆非全域變數, 產物載入即拋ReferenceError, 故iife僅支援runin為browser
     if (formatOut === 'iife' && runin !== 'browser') {
-        return Promise.reject(`formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
+        return rejectWpt('WPT_IIFE_RUNIN', `formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
     }
 
     //formatOutCore, 中介產物須可被合併層import, iife無export故改用es; 其餘格式沿用使其產物不變
@@ -286,9 +287,9 @@ async function rollupWorker(opt = {}) {
 
     //core, 建置錯誤原樣往外拋(同rollupFile、rollupCode、rollupWorkerCore), 呼叫端才能中止後續產製; 不可catch後只印出, 否則呼叫端照常往下而發布舊產物或缺產物
     await core()
-        .finally(() => {
+        .finally(async () => {
 
-            //rmSync, 不論轉譯成功失敗都刪除暫存檔; 失敗時部分暫存檔尚未建立, 以force略過不存在者, 不印出ENOENT(會被誤認為真因)
+            //rmTempFile, 不論轉譯成功失敗都刪除暫存檔; 失敗時部分暫存檔尚未建立, 以force略過不存在者, 不印出ENOENT(會被誤認為真因); 刪除失敗只留一行警告, 不印Error物件、不拋錯(帳本R20)
             let fps = [fpSrcMg]
             if (runin === 'both' || runin === 'nodejs') {
                 fps.push(fpSrcNW)
@@ -297,12 +298,7 @@ async function rollupWorker(opt = {}) {
                 fps.push(fpSrcWW)
             }
             for (let fp of fps) {
-                try {
-                    fs.rmSync(fp, { force: true })
-                }
-                catch (err) {
-                    console.log(err)
-                }
+                await rmTempFile(fp)
             }
 
         })

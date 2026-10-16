@@ -15,6 +15,7 @@ import terser from '@rollup/plugin-terser'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import getPks from './getPks.mjs'
 import { genBuildCheck } from './buildCheck.mjs'
+import { rejectWpt } from './wptCommon.mjs'
 
 
 // let babelForJs = babel
@@ -89,7 +90,7 @@ async function rollupFileCore(opt = {}, internal = {}) {
             w.fsCreateFolder(fdTar) //失敗時不拋錯(回傳error物件), 由下方之檢查判定
         }
         if (!w.fsIsFolder(fdTar)) {
-            return Promise.reject(`invalid opt.fdTar[${fdTar}]: not a folder and can not be created`)
+            return rejectWpt('WPT_INVALID_FDTAR', `invalid opt.fdTar[${fdTar}]: not a folder and can not be created`)
         }
     }
     else {
@@ -109,7 +110,7 @@ async function rollupFileCore(opt = {}, internal = {}) {
         let fdSrc = _.get(opt, 'fdSrc', null)
         if (w.isestr(fdSrc)) {
             if (!w.fsIsFolder(fdSrc)) {
-                return Promise.reject(`invalid opt.fdSrc[${fdSrc}]: not a folder`)
+                return rejectWpt('WPT_INVALID_FDSRC', `invalid opt.fdSrc[${fdSrc}]: not a folder`)
             }
         }
         else {
@@ -120,7 +121,7 @@ async function rollupFileCore(opt = {}, internal = {}) {
 
     //check
     if (!w.fsIsFile(fpSrc)) {
-        return Promise.reject(`invalid fpSrc: ${fpSrc}`)
+        return rejectWpt('WPT_INVALID_FPSRC', `invalid fpSrc: ${fpSrc}`)
     }
 
     //console
@@ -437,7 +438,7 @@ async function rollupFileCore(opt = {}, internal = {}) {
 
         //check, 回傳程式碼模式只能交出單一程式碼, 產出多項(外掛emitFile之asset等)即reject, 不可靜默丟失
         if (output.length > 1) {
-            return Promise.reject(`return-code mode of rollupFile can not output multiple files: ${_.join(_.map(output, 'fileName'), ', ')}`)
+            return rejectWpt('WPT_MULTI_OUTPUT', `return-code mode of rollupFile can not output multiple files: ${_.join(_.map(output, 'fileName'), ', ')}`)
         }
 
         //code, exports
