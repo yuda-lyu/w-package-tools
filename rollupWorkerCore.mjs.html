@@ -52,6 +52,7 @@ import EventEmitter from 'eventemitter3'
 import w from './wsemip.umd.js'
 import { rollupFileCore } from './rollupFile.mjs'
 import rollupCode from './rollupCode.mjs'
+import { rejectWpt } from './wptCommon.mjs'
 
 
 let cmain = 'main' //'__system__main__'
@@ -933,7 +934,7 @@ async function rollupWorkerCore(opt = {}) {
     //name
     let name = _.get(opt, 'name', null)
     if (!w.isestr(name)) {
-        return Promise.reject('invalid opt.name')
+        return rejectWpt('WPT_INVALID_NAME', 'invalid opt.name')
     }
 
     //type
@@ -961,7 +962,7 @@ async function rollupWorkerCore(opt = {}) {
             funNames = []
         }
         else {
-            return Promise.reject('invalid opt.funNames')
+            return rejectWpt('WPT_INVALID_FUNNAMES', 'invalid opt.funNames')
         }
     }
 
@@ -969,10 +970,10 @@ async function rollupWorkerCore(opt = {}) {
     if (!(type === 'function' &amp;&amp; execFunctionByInstance)) {
         for (let funName of funNames) {
             if (!w.isestr(funName)) {
-                return Promise.reject(`invalid opt.funNames: [${funName}] is not a non-empty string`)
+                return rejectWpt('WPT_INVALID_FUNNAMES', `invalid opt.funNames: [${funName}] is not a non-empty string`)
             }
             if (funNamesReserved.includes(funName)) {
-                return Promise.reject(`opt.funNames[${funName}] is reserved by the returned object(EventEmitter): ${_.join(funNamesReserved, ', ')}`)
+                return rejectWpt('WPT_FUNNAMES_RESERVED', `opt.funNames[${funName}] is reserved by the returned object(EventEmitter): ${_.join(funNamesReserved, ', ')}`)
             }
         }
     }
@@ -986,11 +987,11 @@ async function rollupWorkerCore(opt = {}) {
     //check evNames, 事件由工廠回傳物件之on轉送, 只支援type為function且execFunctionByInstance為false; 其餘模式之evNames無作用或使每次呼叫失敗, 於建置時reject(帳本R12)
     if (_.size(evNames) > 0) {
         if (!(type === 'function' &amp;&amp; !execFunctionByInstance)) {
-            return Promise.reject(`opt.evNames only supports type[function] with execFunctionByInstance[false], but type is [${type}] and execFunctionByInstance is [${execFunctionByInstance}]`)
+            return rejectWpt('WPT_EVNAMES_UNSUPPORTED', `opt.evNames only supports type[function] with execFunctionByInstance[false], but type is [${type}] and execFunctionByInstance is [${execFunctionByInstance}]`)
         }
         for (let evName of evNames) {
             if (!w.isestr(evName)) {
-                return Promise.reject(`invalid opt.evNames: [${evName}] is not a non-empty string`)
+                return rejectWpt('WPT_INVALID_EVNAMES', `invalid opt.evNames: [${evName}] is not a non-empty string`)
             }
         }
     }
@@ -998,7 +999,7 @@ async function rollupWorkerCore(opt = {}) {
     //fpSrc
     let fpSrc = _.get(opt, 'fpSrc', null)
     if (!w.fsIsFile(fpSrc)) {
-        return Promise.reject('opt.fpSrc is not file')
+        return rejectWpt('WPT_INVALID_FPSRC', 'opt.fpSrc is not file')
     }
 
     //fn
@@ -1013,7 +1014,7 @@ async function rollupWorkerCore(opt = {}) {
     //fpTar
     let fpTar = _.get(opt, 'fpTar', null)
     if (!bReturnCode &amp;&amp; !w.isestr(fpTar)) {
-        return Promise.reject('invalid opt.fpTar')
+        return rejectWpt('WPT_INVALID_FPTAR', 'invalid opt.fpTar')
     }
 
     //nameDistType
@@ -1058,7 +1059,7 @@ async function rollupWorkerCore(opt = {}) {
 
     //check, iife以全域識別子傳入external模組, nodejs版outer引用之worker_threads於任何環境皆非全域變數, 產物會建置成功而載入即拋ReferenceError, 故iife僅支援runin為browser
     if (formatOut === 'iife' &amp;&amp; runin !== 'browser') {
-        return Promise.reject(`formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
+        return rejectWpt('WPT_IIFE_RUNIN', `formatOut[iife] only supports runin[browser], but runin is [${runin}]`)
     }
 
     //bNodePolyfill
@@ -1158,10 +1159,10 @@ async function rollupWorkerCore(opt = {}) {
     //check, 建置期檢查匯出(以rollup之chunk.exports判定, 非文字比對): type為function須有預設匯出, object須有預設或具名匯出; 不通過即reject, 不產出執行期才以誤導訊息失敗之產物(帳本R12)
     let exportsUser = _.isArray(rFile.exports) ? rFile.exports : []
     if (type === 'function' &amp;&amp; !exportsUser.includes('default')) {
-        return Promise.reject(`module[${fn}] has no default export, type[function] requires a default export, exports[${_.join(exportsUser, ', ')}]`)
+        return rejectWpt('WPT_NO_DEFAULT_EXPORT', `module[${fn}] has no default export, type[function] requires a default export, exports[${_.join(exportsUser, ', ')}]`)
     }
     if (type === 'object' &amp;&amp; _.size(exportsUser) === 0) {
-        return Promise.reject(`module[${fn}] has no export, type[object] requires a default export or named exports`)
+        return rejectWpt('WPT_NO_EXPORT', `module[${fn}] has no export, type[object] requires a default export or named exports`)
     }
 
     //addInnerWebWorkerCode, 使用者程式碼原樣嵌入(以CommonJS模組包裝函數執行, 不以文字比對清除匯出敘述)
@@ -1173,7 +1174,7 @@ async function rollupWorkerCore(opt = {}) {
         new vm.Script(codeTransAdd, { filename: `inner of ${fn}` }) // eslint-disable-line no-new
     }
     catch (err) {
-        return Promise.reject(`inner of worker[${fn}] has syntax error: ${err.message}`)
+        return rejectWpt('WPT_INNER_SYNTAX', `inner of worker[${fn}] has syntax error: ${err.message}`)
     }
 
     //addOuterWebWorkerCode
@@ -1245,7 +1246,7 @@ export default rollupWorkerCore
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Fri Oct 16 2026 18:40:03 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sat Oct 17 2026 06:39:55 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
