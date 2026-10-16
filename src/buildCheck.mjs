@@ -573,7 +573,7 @@ function cleanFolderStrict(w, fd, opt = {}) {
             r = w.fsCleanFolder(fd)
         }
         catch (err) {
-            r = err //wsemip於清空前之檢查(型別判定等)可能直接拋出, 與回傳之錯誤同等判定是否重試
+            r = err //wsemip 1.9.16之清空前檢查(lstat等)失敗會直接拋出, 1.9.17起改回傳{ error }(不可達); 兩種形狀同等判定是否重試, 此分支刻意保留
         }
         if (r && !(r instanceof Error) && r.success !== undefined) {
             return r
