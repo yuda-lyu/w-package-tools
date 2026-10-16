@@ -44,7 +44,7 @@ describe('產製API之建置錯誤一律reject(規則帳本R9)', function() {
     let fdSrc = `${fdTmp}/src`
     let fnBad = 'badRel.mjs'
     let fpBad = path.resolve(fdSrc, fnBad)
-    let miss = 'does-not-exist-zzz' //須以相對路徑引用不存在之模組: 裸套件名rollup只警告並視為external而建置成功, 測不到錯誤回報
+    let miss = 'does-not-exist-zzz' //以相對路徑引用不存在之模組(rollup本即錯誤); 裸套件名之缺漏見unit-buildCheck(規則帳本R16)
 
     before(function() {
         fs.rmSync(fdTmp, { recursive: true, force: true })

@@ -70,6 +70,7 @@ function mergeCore(runin, fpSrcNW, fpSrcWW) {
  * 呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
  * 設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
  * 瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。
+ * 建置期檢查：原始碼(含相依)不可使用import.meta.url(inner以eval或blob執行而無模組位置；只判斷存在之守衛不在此限)；runin為browser時inner不得引用外部模組(含Node內建模組與列於external者，瀏覽器worker內無require)；其餘同rollupFile。皆於建置即reject且不產出。
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串，將來會掛於winodw下或於node引入使用
@@ -91,7 +92,7 @@ function mergeCore(runin, fpSrcNW, fpSrcWW) {
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
- * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupWorker(opt = {}) {

@@ -1,6 +1,7 @@
 import _ from 'lodash-es'
 import w from './wsemip.umd.js'
 import rollupFile from './rollupFile.mjs'
+import { cleanFolderStrict } from './buildCheck.mjs'
 
 
 /**
@@ -9,7 +10,7 @@ import rollupFile from './rollupFile.mjs'
  * @param {Object} opt 輸入設定物件
  * @param {String|Array} opt.fns 輸入原始碼檔案名稱字串陣列，各檔案含副檔名，不含所在資料夾
  * @param {String} [opt.fdSrc='./'] 輸入原始碼檔案所在資料夾字串，預設'./'
- * @param {String} [opt.fdTar=''] 輸入轉譯檔案至儲存資料夾字串，預設''
+ * @param {String} [opt.fdTar=''] 輸入轉譯檔案至儲存資料夾字串，給定時先清空該資料夾(不存在則建立)，清空失敗(含暫時性占用重試後仍失敗)即reject且不建置；未給時不清空且為回傳程式碼模式，預設''
  * @param {String} [opt.nameDistType=''] 輸入轉譯檔案名稱格式字串，可選'kebabCase'，預設''
  * @param {Function} [opt.hookNameDist=null]  輸入強制指定轉譯檔案名稱函數，預設null，會複寫nameDistType之處理結果
  * @param {String} [opt.format='umd'] 輸入轉譯格式字串，可選'umd'、'iife'、'es'，預設'umd'
@@ -24,13 +25,15 @@ import rollupFile from './rollupFile.mjs'
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
- * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupFiles(opt = {}) {
 
-    //fsCleanFolder
-    w.fsCleanFolder(opt.fdTar)
+    //cleanFolderStrict, 給定fdTar(寫檔模式)時先清空, 失敗(含暫時性占用重試後仍失敗)即reject, 不續行建置(帳本R18); 未給fdTar為回傳程式碼模式, 不清空
+    if (w.isestr(opt.fdTar)) {
+        cleanFolderStrict(w, opt.fdTar)
+    }
 
     //fns
     let fns = opt.fns

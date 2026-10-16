@@ -14,6 +14,7 @@ import { babel } from '@rollup/plugin-babel' //考慮ie11已剔除, 不須轉譯
 import terser from '@rollup/plugin-terser'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import getPks from './getPks.mjs'
+import { genBuildCheck } from './buildCheck.mjs'
 
 
 // let babelForJs = babel
@@ -22,6 +23,12 @@ import getPks from './getPks.mjs'
 
 /**
  * 使用rollup轉譯檔案
+ *
+ * 建置期檢查(依tree-shaking後之產物判定，任一不通過即reject且不產出)：
+ * ①產物仍引用之無法解析裸引用(套件或子路徑不存在、不存在之node:模組)建置失敗，Node內建模組除外(但iife、或runin為browser且bNodePolyfill時，未明列於external之內建模組亦失敗)；只以受守衛(try、.catch)之動態import()引用之選用相依只警告；確為執行期由使用端提供之模組須明列於opt.external；
+ * ②require(非字面值)會被commonjs換成呼叫即拋錯之樁，未受守衛(不在try內)之呼叫即建置失敗；
+ * ③format非es時，原始碼(含被打包之相依)取用import.meta之url以外屬性(dirname、filename、resolve、main、env、glob等)須受守衛(typeof、??、?.、條件判斷)，否則建置失敗(rollup只模擬url，其餘換成undefined)；亦不得寫入import.meta、以別名或解構取出url以外屬性；
+ * ④format為umd或cjs時，產物內不得有與import.meta.url墊片同名之宣告(umd：__filename、location；cjs：函數內之__filename)，否則墊片綁到該宣告而載入即TDZ或得錯值；import.meta.url於umd、cjs為產物檔之URL(非原始碼位置)。
  *
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.fn 輸入原始碼檔案名稱字串，檔案需含副檔名，不含所在資料夾
@@ -42,7 +49,7 @@ import getPks from './getPks.mjs'
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯檔案需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
- * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupFile(opt = {}) {
@@ -59,7 +66,8 @@ async function rollupFile(opt = {}) {
 
 
 //rollupFileCore, 內部用(非公開API): 轉譯並回傳{ bReturnCode, code, exports }, exports為rollup之chunk.exports(回傳程式碼模式才有), 供rollupWorkerCore於建置期檢查預設匯出; 此資訊不經公開opt交出
-async function rollupFileCore(opt = {}) {
+//  internal: 內部呼叫者之設定(不經公開opt), { workerInner: rollupWorkerCore之inner之runin('nodejs'或'browser'), 建置期另檢查inner不得使用import.meta.url、瀏覽器inner不得引用外部模組(帳本R16③、R17③) }
+async function rollupFileCore(opt = {}, internal = {}) {
 
     //bLog
     let bLog = _.get(opt, 'bLog', null)
@@ -193,7 +201,9 @@ async function rollupFileCore(opt = {}) {
     //runin
     let runin = _.get(opt, 'runin', null)
     if (runin !== 'nodejs' && runin !== 'browser') {
-        console.log(`invalid runin[${runin}], set to 'browser'`)
+        if (runin !== null) {
+            console.log(`invalid runin[${runin}], set to 'browser'`) //未給即用預設browser, 給了非法值才提示
+        }
         runin = 'browser'
     }
 
@@ -365,6 +375,10 @@ async function rollupFileCore(opt = {}) {
         extensions: ['.css']
     }))
 
+    //genBuildCheck, 建置期檢查(帳本R16、R17): 外掛須在terser之前以檢查未壓縮之輸出, onwarn記錄rollup之UNRESOLVED_IMPORT; workerInner由rollupWorkerCore經第二參數給定(不經公開opt)
+    let bc = genBuildCheck({ external, runin, bNodePolyfill, workerInner: _.get(internal, 'workerInner', null) })
+    plugins.push(bc.plugin)
+
     if (bMinify) {
         // plugins.push(terser.terser({
         //     output: {
@@ -395,6 +409,7 @@ async function rollupFileCore(opt = {}) {
         input: fpSrc,
         // treeshake: false,
         plugins,
+        onwarn: bc.onwarn, //記錄無法解析之裸引用並照常輸出警告, 由bc.plugin依產物判定(帳本R16①); 不用onLog: 其於rollup 3.25才有, 下游實裝之rollup最舊為3.20.2
     }
 
     //outputOptions

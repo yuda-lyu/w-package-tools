@@ -7,6 +7,8 @@ import rollupFile from './rollupFile.mjs'
 /**
  * 使用rollup轉譯程式碼
  *
+ * 建置期檢查同rollupFile(無法解析之裸引用、動態require樁、import.meta之屬性與墊片)。
+ *
  * @param {String} codeSrc 輸入程式碼字串
  * @param {Object} opt 輸入設定物件
  * @param {String} opt.name 輸入模組名稱字串
@@ -20,7 +22,7 @@ import rollupFile from './rollupFile.mjs'
  * @param {Array} [opt.mangleReserved=[]] 輸入當轉譯需壓縮時，需保留函數名稱或變數名稱陣列，預設[]
  * @param {Array} [opt.mainFields=null] 輸入取用套件內環境入口時，可強制給予循序入口陣列，各入口可選'browser'、'module'、'main'，給予null則代表用rollup內建，預設null
  * @param {Object} [opt.globals={}] 輸入指定內外模組的關聯性物件，預設{}
- * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列，預設[]
+ * @param {Array} [opt.external=[]] 輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]
  * @param {Boolean} [opt.bLog=true] 輸入是否顯示預設log布林值，預設true
  */
 async function rollupCode(codeSrc, opt = {}) {
@@ -52,7 +54,9 @@ async function rollupCode(codeSrc, opt = {}) {
     //runin
     let runin = _.get(opt, 'runin', null)
     if (runin !== 'nodejs' && runin !== 'browser') {
-        console.log(`invalid runin[${runin}], set to 'browser'`)
+        if (runin !== null) {
+            console.log(`invalid runin[${runin}], set to 'browser'`) //未給即用預設browser, 給了非法值才提示
+        }
         runin = 'browser'
     }
 

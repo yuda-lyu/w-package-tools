@@ -29,7 +29,7 @@
 <nav >
     
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
     
 </nav>
 
@@ -265,6 +265,166 @@
 
 
 
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="cleanFolder"><span class="type-signature"></span>cleanFolder<span class="signature">(fd)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>清空資料夾(不存在則建立)，給各專案之建置腳本使用</p>
+<p>失敗即拋錯(錯誤訊息為'can not clean folder[資料夾]: 原因')：目標為檔案、無法建立、未給路徑，或資料夾內項目被占用(EBUSY、EPERM、ENOTEMPTY)經重試10次(間隔300ms)後仍失敗；
+資料夾內之連結(符號連結、junction，含目標已不存在者)只移除連結本身；失敗時已刪除之項目不還原</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cleanFolder.mjs.html">cleanFolder.mjs</a>, <a href="cleanFolder.mjs.html#line14">line 14</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5 class="h5-parameters">Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fd</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>輸入欲清空資料夾路徑字串</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5 class="h5-returns">Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳結果物件{ success }</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -2116,13 +2276,14 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯程式碼</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯程式碼</p>
+<p>建置期檢查同rollupFile(無法解析之裸引用、動態require樁、import.meta之屬性與墊片)。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line26">line 26</a>
+        <a href="rollupCode.mjs.html">rollupCode.mjs</a>, <a href="rollupCode.mjs.html#line28">line 28</a>
     </li></ul></dd>
     
 
@@ -2734,7 +2895,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]</p></td>
         </tr>
 
     
@@ -2821,13 +2982,18 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯檔案</p>
+<p>建置期檢查(依tree-shaking後之產物判定，任一不通過即reject且不產出)：
+①產物仍引用之無法解析裸引用(套件或子路徑不存在、不存在之node:模組)建置失敗，Node內建模組除外(但iife、或runin為browser且bNodePolyfill時，未明列於external之內建模組亦失敗)；只以受守衛(try、.catch)之動態import()引用之選用相依只警告；確為執行期由使用端提供之模組須明列於opt.external；
+②require(非字面值)會被commonjs換成呼叫即拋錯之樁，未受守衛(不在try內)之呼叫即建置失敗；
+③format非es時，原始碼(含被打包之相依)取用import.meta之url以外屬性(dirname、filename、resolve、main、env、glob等)須受守衛(typeof、??、?.、條件判斷)，否則建置失敗(rollup只模擬url，其餘換成undefined)；亦不得寫入import.meta、以別名或解構取出url以外屬性；
+④format為umd或cjs時，產物內不得有與import.meta.url墊片同名之宣告(umd：__filename、location；cjs：函數內之__filename)，否則墊片綁到該宣告而載入即TDZ或得錯值；import.meta.url於umd、cjs為產物檔之URL(非原始碼位置)。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line48">line 48</a>
+        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line55">line 55</a>
     </li></ul></dd>
     
 
@@ -3695,7 +3861,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]</p></td>
         </tr>
 
     
@@ -3788,7 +3954,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFiles.mjs.html">rollupFiles.mjs</a>, <a href="rollupFiles.mjs.html#line30">line 30</a>
+        <a href="rollupFiles.mjs.html">rollupFiles.mjs</a>, <a href="rollupFiles.mjs.html#line31">line 31</a>
     </li></ul></dd>
     
 
@@ -4019,7 +4185,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入轉譯檔案至儲存資料夾字串，預設''</p></td>
+            <td class="description last"><p>輸入轉譯檔案至儲存資料夾字串，給定時先清空該資料夾(不存在則建立)，清空失敗(含暫時性占用重試後仍失敗)即reject且不建置；未給時不清空且為回傳程式碼模式，預設''</p></td>
         </tr>
 
     
@@ -4619,7 +4785,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]</p></td>
         </tr>
 
     
@@ -4706,13 +4872,14 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>使用rollup轉譯外部指定的核心分析程式碼檔案，並封裝至前端web worker與後端worker內</p>
+<p>建置期檢查同rollupWorker(原始碼不可使用import.meta.url；runin為browser時inner不得引用外部模組)。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupParfor.mjs.html">rollupParfor.mjs</a>, <a href="rollupParfor.mjs.html#line203">line 203</a>
+        <a href="rollupParfor.mjs.html">rollupParfor.mjs</a>, <a href="rollupParfor.mjs.html#line205">line 205</a>
     </li></ul></dd>
     
 
@@ -5608,7 +5775,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]</p></td>
         </tr>
 
     
@@ -6204,13 +6371,14 @@
 <p>原始碼之預設匯出(type='function'時須有；type='object'時取預設匯出，無預設匯出則以具名匯出之命名空間為物件)以CommonJS模組包裝執行後取得，與worker之內部程式碼互不可見，worker內為嚴格模式；
 呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
 設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
-瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。</p></li></ul></dd>
+瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。
+建置期檢查：原始碼(含相依)不可使用import.meta.url(inner以eval或blob執行而無模組位置；只判斷存在之守衛不在此限)；runin為browser時inner不得引用外部模組(含Node內建模組與列於external者，瀏覽器worker內無require)；其餘同rollupFile。皆於建置即reject且不產出。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line97">line 97</a>
+        <a href="rollupWorker.mjs.html">rollupWorker.mjs</a>, <a href="rollupWorker.mjs.html#line98">line 98</a>
     </li></ul></dd>
     
 
@@ -7106,7 +7274,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]</p></td>
         </tr>
 
     
@@ -7197,13 +7365,14 @@
 <p>原始碼之預設匯出(type='function'時須有；type='object'時取預設匯出，無預設匯出則以具名匯出之命名空間為物件)以CommonJS模組包裝執行後取得，與worker之內部程式碼互不可見，worker內為嚴格模式；
 呼叫type='object'與工廠回傳物件之方法時以該物件為this，type='function'且execFunctionByInstance=true時this為undefined。
 設計限制：worker內之程式碼若自行註冊process之uncaughtException，或瀏覽器error事件呼叫preventDefault，錯誤不會使worker結束，呼叫將懸置；
-瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。</p></li></ul></dd>
+瀏覽器worker內以self.close()自行結束時外層無從得知，呼叫將懸置(nodejs之process.exit則以worker exit拒絕)。
+建置期檢查：原始碼(含相依)不可使用import.meta.url(inner以eval或blob執行而無模組位置；只判斷存在之守衛不在此限)；runin為browser時inner不得引用外部模組(含Node內建模組與列於external者，瀏覽器worker內無require)；其餘同rollupFile。皆於建置即reject且不產出。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line882">line 882</a>
+        <a href="rollupWorkerCore.mjs.html">rollupWorkerCore.mjs</a>, <a href="rollupWorkerCore.mjs.html#line883">line 883</a>
     </li></ul></dd>
     
 
@@ -8143,7 +8312,7 @@
                 </td>
             
 
-            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列，預設[]</p></td>
+            <td class="description last"><p>輸入指定內部模組需引用外部模組陣列(字串以全名比對，深層子路徑須另列全名或改給RegExp)，未列入且無法解析之裸引用(Node內建模組除外)建置即失敗，預設[]</p></td>
         </tr>
 
     
@@ -8426,7 +8595,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Oct 13 2026 23:14:21 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Fri Oct 16 2026 16:10:21 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
