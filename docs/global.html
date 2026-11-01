@@ -29,7 +29,7 @@
 <nav >
     
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#genDocsExams">genDocsExams</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
     
 </nav>
 
@@ -1298,6 +1298,855 @@
 
     
 
+    <h4 class="name" id="genDocsExams"><span class="type-signature"></span>genDocsExams<span class="signature">(opt<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>產製範例頁與其所需資源至docs，給各專案之建置腳本使用（取代各專案自寫之toolg/gDocsExams.mjs與gDocExams.mjs）</p>
+<p>範例頁作為靜態網站（gh-pages）自給自足，不依賴npm之CDN：</p>
+<ol>
+<li>把fdSrc內檔案複製到fdTar（保留子資料夾；只有副檔名在extsText內者才讀成文字改寫，其餘原樣複製）。</li>
+<li>本套件自身之發布檔（dist）由部署工具提供：bin/gh-pages.mjs（各專案npm run deploy所用）會把專案根之./dist/一併部署為站台之dist/，
+故本函數預設不複製dist，也不檢查dist是否已建置（與dist建置之先後次序無關）；opt.bCopyDist為true才把fdDist複製到fdTarDist（預設不含.map），供不經bin/gh-pages部署之特殊情形。
+範例檔內自身之dist相對路徑引用（如'../dist/xxx.umd.js'）保持原字串，不換成CDN；fdTarDist為部署後dist在站台內之位置，預設'./docs/dist/'對應bin/gh-pages提供之站台dist/。
+若引用相對於範例檔所在位置，在複製後不再指向fdTarDist之同一檔（如範例檔在專案根、引用'dist/xxx.umd.js'，複製到docs/examples後失效），則改寫為指向fdTarDist之相對路徑。</li>
+<li>範例檔內指向其他自有套件（wsemi與w-開頭）之jsDelivr或unpkg網址（含未釘版、@latest、@x.y.z，含無協定之//開頭），
+以及本套件GitHub擁有者（取自package.json之repository）之gh-pages網址'https://擁有者.github.io/套件名/dist/…'（他套件之網址改指其gh-pages後之形態；/dist/以外之路徑視為導覽連結，不動），
+自fdNodeModules/套件名/路徑複製到fdLibs/套件名/路徑，並改為相對路徑；網址之?查詢與#片段保留。
+本機找不到者（套件未安裝，或套件內無該檔）：路徑為/dist/檔案者，改寫為'https://擁有者.github.io/套件名/dist/檔案'（自有套件皆同一擁有者，取本套件之擁有者）並列入warnings；
+路徑非/dist/者保留原網址並列入warnings。
+指向本套件自身之此類網址（路徑須以/dist/開頭）改指fdTarDist之同一檔。keepCdn內之套件（預設w-demores，資源型、檔案大）保留原網址。</li>
+<li>第三方套件（如vue、lodash、@babel/polyfill）之網址一律不動。</li>
+<li>一併改寫fdTar內既有之文字檔（非本次由fdSrc複製者，如gDistApp產製之app.html、gExtractHtml產製之頁面；opt.bInplace預設true），規則同上（以檔案目前位置判定其相對引用）；
+因此本函數應在產製這些頁面之步驟之後執行。fdLibs與fdTarDist位於fdTar內時不改寫其內之檔。</li>
+</ol>
+<p>套件名取自package.json之name。複製只增不刪，不清空任何目標資料夾（docs由各專案之建置腳本先清空）；相同路徑之檔會被覆蓋。
+不跟進連結（符號連結、junction），遇到則略過並列入warnings。結果同時以console.log印出。</p>
+<p>opt本身為undefined或null視為未給；其他非一般物件（字串、數字、布林、陣列）拋錯。opt各鍵為undefined或null取預設；給了而型別不符者視為未給、改用預設（不拋錯），
+opt.debug為true時另於warnings說明（'invalid opt.鍵: must be 種類, using default'，不含傳入之值）。</p>
+<p>失敗即拋錯（Error物件，帶code），且先於任何寫入：opt為非一般物件為'WPT_DOCS_INVALID_OPT'；package.json讀不到或無name為'WPT_DOCS_INVALID_PKG'；
+fdSrc（非空字串時）或files內之檔不存在為'WPT_DOCS_SRC_NOT_FOUND'；目標資料夾位於來源資料夾之內為'WPT_DOCS_PATH_OVERLAP'。
+找不到資源（dist未建置、node_modules內無該套件或檔案、網址含樣板變數、路徑跳出套件資料夾）不拋錯，列入warnings。</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="genDocsExams.mjs.html">genDocsExams.mjs</a>, <a href="genDocsExams.mjs.html#line149">line 149</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5 class="h5-examples">Example</h5>
+    
+    <pre class="prettyprint"><code>//各專案之toolg/gDocsExams.mjs（範例在./examples/）
+import genDocsExams from 'w-package-tools/src/genDocsExams.mjs'
+
+genDocsExams()
+
+//範例在./test-html/
+genDocsExams({ fdSrc: './test-html/' })
+
+//無範例頁之套件不必呼叫本函數（dist由bin/gh-pages部署時提供）；
+//特殊情形需把dist複製進docs（不經bin/gh-pages部署）時
+genDocsExams({ fdSrc: '', bCopyDist: true })</code></pre>
+
+
+
+
+    <h5 class="h5-parameters">Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>opt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入設定物件，預設{}</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fdSrc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./examples/'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入範例檔來源資料夾路徑字串，預設'./examples/'；給''表示不複製範例，只複製dist</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fdTar</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./docs/examples/'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入範例檔輸出資料夾路徑字串，預設'./docs/examples/'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>files</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入只複製fdSrc內指定檔案之陣列（相對fdSrc之路徑字串），預設null表示複製fdSrc內全部檔案</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fdDist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./dist/'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入發布檔來源資料夾路徑字串，預設'./dist/'；用於判定範例檔之相對dist引用是否指向本套件之dist，bCopyDist為true時亦為複製來源</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fdTarDist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./docs/dist/'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入發布檔在站台內之位置（資料夾路徑字串），預設'./docs/dist/'；範例檔內自身dist引用之改寫以此為準，bCopyDist為true時亦為複製目的地</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bCopyDist</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否把fdDist複製到fdTarDist布林值，預設false（dist由bin/gh-pages部署時提供）；true時dist未建置、為空、範例引用之檔不在dist皆列入warnings</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fdLibs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./docs/libs/'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入其他自有套件檔案輸出資料夾路徑字串，預設'./docs/libs/'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fdNodeModules</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./node_modules/'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入node_modules資料夾路徑字串，預設'./node_modules/'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fnPks</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./package.json'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入package.json路徑字串，預設'./package.json'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepCdn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>['w-demores']</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入保留CDN網址不複製之自有套件名稱陣列，預設['w-demores']；給[]表示無保留</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>extsText</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>['.html','.htm','.js','.mjs','.css']</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入讀成文字改寫網址之副檔名陣列（含.），預設['.html','.htm','.js','.mjs','.css']</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bDistMap</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入bCopyDist為true時是否複製dist內之.map檔布林值，預設false</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bInplace</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否一併改寫fdTar內既有之文字檔布林值，預設true；false時只改寫本次由fdSrc複製之檔</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bLog</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否於主控台印出摘要布林值，預設true</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>debug</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入是否於warnings說明因型別不符而改用預設之鍵布林值，預設false</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5 class="h5-returns">Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳摘要物件{ name, examples, inplace, dist, libs, rewrites, keeps, warnings }，examples為複製之範例檔（相對fdTar）、inplace為原地改寫之fdTar既有檔（相對fdTar，僅列內容有變動者）、
+dist為複製之發布檔（相對fdTarDist，bCopyDist為true才有）、libs為複製之其他自有套件檔（相對fdLibs，如'wsemi/dist/wsemi.umd.js'）、
+rewrites為改寫之網址陣列[{ file, from, to }]、keeps為依keepCdn保留之網址陣列[{ file, url }]、warnings為警告字串陣列</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="getPks"><span class="type-signature"></span>getPks<span class="signature">(fn<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
@@ -1654,7 +2503,7 @@
 
     
 
-    <h4 class="name" id="modifyReadme"><span class="type-signature"></span>modifyReadme<span class="signature">(fnRM<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="modifyReadme"><span class="type-signature"></span>modifyReadme<span class="signature">(fnRM<span class="signature-attributes">opt</span>, fnPks<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
@@ -1664,13 +2513,21 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>更新readme內cdn連結為最新版本</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>更新readme內cdn連結</p>
+<ol>
+<li>指向自有套件（wsemi與w-開頭，含本套件與其他自有套件）發布檔之jsDelivr或unpkg網址（含未釘版、@latest、@x.y.z，路徑須為/dist/…），
+改為gh-pages網址'https://擁有者.github.io/套件名/dist/…'（擁有者取自package.json之repository.url；?查詢與#片段保留）。
+因npm已不是自有套件之發布來源，CDN上無現行版；gh-pages之dist由genDocsExams複製。徽章（img.shields.io、www.jsdelivr.com/package）與第三方套件之網址不動，
+自有套件之非/dist/路徑（如w-demores之/res/…）亦不動。取不到擁有者（無repository.url或非GitHub）時不改寫網址，於主控台印出警告。</li>
+<li>其餘字樣'本套件名@x.y.z'換成package.json之現行版號。</li>
+</ol>
+<p>內容無變動時不寫檔。擁有者於網址中以小寫表示（gh-pages主機名為小寫）。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="modifyReadme.mjs.html">modifyReadme.mjs</a>, <a href="modifyReadme.mjs.html#line11">line 11</a>
+        <a href="modifyReadme.mjs.html">modifyReadme.mjs</a>, <a href="modifyReadme.mjs.html#line27">line 27</a>
     </li></ul></dd>
     
 
@@ -1713,6 +2570,14 @@
 
 
 
+
+
+    <h5 class="h5-examples">Example</h5>
+    
+    <pre class="prettyprint"><code>//各專案之toolg/modifyReadme.mjs
+import modifyReadme from 'w-package-tools/src/modifyReadme.mjs'
+
+modifyReadme()</code></pre>
 
 
 
@@ -1779,7 +2644,47 @@
                 </td>
             
 
-            <td class="description last"><p>輸入readme檔案路徑字串</p></td>
+            <td class="description last"><p>輸入readme檔案路徑字串，預設'./README.md'；給了而非非空字串者視為未給，改用預設</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fnPks</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./package.json'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入package.json路徑字串，預設'./package.json'；給了而非非空字串者視為未給，改用預設</p></td>
         </tr>
 
     
@@ -1801,6 +2706,29 @@
 
 
 
+<h5 class="h5-returns">Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳摘要物件{ changed, rewrites, warnings }，changed為是否寫檔、rewrites為改寫為gh-pages之網址陣列[{ from, to }]、warnings為警告字串陣列</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -8595,7 +9523,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sat Oct 17 2026 06:39:55 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sun Nov 01 2026 23:05:31 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

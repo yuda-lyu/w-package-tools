@@ -1,0 +1,531 @@
+import fs from 'fs'
+import path from 'path'
+import getPks from './getPks.mjs'
+import { wptError } from './wptCommon.mjs'
+import { newCdnUrlRegex, getRepoOwner, ghPagesUrl } from './ownPkg.mjs'
+
+
+//toPosix, 路徑分隔轉為/
+function toPosix(s) {
+    return s.split(path.sep).join('/')
+}
+
+
+//relUrl, 由fromDir(資料夾)到toPath之相對網址, 一律以./或../開頭
+function relUrl(fromDir, toPath) {
+    let r = toPosix(path.relative(fromDir, toPath))
+    if (r === '') {
+        return '.'
+    }
+    return /^\.\.?(\/|$)/.test(r) ? r : `./${r}`
+}
+
+
+//isInside, child是否等於或位於parent之內(皆為絕對路徑, Windows下不分大小寫由path.relative處理)
+function isInside(child, parent) {
+    let r = path.relative(parent, child)
+    return r === '' || (!r.startsWith('..') && !path.isAbsolute(r))
+}
+
+
+//isOutside, 相對路徑(posix, 由path.relative得到)是否空、跳出或為絕對路徑(不是起點資料夾內之檔)
+function isOutside(r) {
+    return r === '' || r === '..' || r.startsWith('../') || path.isAbsolute(r)
+}
+
+
+//isSimpleDistPath, 網址路徑是否為/dist/下之單純檔案路徑(可據以組成gh-pages網址): 以/dist/開頭且其後至少一段, 各段非空且不為.與..(以解碼後判定), 解碼後無反斜線(含%5C), 原字串無%2F
+function isSimpleDistPath(pthRaw, pthFs) {
+    if (!pthFs.startsWith('/dist/') || pthFs.includes('\\') || /%2f/i.test(pthRaw)) {
+        return false
+    }
+    return pthFs.slice('/dist/'.length).split('/').every((s) => s !== '' && s !== '.' && s !== '..')
+}
+
+
+//decodePath, 網址路徑轉檔案系統路徑用: 含%才解碼, 解碼失敗回傳null
+function decodePath(s) {
+    if (!s.includes('%')) {
+        return s
+    }
+    try {
+        return decodeURIComponent(s)
+    }
+    catch (e) {
+        return null
+    }
+}
+
+
+//walk, 遞迴列出資料夾內檔案(相對posix路徑, 排序); 連結(符號連結、junction)不跟進, 記入skipped
+function walk(fd, skipped, base = fd) {
+    let out = []
+    let ents = fs.readdirSync(fd, { withFileTypes: true })
+    ents.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+    for (let ent of ents) {
+        let fp = path.join(fd, ent.name)
+        if (ent.isSymbolicLink()) {
+            skipped.push(fp)
+        }
+        else if (ent.isDirectory()) {
+            out.push(...walk(fp, skipped, base))
+        }
+        else if (ent.isFile()) {
+            out.push(toPosix(path.relative(base, fp)))
+        }
+    }
+    return out
+}
+
+
+//copyFile, 複製檔案(自動建立上層資料夾)
+function copyFile(fpSrc, fpTar) {
+    fs.mkdirSync(path.dirname(fpTar), { recursive: true })
+    fs.copyFileSync(fpSrc, fpTar)
+}
+
+
+/**
+ * 產製範例頁與其所需資源至docs，給各專案之建置腳本使用（取代各專案自寫之toolg/gDocsExams.mjs與gDocExams.mjs）
+ *
+ * 範例頁作為靜態網站（gh-pages）自給自足，不依賴npm之CDN：
+ * 1. 把fdSrc內檔案複製到fdTar（保留子資料夾；只有副檔名在extsText內者才讀成文字改寫，其餘原樣複製）。
+ * 2. 本套件自身之發布檔（dist）由部署工具提供：bin/gh-pages.mjs（各專案npm run deploy所用）會把專案根之./dist/一併部署為站台之dist/，
+ *    故本函數預設不複製dist，也不檢查dist是否已建置（與dist建置之先後次序無關）；opt.bCopyDist為true才把fdDist複製到fdTarDist（預設不含.map），供不經bin/gh-pages部署之特殊情形。
+ *    範例檔內自身之dist相對路徑引用（如'../dist/xxx.umd.js'）保持原字串，不換成CDN；fdTarDist為部署後dist在站台內之位置，預設'./docs/dist/'對應bin/gh-pages提供之站台dist/。
+ *    若引用相對於範例檔所在位置，在複製後不再指向fdTarDist之同一檔（如範例檔在專案根、引用'dist/xxx.umd.js'，複製到docs/examples後失效），則改寫為指向fdTarDist之相對路徑。
+ * 3. 範例檔內指向其他自有套件（wsemi與w-開頭）之jsDelivr或unpkg網址（含未釘版、@latest、@x.y.z，含無協定之//開頭），
+ *    以及本套件GitHub擁有者（取自package.json之repository）之gh-pages網址'https://擁有者.github.io/套件名/dist/…'（他套件之網址改指其gh-pages後之形態；/dist/以外之路徑視為導覽連結，不動），
+ *    自fdNodeModules/套件名/路徑複製到fdLibs/套件名/路徑，並改為相對路徑；網址之?查詢與#片段保留。
+ *    本機找不到者（套件未安裝，或套件內無該檔）：路徑為/dist/檔案者，改寫為'https://擁有者.github.io/套件名/dist/檔案'（自有套件皆同一擁有者，取本套件之擁有者）並列入warnings；
+ *    路徑非/dist/者保留原網址並列入warnings。
+ *    指向本套件自身之此類網址（路徑須以/dist/開頭）改指fdTarDist之同一檔。keepCdn內之套件（預設w-demores，資源型、檔案大）保留原網址。
+ * 4. 第三方套件（如vue、lodash、@babel/polyfill）之網址一律不動。
+ * 5. 一併改寫fdTar內既有之文字檔（非本次由fdSrc複製者，如gDistApp產製之app.html、gExtractHtml產製之頁面；opt.bInplace預設true），規則同上（以檔案目前位置判定其相對引用）；
+ *    因此本函數應在產製這些頁面之步驟之後執行。fdLibs與fdTarDist位於fdTar內時不改寫其內之檔。
+ *
+ * 套件名取自package.json之name。複製只增不刪，不清空任何目標資料夾（docs由各專案之建置腳本先清空）；相同路徑之檔會被覆蓋。
+ * 不跟進連結（符號連結、junction），遇到則略過並列入warnings。結果同時以console.log印出。
+ *
+ * opt本身為undefined或null視為未給；其他非一般物件（字串、數字、布林、陣列）拋錯。opt各鍵為undefined或null取預設；給了而型別不符者視為未給、改用預設（不拋錯），
+ * opt.debug為true時另於warnings說明（'invalid opt.鍵: must be 種類, using default'，不含傳入之值）。
+ *
+ * 失敗即拋錯（Error物件，帶code），且先於任何寫入：opt為非一般物件為'WPT_DOCS_INVALID_OPT'；package.json讀不到或無name為'WPT_DOCS_INVALID_PKG'；
+ * fdSrc（非空字串時）或files內之檔不存在為'WPT_DOCS_SRC_NOT_FOUND'；目標資料夾位於來源資料夾之內為'WPT_DOCS_PATH_OVERLAP'。
+ * 找不到資源（dist未建置、node_modules內無該套件或檔案、網址含樣板變數、路徑跳出套件資料夾）不拋錯，列入warnings。
+ *
+ * @param {Object} [opt={}] 輸入設定物件，預設{}
+ * @param {String} [opt.fdSrc='./examples/'] 輸入範例檔來源資料夾路徑字串，預設'./examples/'；給''表示不複製範例，只複製dist
+ * @param {String} [opt.fdTar='./docs/examples/'] 輸入範例檔輸出資料夾路徑字串，預設'./docs/examples/'
+ * @param {Array} [opt.files=null] 輸入只複製fdSrc內指定檔案之陣列（相對fdSrc之路徑字串），預設null表示複製fdSrc內全部檔案
+ * @param {String} [opt.fdDist='./dist/'] 輸入發布檔來源資料夾路徑字串，預設'./dist/'；用於判定範例檔之相對dist引用是否指向本套件之dist，bCopyDist為true時亦為複製來源
+ * @param {String} [opt.fdTarDist='./docs/dist/'] 輸入發布檔在站台內之位置（資料夾路徑字串），預設'./docs/dist/'；範例檔內自身dist引用之改寫以此為準，bCopyDist為true時亦為複製目的地
+ * @param {Boolean} [opt.bCopyDist=false] 輸入是否把fdDist複製到fdTarDist布林值，預設false（dist由bin/gh-pages部署時提供）；true時dist未建置、為空、範例引用之檔不在dist皆列入warnings
+ * @param {String} [opt.fdLibs='./docs/libs/'] 輸入其他自有套件檔案輸出資料夾路徑字串，預設'./docs/libs/'
+ * @param {String} [opt.fdNodeModules='./node_modules/'] 輸入node_modules資料夾路徑字串，預設'./node_modules/'
+ * @param {String} [opt.fnPks='./package.json'] 輸入package.json路徑字串，預設'./package.json'
+ * @param {Array} [opt.keepCdn=['w-demores']] 輸入保留CDN網址不複製之自有套件名稱陣列，預設['w-demores']；給[]表示無保留
+ * @param {Array} [opt.extsText=['.html','.htm','.js','.mjs','.css']] 輸入讀成文字改寫網址之副檔名陣列（含.），預設['.html','.htm','.js','.mjs','.css']
+ * @param {Boolean} [opt.bDistMap=false] 輸入bCopyDist為true時是否複製dist內之.map檔布林值，預設false
+ * @param {Boolean} [opt.bInplace=true] 輸入是否一併改寫fdTar內既有之文字檔布林值，預設true；false時只改寫本次由fdSrc複製之檔
+ * @param {Boolean} [opt.bLog=true] 輸入是否於主控台印出摘要布林值，預設true
+ * @param {Boolean} [opt.debug=false] 輸入是否於warnings說明因型別不符而改用預設之鍵布林值，預設false
+ * @returns {Object} 回傳摘要物件{ name, examples, inplace, dist, libs, rewrites, keeps, warnings }，examples為複製之範例檔（相對fdTar）、inplace為原地改寫之fdTar既有檔（相對fdTar，僅列內容有變動者）、
+ * dist為複製之發布檔（相對fdTarDist，bCopyDist為true才有）、libs為複製之其他自有套件檔（相對fdLibs，如'wsemi/dist/wsemi.umd.js'）、
+ * rewrites為改寫之網址陣列[{ file, from, to }]、keeps為依keepCdn保留之網址陣列[{ file, url }]、warnings為警告字串陣列
+ * @example
+ * //各專案之toolg/gDocsExams.mjs（範例在./examples/）
+ * import genDocsExams from 'w-package-tools/src/genDocsExams.mjs'
+ *
+ * genDocsExams()
+ *
+ * //範例在./test-html/
+ * genDocsExams({ fdSrc: './test-html/' })
+ *
+ * //無範例頁之套件不必呼叫本函數（dist由bin/gh-pages部署時提供）；
+ * //特殊情形需把dist複製進docs（不經bin/gh-pages部署）時
+ * genDocsExams({ fdSrc: '', bCopyDist: true })
+ */
+function genDocsExams(opt = {}) {
+
+    //check opt: opt為undefined或null視為未給; 其他非一般物件無效(規格輸入參數之檢測機制V4)
+    if (opt === null) {
+        opt = {}
+    }
+    if (typeof opt !== 'object' || Array.isArray(opt)) {
+        throw wptError('WPT_DOCS_INVALID_OPT', 'invalid opt: must be an object')
+    }
+
+    //各鍵給了而不屬該鍵種類者視為未給, 改用預設(K3); opt.debug為true時於warnings說明(固定詞彙, 不含傳入之值, K9)
+    let bDebug = opt.debug === true
+    let optMsgs = []
+    let bad = (k, desc) => {
+        if (bDebug) {
+            optMsgs.push(`invalid opt.${k}: must be ${desc}, using default`)
+        }
+    }
+    let strOpt = (k, def) => {
+        let v = opt[k]
+        if (v === undefined || v === null) {
+            return def
+        }
+        if (typeof v !== 'string' || v === '') {
+            bad(k, 'a non-empty string')
+            return def
+        }
+        return v
+    }
+    let arrOpt = (k, def) => {
+        let v = opt[k]
+        if (v === undefined || v === null) {
+            return def
+        }
+        if (!Array.isArray(v) || v.some((x) => typeof x !== 'string' || x === '')) {
+            bad(k, 'an array of non-empty strings')
+            return def
+        }
+        return v
+    }
+    let bolOpt = (k, def) => {
+        let v = opt[k]
+        if (v === undefined || v === null) {
+            return def
+        }
+        if (typeof v !== 'boolean') {
+            bad(k, 'a boolean')
+            return def
+        }
+        return v
+    }
+
+    //fdSrc為字串類(可空): ''表示無範例頁; 型別不符退預設
+    let fdSrcRaw = './examples/'
+    if (typeof opt.fdSrc === 'string') {
+        fdSrcRaw = opt.fdSrc
+    }
+    else if (opt.fdSrc !== undefined && opt.fdSrc !== null) {
+        bad('fdSrc', 'a string')
+    }
+    let bExam = fdSrcRaw !== ''
+    let files = arrOpt('files', null)
+    let fdTarRaw = strOpt('fdTar', './docs/examples/')
+    let fdDistRaw = strOpt('fdDist', './dist/')
+    let fdTarDistRaw = strOpt('fdTarDist', './docs/dist/')
+    let fdLibsRaw = strOpt('fdLibs', './docs/libs/')
+    let fdNodeModulesRaw = strOpt('fdNodeModules', './node_modules/')
+    let fnPksRaw = strOpt('fnPks', './package.json')
+    let keepCdn = arrOpt('keepCdn', ['w-demores'])
+    let extsText = arrOpt('extsText', ['.html', '.htm', '.js', '.mjs', '.css']).map((s) => s.toLowerCase())
+    let bCopyDist = bolOpt('bCopyDist', false)
+    let bDistMap = bolOpt('bDistMap', false)
+    let bInplace = bolOpt('bInplace', true)
+    let bLog = bolOpt('bLog', true)
+
+    //絕對路徑於進入時即固定, 避免之後cwd改變
+    let fdSrc = bExam ? path.resolve(fdSrcRaw) : ''
+    let fdTar = path.resolve(fdTarRaw)
+    let fdDist = path.resolve(fdDistRaw)
+    let fdTarDist = path.resolve(fdTarDistRaw)
+    let fdLibs = path.resolve(fdLibsRaw)
+    let fdNodeModules = path.resolve(fdNodeModulesRaw)
+
+    //pks
+    let pks
+    try {
+        pks = getPks(fnPksRaw)
+    }
+    catch (e) {
+        throw wptError('WPT_DOCS_INVALID_PKG', `can not read package.json[${path.resolve(fnPksRaw)}]: code[${(e && e.code) || (e && e.name)}]`)
+    }
+    if (!pks || typeof pks.name !== 'string' || pks.name === '') {
+        throw wptError('WPT_DOCS_INVALID_PKG', `package.json[${path.resolve(fnPksRaw)}] has no name`)
+    }
+    let name = pks.name
+    let owner = getRepoOwner(pks).toLowerCase() //GitHub擁有者(gh-pages主機名為小寫); 取不到則不辨識gh-pages形態之網址
+
+    //目標不得位於來源之內(會自我複製或無窮遞迴, 或把產物寫進專案之dist); 範例若以files指定檔案則不遞迴fdSrc, 不檢查; fdTarDist只在bCopyDist時被寫入, 才檢查
+    let srcs = [fdDist]
+    let tgts = [['fdTar', fdTar], ['fdLibs', fdLibs]]
+    if (bCopyDist) {
+        tgts.push(['fdTarDist', fdTarDist])
+    }
+    if (bExam && files === null) {
+        srcs.push(fdSrc)
+    }
+    for (let [kt, ft] of tgts) {
+        for (let fs0 of srcs) {
+            if (isInside(ft, fs0)) {
+                throw wptError('WPT_DOCS_PATH_OVERLAP', `opt.${kt}[${ft}] must not be inside source folder[${fs0}]`)
+            }
+        }
+    }
+
+    //result
+    let res = { name, examples: [], inplace: [], dist: [], libs: [], rewrites: [], keeps: [], warnings: [] }
+    let warnKeys = [] //與warnings同序; 主控台依key歸併同類警告(如多頁各有一則), 預設key即警告全文
+    let warn = (s, key = s) => {
+        res.warnings.push(s)
+        warnKeys.push(key)
+    }
+    let skipLinks = (lt) => {
+        for (let fp of lt) {
+            warn(`symbolic link or junction[${fp}] was skipped`)
+        }
+    }
+    for (let s of optMsgs) {
+        warn(s)
+    }
+
+    //範例檔清單, 全部檢測先於任何寫入(失敗時不留副作用)
+    let ltEx = []
+    if (bExam) {
+        if (!fs.existsSync(fdSrc) || !fs.statSync(fdSrc).isDirectory()) {
+            throw wptError('WPT_DOCS_SRC_NOT_FOUND', `source folder[${fdSrc}] not found`)
+        }
+        if (files === null) {
+            let skipped = []
+            ltEx = walk(fdSrc, skipped)
+            skipLinks(skipped)
+        }
+        else {
+            ltEx = files.map((s) => toPosix(path.normalize(s)))
+            for (let rel of ltEx) {
+                let fp = path.resolve(fdSrc, rel)
+                if (!isInside(fp, fdSrc) || !fs.existsSync(fp) || !fs.statSync(fp).isFile()) {
+                    throw wptError('WPT_DOCS_SRC_NOT_FOUND', `file[${fp}] in opt.files not found in source folder[${fdSrc}]`)
+                }
+            }
+        }
+    }
+
+    //dist, 預設由bin/gh-pages部署時提供, 不複製也不檢查; 僅bCopyDist為true時複製發布檔(並以其檔案集合驗證範例之引用)
+    let distSet = new Set()
+    let bDist = bCopyDist && fs.existsSync(fdDist) && fs.statSync(fdDist).isDirectory()
+    if (bDist) {
+        let skipped = []
+        let lt = walk(fdDist, skipped)
+        skipLinks(skipped)
+        for (let rel of lt) {
+            if (!bDistMap && rel.toLowerCase().endsWith('.map')) {
+                continue
+            }
+            copyFile(path.join(fdDist, rel), path.join(fdTarDist, rel))
+            distSet.add(rel)
+            res.dist.push(rel)
+        }
+        if (distSet.size === 0) {
+            warn(`dist folder[${fdDist}] has no file to copy, please build dist before this step`)
+        }
+    }
+    else if (bCopyDist) {
+        warn(`dist folder[${fdDist}] not found, nothing copied to[${fdTarDist}], please build dist before this step`)
+    }
+
+    //libs, 其他自有套件之檔案只複製一次
+    let libSet = new Set()
+
+    //rewriteText, 改寫單一文字檔之內容; fpSrc為檔案原本位置, fpTar為輸出位置(fdTar內既有之檔原地改寫, 兩者相同)
+    let rewriteText = (c, fpSrc, fpTar, relName) => {
+        let dirSrc = path.dirname(fpSrc)
+        let dirTar = path.dirname(fpTar)
+
+        //a. 相對於範例檔之dist引用(如'../dist/x.umd.js'), 前一字元不得為[\w./:@~-]以排除'libs/xx/dist/'、'https://xx/dist/'等
+        c = c.replace(/(?<![\w./:@~-])((?:\.{1,2}\/)*)dist\/([^'"`\s)<>?#]+)/g, (m, up, rest) => {
+            let restFs = decodePath(rest)
+            if (restFs === null) {
+                warn(`dist reference[${m}] in file[${relName}] can not be decoded, kept`)
+                return m
+            }
+            let absRef = path.resolve(dirSrc, `${up}dist`, restFs)
+            if (!isInside(absRef, fdDist)) {
+                return m //指向他處之dist資料夾, 不是本套件之dist
+            }
+            let relInDist = toPosix(path.relative(fdDist, absRef))
+            if (bCopyDist && !distSet.has(relInDist)) {
+                warn(`dist file[${relInDist}] referenced by file[${relName}] is not in dist folder[${fdDist}]${bDist ? '' : ' (folder not found)'}, the reference will not work in docs`)
+            }
+
+            //複製後原引用仍指向fdTarDist之同一檔者, 保持原樣
+            let expected = path.join(fdTarDist, relInDist)
+            if (path.relative(path.resolve(dirTar, `${up}dist`, restFs), expected) === '') {
+                return m
+            }
+            let to = `${relUrl(dirTar, fdTarDist)}/${rest}`
+            res.rewrites.push({ file: relName, from: m, to })
+            return to
+        })
+
+        //b. 指向自有套件之CDN網址, 以及本套件擁有者之gh-pages網址(他套件之dist, 規格規則2改寫後之形態)
+        c = c.replace(newCdnUrlRegex(owner), (m, pkName, ver, pth) => {
+
+            //gh-pages形態只處理/dist/…; 其他(如/examples/…、/global.html之導覽連結)不是資源引用, 不動、不警告
+            if (owner !== '' && m.replace(/^(?:https?:)?\/\//, '').startsWith(`${owner}.github.io/`) && !(pth && pth.startsWith('/dist/') && pth !== '/dist/')) {
+                return m
+            }
+
+            //keepCdn
+            if (keepCdn.includes(pkName)) {
+                res.keeps.push({ file: relName, url: m })
+                return m
+            }
+
+            //樣板變數(${…}、{{…}})無法於建置時解析
+            if (/[${}]/.test(m)) {
+                warn(`url[${m}] in file[${relName}] has template placeholder, kept`)
+                return m
+            }
+
+            //無路徑(jsDelivr會依package.json決定入口檔, 無法對應本機檔案)
+            if (!pth || pth === '/') {
+                warn(`url[${m}] in file[${relName}] has no file path, kept`)
+                return m
+            }
+
+            //切出?與#之後, 查找檔案用路徑與保留用尾段
+            let iq = pth.search(/[?#]/)
+            let pthRaw = iq < 0 ? pth : pth.slice(0, iq)
+            let tail = iq < 0 ? '' : pth.slice(iq)
+            let pthFs = decodePath(pthRaw)
+            if (pthFs === null) {
+                warn(`url[${m}] in file[${relName}] can not be decoded, kept`)
+                return m
+            }
+
+            //本套件自身: 須為/dist/…, 指向fdTarDist之同一檔
+            if (pkName === name) {
+                if (!pthRaw.startsWith('/dist/')) {
+                    warn(`url[${m}] in file[${relName}] refers to own package but path is not under /dist/, kept`)
+                    return m
+                }
+                let relInDist = toPosix(path.relative(fdDist, path.resolve(fdDist, pthFs.slice('/dist/'.length))))
+                if (isOutside(relInDist)) {
+                    warn(`url[${m}] in file[${relName}] refers to own package but path is not a file inside dist folder, kept`)
+                    return m
+                }
+                if (bCopyDist && !distSet.has(relInDist)) {
+                    warn(`url[${m}] in file[${relName}] refers to own dist file[${relInDist}] which is not in dist folder[${fdDist}], kept`)
+                    return m
+                }
+                let to = `${relUrl(dirTar, fdTarDist)}${pthRaw.slice('/dist'.length)}${tail}`
+                res.rewrites.push({ file: relName, from: m, to })
+                return to
+            }
+
+            //其他自有套件: node_modules/<名>/<路徑>, 須位於該套件資料夾之內且為檔案
+            let base = path.join(fdNodeModules, pkName)
+            let fpLib = path.resolve(base, `.${pthFs}`)
+            if (!isInside(fpLib, base)) {
+                warn(`url[${m}] in file[${relName}] points outside package folder, kept`)
+                return m
+            }
+            let st = null
+            try {
+                st = fs.statSync(fpLib)
+            }
+            catch (e) {
+                st = null
+            }
+            if (!st || !st.isFile()) {
+
+                //路徑為/dist/<檔>者改指其gh-pages網址(自有套件皆同一擁有者, 取本套件擁有者; 規格規則2), 其餘保留原網址; 皆列入warnings
+                let to = ''
+                if (owner !== '' && isSimpleDistPath(pthRaw, pthFs)) {
+                    to = ghPagesUrl(owner, pkName, `${pthRaw}${tail}`)
+                }
+                let why = ''
+                if (to === '') {
+                    why = `file[${fpLib}] not found in node_modules, kept (please install ${pkName} or keep it via opt.keepCdn)`
+                }
+                else if (to === m) {
+                    why = `file[${fpLib}] not found in node_modules, kept as the gh-pages url (the page loads it from the network; please install ${pkName} for a self-contained page)`
+                }
+                else {
+                    why = `file[${fpLib}] not found in node_modules, rewritten to the gh-pages url[${to}] (the page loads it from the network; please install ${pkName} for a self-contained page)`
+                    res.rewrites.push({ file: relName, from: m, to })
+                }
+                warn(`url[${m}] in file[${relName}]: ${why}`, `url[${m}]: ${why}`)
+                return to === '' ? m : to
+            }
+            let relLib = toPosix(path.relative(base, fpLib))
+            let fpTarLib = path.join(fdLibs, pkName, relLib)
+            if (!libSet.has(fpTarLib)) {
+                libSet.add(fpTarLib)
+                copyFile(fpLib, fpTarLib)
+                res.libs.push(`${pkName}/${relLib}`)
+            }
+            let to = `${relUrl(dirTar, path.join(fdLibs, pkName))}${pthRaw}${tail}`
+            res.rewrites.push({ file: relName, from: m, to })
+            return to
+        })
+
+        return c
+    }
+
+    //examples, 複製範例檔
+    for (let rel of ltEx) {
+        let fpSrc = path.join(fdSrc, rel)
+        let fpTar = path.join(fdTar, rel)
+        if (extsText.includes(path.extname(rel).toLowerCase())) {
+            let c = fs.readFileSync(fpSrc, 'utf8')
+            let cNew = rewriteText(c, fpSrc, fpTar, rel)
+            if (cNew === c) {
+                copyFile(fpSrc, fpTar) //無改寫則原樣複製, 不經文字轉換(非UTF-8編碼之檔不被破壞)
+            }
+            else {
+                fs.mkdirSync(path.dirname(fpTar), { recursive: true })
+                fs.writeFileSync(fpTar, cNew, 'utf8')
+            }
+        }
+        else {
+            copyFile(fpSrc, fpTar)
+        }
+        res.examples.push(rel)
+    }
+
+    //inplace, 原地改寫fdTar內既有之文字檔(如gDistApp、gExtractHtml先前產製之頁面); 本次複製來之檔已改寫過, fdLibs與fdTarDist位於fdTar內時其內之檔不是頁面, 皆略過
+    if (bInplace && fs.existsSync(fdTar) && fs.statSync(fdTar).isDirectory()) {
+        let skipped = []
+        let lt = walk(fdTar, skipped)
+        skipLinks(skipped)
+        let copied = new Set(ltEx)
+        for (let rel of lt) {
+            let fpTar = path.join(fdTar, rel)
+            if (copied.has(rel) || !extsText.includes(path.extname(rel).toLowerCase()) || isInside(fpTar, fdLibs) || isInside(fpTar, fdTarDist)) {
+                continue
+            }
+            let c = fs.readFileSync(fpTar, 'utf8')
+            let cNew = rewriteText(c, fpTar, fpTar, rel)
+            if (cNew !== c) {
+                fs.writeFileSync(fpTar, cNew, 'utf8')
+                res.inplace.push(rel)
+            }
+        }
+    }
+
+    //log
+    if (bLog) {
+        console.log(`genDocsExams[${name}]: examples ${res.examples.length} file(s) -> ${fdTar}; in-place ${res.inplace.length} file(s); ${bCopyDist ? `dist ${res.dist.length} file(s) -> ${fdTarDist}` : 'dist not copied (provided by deploy)'}; libs ${res.libs.length} file(s) -> ${fdLibs}; rewritten ${res.rewrites.length} url(s); kept ${res.keeps.length} url(s); warnings ${res.warnings.length}`)
+        let cnt = {}
+        for (let r of res.rewrites) {
+            let k = `${r.from} -> ${r.to}`
+            cnt[k] = (cnt[k] || 0) + 1
+        }
+        for (let [k, n] of Object.entries(cnt)) {
+            console.log(`  rewrite x${n}: ${k}`)
+        }
+        let cntW = {}
+        res.warnings.forEach((s, i) => {
+            let k = warnKeys[i]
+            cntW[k] = cntW[k] || { n: 0, s }
+            cntW[k].n++
+        })
+        for (let [k, o] of Object.entries(cntW)) {
+            console.log(o.n > 1 ? `  warning x${o.n}: ${k}` : `  warning: ${o.s}`)
+        }
+    }
+
+    return res
+}
+
+
+export default genDocsExams

@@ -1,14 +1,38 @@
 import fs from 'fs'
 import getPks from './getPks.mjs'
 import getReadme from './getReadme.mjs'
+import { newCdnUrlRegex, getRepoOwner, ghPagesUrl } from './ownPkg.mjs'
 
 
 /**
- * 更新readme內cdn連結為最新版本
+ * 更新readme內cdn連結
  *
- * @param {String} [fnRM='./README.md'] 輸入readme檔案路徑字串
+ * 1. 指向自有套件（wsemi與w-開頭，含本套件與其他自有套件）發布檔之jsDelivr或unpkg網址（含未釘版、@latest、@x.y.z，路徑須為/dist/…），
+ *    改為gh-pages網址'https://擁有者.github.io/套件名/dist/…'（擁有者取自package.json之repository.url；?查詢與#片段保留）。
+ *    因npm已不是自有套件之發布來源，CDN上無現行版；gh-pages之dist由genDocsExams複製。徽章（img.shields.io、www.jsdelivr.com/package）與第三方套件之網址不動，
+ *    自有套件之非/dist/路徑（如w-demores之/res/…）亦不動。取不到擁有者（無repository.url或非GitHub）時不改寫網址，於主控台印出警告。
+ * 2. 其餘字樣'本套件名@x.y.z'換成package.json之現行版號。
+ *
+ * 內容無變動時不寫檔。擁有者於網址中以小寫表示（gh-pages主機名為小寫）。
+ *
+ * @param {String} [fnRM='./README.md'] 輸入readme檔案路徑字串，預設'./README.md'；給了而非非空字串者視為未給，改用預設
+ * @param {String} [fnPks='./package.json'] 輸入package.json路徑字串，預設'./package.json'；給了而非非空字串者視為未給，改用預設
+ * @returns {Object} 回傳摘要物件{ changed, rewrites, warnings }，changed為是否寫檔、rewrites為改寫為gh-pages之網址陣列[{ from, to }]、warnings為警告字串陣列
+ * @example
+ * //各專案之toolg/modifyReadme.mjs
+ * import modifyReadme from 'w-package-tools/src/modifyReadme.mjs'
+ *
+ * modifyReadme()
  */
 function modifyReadme(fnRM = './README.md', fnPks = './package.json') {
+
+    //帶預設值之位置參數視同opt鍵: 給了而非非空字串者視為未給, 改用預設(規格輸入參數之檢測機制K2、K3)
+    if (typeof fnRM !== 'string' || fnRM === '') {
+        fnRM = './README.md'
+    }
+    if (typeof fnPks !== 'string' || fnPks === '') {
+        fnPks = './package.json'
+    }
 
     //pks
     let pks = getPks(fnPks)
@@ -16,16 +40,47 @@ function modifyReadme(fnRM = './README.md', fnPks = './package.json') {
     //rdme
     let rdme = getReadme(fnRM)
 
+    let res = { changed: false, rewrites: [], warnings: [] }
+    let c = rdme.content
+
+    //cdn to gh-pages
+    let owner = getRepoOwner(pks)
+    let reCdn = newCdnUrlRegex()
+    if (owner === '') {
+        if (reCdn.test(c)) {
+            let msg = `can not get GitHub owner from repository of package.json[${fnPks}], cdn urls in readme[${fnRM}] were not changed to gh-pages`
+            res.warnings.push(msg)
+            console.log(`warning: ${msg}`)
+        }
+    }
+    else {
+        c = c.replace(reCdn, (m, pkName, ver, pth) => {
+
+            //只改發布檔(/dist/…); 其他路徑(如w-demores之/res/…)不是gh-pages上之dist, 不動
+            if (!pth || !pth.startsWith('/dist/') || pth === '/dist/') {
+                return m
+            }
+
+            let to = ghPagesUrl(owner, pkName, pth)
+            res.rewrites.push({ from: m, to })
+            return to
+        })
+    }
+
     //replace
     let sf = `(${pks.name}@)+(\\d+.\\d+.\\d+)`
     let sr = `${pks.name}@${pks.version}`
     let reg = new RegExp(sf, 'g')
-    let c = rdme.content.replace(reg, sr)
+    c = c.replace(reg, sr)
 
     //write
     //console.log(c)
-    fs.writeFileSync(fnRM, c, 'utf8')
+    if (c !== rdme.content) {
+        fs.writeFileSync(fnRM, c, 'utf8')
+        res.changed = true
+    }
 
+    return res
 }
 
 
