@@ -6,6 +6,7 @@ import genDocsExams from '../src/genDocsExams.mjs'
 
 
 //規則帳本R21: genDocsExams, 範例頁自給自足(不依賴npm之CDN); 以暫存夾內之假套件驗證, 不碰任何真實專案
+//wpt268(使用者2026-11-02): 引用其他自有套件者一律改寫為其gh-pages網址, 不複製至docs/libs/(本機node_modules有無皆然); dist改由genDocsDist複製(R24), 本函數不複製dist
 
 let root = path.resolve('./test/_tmp/genDocsExams')
 let seq = 0
@@ -38,12 +39,16 @@ let O = (dir, extra = {}) => ({
     fdTar: path.join(dir, 'docs/examples'),
     fdDist: path.join(dir, 'dist'),
     fdTarDist: path.join(dir, 'docs/dist'),
-    fdLibs: path.join(dir, 'docs/libs'),
-    fdNodeModules: path.join(dir, 'node_modules'),
     fnPks: path.join(dir, 'package.json'),
     bLog: false,
     ...extra,
 })
+
+//gh: 他自有套件(w-fake之擁有者為some-owner)之gh-pages網址
+let GH = 'https://some-owner.github.io'
+let gh = (name, rest) => `${GH}/${name}/${rest}`
+let WSEMI_CDN = 'https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js'
+let WSEMI_GH = gh('wsemi', 'dist/wsemi.umd.js')
 
 let throwsOf = (fn) => {
     try {
@@ -114,7 +119,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
 
     describe('預設路徑(子行程於假套件資料夾)', function() {
 
-        it('不給opt: ./examples/→./docs/examples/、其他自有套件→./docs/libs/; 自身../dist/引用保持相對; dist不複製(由bin/gh-pages部署時提供)', function() {
+        it('不給opt: ./examples/→./docs/examples/、其他自有套件→其gh-pages網址(不複製、無docs/libs); 自身../dist/引用保持相對; dist不複製(由genDocsDist負責)', function() {
             let dir = mkCase({
                 'examples/ex-a.html': page(script('../dist/w-fake.umd.js'), script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
                 'dist/w-fake.umd.js': 'DIST',
@@ -131,15 +136,15 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             //R21: bLog預設為true, 摘要印於主控台
             assert.strict.ok(r.stdout.split('__JSON__')[0].includes('genDocsExams[w-fake]'), r.stdout)
             //R21①: 範例複製到docs/examples, 自身../dist/引用不換成CDN
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../dist/w-fake.umd.js'), script('../libs/wsemi/dist/wsemi.umd.js')))
-            //R21①(wpt257b): dist預設不複製(由bin/gh-pages部署時提供), docs/dist不產生, 回傳之dist為空
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../dist/w-fake.umd.js'), script(WSEMI_GH)))
+            //wpt268: dist不由本函數複製(由genDocsDist負責), docs/dist不產生, 回傳無dist欄位
             assert.strict.deepStrictEqual(has(dir, 'docs/dist'), false)
-            assert.strict.deepStrictEqual(sum.dist, [])
-            //R21②: 其他自有套件複製到docs/libs
-            assert.strict.deepStrictEqual(get(dir, 'docs/libs/wsemi/dist/wsemi.umd.js'), 'WSEMI')
+            assert.strict.deepStrictEqual(Object.keys(sum), ['name', 'examples', 'inplace', 'rewrites', 'keeps', 'warnings'])
+            //wpt268(使用者2026-11-02): 其他自有套件一律改寫為gh-pages網址, 本機node_modules有該檔亦不複製、無docs/libs
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             assert.strict.deepStrictEqual(sum.warnings, [])
             //R21①: 自身../dist/引用不是改寫(只有他套件之網址1筆)
-            assert.strict.deepStrictEqual(sum.rewrites, [{ file: 'ex-a.html', from: 'https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js', to: '../libs/wsemi/dist/wsemi.umd.js' }])
+            assert.strict.deepStrictEqual(sum.rewrites, [{ file: 'ex-a.html', from: WSEMI_CDN, to: WSEMI_GH }])
         })
 
     })
@@ -152,7 +157,6 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             'docs/examples/pre.html': page(script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
             'dist/w-fake.umd.js': 'DIST',
             'dist/w-fake.umd.js.map': 'MAP',
-            'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
         })
         let baseSnap = null
         let getBase = () => {
@@ -161,8 +165,8 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 let { r1 } = runIn(dir, '{}')
                 assert.strict.deepStrictEqual(r1.warnings, [])
                 baseSnap = snap(path.join(dir, 'docs'))
-                assert.strict.deepStrictEqual(Object.keys(baseSnap).sort(), ['examples/ex-a.html', 'examples/pre.html', 'libs/wsemi/dist/wsemi.umd.js'])
-                assert.strict.deepStrictEqual(Buffer.from(baseSnap['examples/pre.html'], 'hex').toString('utf8'), page(script('../libs/wsemi/dist/wsemi.umd.js')))
+                assert.strict.deepStrictEqual(Object.keys(baseSnap).sort(), ['examples/ex-a.html', 'examples/pre.html'])
+                assert.strict.deepStrictEqual(Buffer.from(baseSnap['examples/pre.html'], 'hex').toString('utf8'), page(script(WSEMI_GH)))
             }
             return baseSnap
         }
@@ -170,11 +174,10 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
         let nonEmptyStr = 'a non-empty string'
         let arrStr = 'an array of non-empty strings'
         let cases = [
-            ['fdTar', '1', nonEmptyStr], ['fdTar', '\'\'', nonEmptyStr], ['fdTar', 'null', null], ['fdDist', '{}', nonEmptyStr], ['fdTarDist', '[]', nonEmptyStr],
-            ['fdLibs', '[\'SECRET-VALUE\']', nonEmptyStr], ['fdNodeModules', '0', nonEmptyStr], ['fnPks', '\'\'', nonEmptyStr],
+            ['fdTar', '1', nonEmptyStr], ['fdTar', '\'\'', nonEmptyStr], ['fdTar', 'null', null], ['fdDist', '{}', nonEmptyStr], ['fdTarDist', '[\'SECRET-VALUE\']', nonEmptyStr], ['fnPks', '\'\'', nonEmptyStr],
             ['fdSrc', '5', 'a string'], ['fdSrc', 'null', null],
             ['files', '\'a.html\'', arrStr], ['files', '[1]', arrStr], ['files', 'null', null], ['keepCdn', 'null', null], ['keepCdn', '\'w-demores\'', arrStr], ['keepCdn', '[\'wsemi\', \'\']', arrStr], ['extsText', '\'.html\'', arrStr],
-            ['bDistMap', '\'yes\'', 'a boolean'], ['bCopyDist', '\'yes\'', 'a boolean'], ['bCopyDist', '1', 'a boolean'], ['bInplace', '0', 'a boolean'], ['bInplace', 'null', null],
+            ['bInplace', '0', 'a boolean'], ['bInplace', 'null', null],
             ['bLog', '1', 'a boolean'], ['bLog', 'null', null], ['debug', '1', null],
         ]
         for (let [k, v, desc] of cases) {
@@ -203,6 +206,18 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             }
         })
 
+        it('已移除之鍵fdLibs、fdNodeModules、bCopyDist、bDistMap(原則14不留相容): 視為未宣告之鍵而忽略, 結果與不給相同(不複製dist、不產生libs), 不警告', function() {
+            let base = getBase()
+            let dir = fixture()
+            put(dir, 'node_modules/wsemi/dist/wsemi.umd.js', 'WSEMI')
+            let { r1, r2 } = runIn(dir, '{ fdLibs: \'./my-libs/\', fdNodeModules: \'./node_modules/\', bCopyDist: true, bDistMap: true }')
+            //wpt268: 即使給了舊鍵, dist不被複製、其他自有套件不被複製(無libs), docs內容同預設
+            assert.strict.deepStrictEqual(snap(path.join(dir, 'docs')), base)
+            assert.strict.deepStrictEqual(has(dir, 'my-libs'), false)
+            assert.strict.deepStrictEqual(r1.warnings, [])
+            assert.strict.deepStrictEqual(r2.warnings, [])
+        })
+
     })
 
     describe('①範例與dist之複製', function() {
@@ -214,15 +229,14 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 'examples/sub/deep/ex-b.html': page(script('../../../dist/w-fake.umd.js'), script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
                 'examples/img/pic.png': bin,
                 'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
             })
             let r = genDocsExams(O(dir))
             //R21①: 保留子資料夾, 全部檔案複製(相對fdTar之posix路徑, 排序)
             assert.strict.deepStrictEqual(r.examples, ['ex-a.html', 'img/pic.png', 'sub/deep/ex-b.html'])
             //R21①: 非文字副檔名原樣複製(不經文字轉換)
             assert.strict.deepStrictEqual(fs.readFileSync(path.join(dir, 'docs/examples/img/pic.png')).toString('hex'), bin.toString('hex'))
-            //R21①: 子資料夾內自身dist引用不變; 他套件之相對路徑依檔案深度計算
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/sub/deep/ex-b.html'), page(script('../../../dist/w-fake.umd.js'), script('../../../libs/wsemi/dist/wsemi.umd.js')))
+            //R21①: 子資料夾內自身dist引用不變(相對路徑依檔案深度, 站台上即docs/dist); 他套件一律為gh-pages網址(與檔案深度無關)
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/sub/deep/ex-b.html'), page(script('../../../dist/w-fake.umd.js'), script(WSEMI_GH)))
         })
 
         it('無改寫之文字檔(含非UTF-8位元組)原樣複製; 改寫之文字檔保留BOM與CRLF', function() {
@@ -232,16 +246,15 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 'examples/big5.html': raw,
                 'examples/bom.html': withBom,
                 'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
             })
             genDocsExams(O(dir))
             //R21①: 無改寫者不經UTF-8轉換
             assert.strict.deepStrictEqual(fs.readFileSync(path.join(dir, 'docs/examples/big5.html')).toString('hex'), raw.toString('hex'))
             //R21①: 改寫僅動網址, BOM與CRLF保留
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/bom.html'), withBom.replace('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js', '../libs/wsemi/dist/wsemi.umd.js'))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/bom.html'), withBom.replace(WSEMI_CDN, WSEMI_GH))
         })
 
-        it('dist: 預設不複製(docs/dist不產生、回傳dist為空); bCopyDist為true才含.wk.umd.js與子資料夾全部複製, 預設排除.map, bDistMap為true才含.map', function() {
+        it('dist: 不複製(docs/dist不產生、回傳無dist欄位), 不論dist是否存在、是否含.map或子資料夾; 範例之自身../dist/引用保持原字串(站台上之docs/dist由genDocsDist提供)', function() {
             let files = {
                 'examples/ex-a.html': page(script('../dist/w-fake.umd.js'), script('../dist/w-fake.wk.umd.js')),
                 'dist/w-fake.umd.js': 'A',
@@ -250,27 +263,17 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 'dist/sub/x.js': 'C',
                 'dist/sub/x.js.MAP': 'M2',
             }
-            //wpt257b: 預設不複製dist(部署時由bin/gh-pages提供), bDistMap單獨給不生效
+            //wpt268(使用者2026-11-02): 複製dist由genDocsDist負責(R24), 本函數不再複製
             let dir0 = mkCase(files)
             let r0 = genDocsExams(O(dir0))
-            assert.strict.deepStrictEqual(r0.dist, [])
+            assert.strict.deepStrictEqual('dist' in r0, false)
             assert.strict.deepStrictEqual(has(dir0, 'docs/dist'), false)
-            let r0b = genDocsExams(O(dir0, { bDistMap: true }))
-            assert.strict.deepStrictEqual(r0b.dist, [])
-            assert.strict.deepStrictEqual(has(dir0, 'docs/dist'), false)
-            let dir = mkCase(files)
-            let r = genDocsExams(O(dir, { bCopyDist: true }))
-            //R21①: bCopyDist為true時, .map預設排除(不分大小寫), 其餘遞迴複製
-            assert.strict.deepStrictEqual(r.dist, ['sub/x.js', 'w-fake.umd.js', 'w-fake.wk.umd.js'])
-            assert.strict.deepStrictEqual(snap(path.join(dir, 'docs/dist')), { 'sub/x.js': Buffer.from('C').toString('hex'), 'w-fake.umd.js': Buffer.from('A').toString('hex'), 'w-fake.wk.umd.js': Buffer.from('B').toString('hex') })
-            let dir2 = mkCase({
-                'examples/ex-a.html': page(script('../dist/w-fake.umd.js')),
-                'dist/w-fake.umd.js': 'A',
-                'dist/w-fake.umd.js.map': 'M1',
-            })
-            let r2 = genDocsExams(O(dir2, { bCopyDist: true, bDistMap: true }))
-            //R21①: 可由opt控制含.map
-            assert.strict.deepStrictEqual(r2.dist, ['w-fake.umd.js', 'w-fake.umd.js.map'])
+            assert.strict.deepStrictEqual(get(dir0, 'docs/examples/ex-a.html'), get(dir0, 'examples/ex-a.html'))
+            //dist不存在亦同(不警告、不建立)
+            let dir1 = mkCase({ 'examples/ex-a.html': page(script('../dist/w-fake.umd.js')) })
+            let r1 = genDocsExams(O(dir1))
+            assert.strict.deepStrictEqual(has(dir1, 'docs/dist'), false)
+            assert.strict.deepStrictEqual(r1.warnings, [])
         })
 
         it('extsText: 只有副檔名在內者才改寫; 預設.html/.htm/.js/.mjs/.css, 可由opt增加', function() {
@@ -281,19 +284,18 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 'examples/c.js': u,
                 'examples/d.json': u,
                 'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
             }
             let dir = mkCase(files)
             genDocsExams(O(dir))
             //R21①: 預設副檔名改寫(含大寫副檔名), .json不改
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/a.html'), '../libs/wsemi/dist/wsemi.umd.js')
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/b.HTM'), '../libs/wsemi/dist/wsemi.umd.js')
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/c.js'), '../libs/wsemi/dist/wsemi.umd.js')
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/a.html'), WSEMI_GH)
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/b.HTM'), WSEMI_GH)
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/c.js'), WSEMI_GH)
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/d.json'), u)
             let dir2 = mkCase(files)
             genDocsExams(O(dir2, { extsText: ['.json'] }))
             //R21①: extsText可由opt指定
-            assert.strict.deepStrictEqual(get(dir2, 'docs/examples/d.json'), '../libs/wsemi/dist/wsemi.umd.js')
+            assert.strict.deepStrictEqual(get(dir2, 'docs/examples/d.json'), WSEMI_GH)
             assert.strict.deepStrictEqual(get(dir2, 'docs/examples/a.html'), u)
         })
 
@@ -333,7 +335,6 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let dir = mkCase({
                 'examples/ex-a.html': page(script('../dist/w-fake.umd.js'), script('https://unpkg.com/wsemi@latest/dist/wsemi.umd.js')),
                 'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
                 'docs/dist/old.js': 'OLD',
             })
             let before = snap(path.join(dir, 'examples'))
@@ -351,7 +352,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
 
     })
 
-    describe('②其他自有套件之網址', function() {
+    describe('②其他自有套件之網址(一律改寫為其gh-pages網址, 不複製)', function() {
 
         let forms = [
             ['jsDelivr未釘版', 'https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js'],
@@ -365,23 +366,43 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             ['unpkg @latest', 'https://unpkg.com/wsemi@latest/dist/wsemi.umd.js'],
         ]
         for (let [title, u] of forms) {
-            it(`${title}: 自node_modules複製到docs/libs並改為相對路徑`, function() {
+            it(`${title}: 改寫為擁有者之gh-pages網址(不釘版、一律https), 不複製(本機node_modules有該檔亦然)`, function() {
                 let dir = mkCase({
                     'examples/ex-a.html': page(script(u)),
                     'dist/w-fake.umd.js': 'DIST',
                     'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
                 })
                 let r = genDocsExams(O(dir))
-                //R21②: 網址 → docs/libs/<名>/<路徑>之相對路徑; 檔案複製自node_modules
-                assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/wsemi/dist/wsemi.umd.js')))
-                assert.strict.deepStrictEqual(get(dir, 'docs/libs/wsemi/dist/wsemi.umd.js'), 'WSEMI')
-                assert.strict.deepStrictEqual(r.rewrites, [{ file: 'ex-a.html', from: u, to: '../libs/wsemi/dist/wsemi.umd.js' }])
-                assert.strict.deepStrictEqual(r.libs, ['wsemi/dist/wsemi.umd.js'])
+                //規格(使用者2026-11-02): 引用其他自有套件一律改寫為https://<擁有者>.github.io/<套件名>/dist/<檔>
+                assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(WSEMI_GH)))
+                assert.strict.deepStrictEqual(r.rewrites, [{ file: 'ex-a.html', from: u, to: WSEMI_GH }])
+                //規格(使用者2026-11-02): 撤掉docs/libs/, 不複製其檔
+                assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
+                assert.strict.deepStrictEqual(Object.keys(snap(path.join(dir, 'docs'))), ['examples/ex-a.html'])
                 assert.strict.deepStrictEqual(r.warnings, [])
             })
         }
 
-        it('gh-pages形態(本套件擁有者): 他套件/dist/…自node_modules複製並改相對路徑; 自身/dist/…改指docs/dist; 導覽連結與非/dist/路徑不動且不警告', function() {
+        it('本機node_modules有無該套件(或套件內有無該檔)結果皆同: 不依賴本機, 不警告', function() {
+            let files = { 'examples/ex-a.html': page(script(WSEMI_CDN), script('https://cdn.jsdelivr.net/npm/wsemi/dist/missing.umd.js'), script('https://cdn.jsdelivr.net/npm/w-not-installed/dist/a.umd.js')), 'dist/w-fake.umd.js': 'DIST' }
+            let want = page(script(WSEMI_GH), script(gh('wsemi', 'dist/missing.umd.js')), script(gh('w-not-installed', 'dist/a.umd.js')))
+            let dirA = mkCase({ ...files, 'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI', 'node_modules/w-not-installed/dist/a.umd.js': 'X' })
+            let dirB = mkCase(files)
+            let dirC = mkCase({ ...files, 'node_modules/wsemi/package.json': '{}' })
+            let rA = genDocsExams(O(dirA))
+            let rB = genDocsExams(O(dirB))
+            let rC = genDocsExams(O(dirC))
+            for (let [d, r] of [[dirA, rA], [dirB, rB], [dirC, rC]]) {
+                assert.strict.deepStrictEqual(get(d, 'docs/examples/ex-a.html'), want)
+                assert.strict.deepStrictEqual(r.warnings, [])
+                assert.strict.deepStrictEqual(r.rewrites.length, 3)
+                assert.strict.deepStrictEqual(has(d, 'docs/libs'), false)
+            }
+            //規格: 本機node_modules不被讀取或更動
+            assert.strict.deepStrictEqual(get(dirA, 'node_modules/wsemi/dist/wsemi.umd.js'), 'WSEMI')
+        })
+
+        it('gh-pages形態(本套件擁有者): 他套件/dist/…已是所要形態者原樣(不記為改寫、不警告), http與無協定者正規化為https; 自身/dist/…改指docs/dist; 導覽連結與非/dist/路徑不動且不警告', function() {
             let own = 'https://some-owner.github.io'
             let nav = [
                 '<a href="//some-owner.github.io/w-fake/examples/ex-a.html">x</a>',
@@ -394,40 +415,34 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 'examples/ex-a.html': page(script(`${own}/wsemi/dist/wsemi.umd.js`), script('//some-owner.github.io/w-jsonview-tree/dist/w-jsonview-tree.umd.js?v=2'), script('http://some-owner.github.io/w-fake/dist/w-fake.umd.js'), ...nav),
                 'dist/w-fake.umd.js': 'DIST',
                 'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
-                'node_modules/w-jsonview-tree/dist/w-jsonview-tree.umd.js': 'JV',
             })
             let r = genDocsExams(O(dir))
-            //規格(自有套件之瀏覽器端取用與gh-pages)規則2+3: 已改指gh-pages之他套件網址,於產製時就地化, 範例頁不對外取用
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/wsemi/dist/wsemi.umd.js'), script('../libs/w-jsonview-tree/dist/w-jsonview-tree.umd.js?v=2'), script('../dist/w-fake.umd.js'), ...nav))
-            assert.strict.deepStrictEqual([...r.libs].sort(), ['w-jsonview-tree/dist/w-jsonview-tree.umd.js', 'wsemi/dist/wsemi.umd.js'])
+            //規格(瀏覽器端取用與gh-pages規則2、3): 他套件之gh-pages網址不複製(原樣保留; 無協定正規化為https), 自身改指同站dist
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(`${own}/wsemi/dist/wsemi.umd.js`), script(`${own}/w-jsonview-tree/dist/w-jsonview-tree.umd.js?v=2`), script('../dist/w-fake.umd.js'), ...nav))
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             assert.strict.deepStrictEqual(r.warnings, [])
-            assert.strict.deepStrictEqual(r.rewrites.length, 3)
+            assert.strict.deepStrictEqual(r.rewrites.length, 2)
         })
 
-        it('gh-pages形態: 他人之github.io、擁有者不明(無repository)時不辨識(不動); 擁有者大小寫不拘; 找不到本機檔時保留並警告; keepCdn亦適用', function() {
+        it('gh-pages形態: 他人之github.io、擁有者不明(無repository)時不辨識(不動); 擁有者大小寫不拘(原樣即所要形態); keepCdn亦適用', function() {
             let u = 'https://some-owner.github.io/wsemi/dist/wsemi.umd.js'
             let uOther = 'https://other-owner.github.io/wsemi/dist/wsemi.umd.js'
             let base = { 'examples/ex-a.html': page(script(u), script(uOther)), 'dist/w-fake.umd.js': 'DIST', 'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI' }
-            //他人之github.io不動
+            //他人之github.io不動, 本套件擁有者之已是所要形態
             let dir = mkCase(base)
-            genDocsExams(O(dir))
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/wsemi/dist/wsemi.umd.js'), script(uOther)))
+            let r = genDocsExams(O(dir))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(u), script(uOther)))
+            assert.strict.deepStrictEqual(r.warnings, [])
+            assert.strict.deepStrictEqual(r.rewrites, [])
             //無repository: 擁有者不明, gh-pages形態不辨識
             let dir2 = mkCase({ ...base, 'package.json': JSON.stringify({ name: 'w-fake', version: '1.0.0' }) })
             let r2 = genDocsExams(O(dir2))
             assert.strict.deepStrictEqual(get(dir2, 'docs/examples/ex-a.html'), page(script(u), script(uOther)))
             assert.strict.deepStrictEqual(r2.warnings, [])
-            //擁有者大小寫不拘(gh-pages主機名為小寫)
-            let dir3 = mkCase({ ...base, 'package.json': JSON.stringify({ name: 'w-fake', repository: 'github:Some-Owner/w-fake' }) })
+            //擁有者大小寫不拘(gh-pages主機名為小寫): 以大寫擁有者之repository, http形態仍被辨識而正規化為https小寫主機
+            let dir3 = mkCase({ ...base, 'examples/ex-a.html': page(script('http://some-owner.github.io/wsemi/dist/wsemi.umd.js'), script(uOther)), 'package.json': JSON.stringify({ name: 'w-fake', repository: 'github:Some-Owner/w-fake' }) })
             genDocsExams(O(dir3))
-            assert.strict.deepStrictEqual(get(dir3, 'docs/examples/ex-a.html'), page(script('../libs/wsemi/dist/wsemi.umd.js'), script(uOther)))
-            //找不到本機檔
-            let dir4 = mkCase(base)
-            fs.rmSync(path.join(dir4, 'node_modules/wsemi'), { recursive: true, force: true })
-            let r4 = genDocsExams(O(dir4))
-            assert.strict.deepStrictEqual(get(dir4, 'docs/examples/ex-a.html'), page(script(u), script(uOther)))
-            assert.strict.deepStrictEqual(r4.warnings.length, 1)
-            assert.strict.ok(r4.warnings[0].includes(u), r4.warnings[0])
+            assert.strict.deepStrictEqual(get(dir3, 'docs/examples/ex-a.html'), page(script(u), script(uOther)))
             //keepCdn
             let dir5 = mkCase(base)
             let r5 = genDocsExams(O(dir5, { keepCdn: ['wsemi'] }))
@@ -435,7 +450,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.deepStrictEqual(r5.keeps, [{ file: 'ex-a.html', url: u }])
         })
 
-        it('同一檔被多頁引用只複製一次; ?查詢與#片段保留; 多個套件各自複製; CSS與JS內之網址亦改寫', function() {
+        it('多頁引用同一檔、多個套件; ?查詢與#片段保留; CSS與JS內之網址亦改寫; 皆不複製', function() {
             let dir = mkCase({
                 'examples/a.html': page(script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js?v=1#h'), script('https://cdn.jsdelivr.net/npm/w-jsonview-tree@latest/dist/w-jsonview-tree.umd.js')),
                 'examples/b.html': page(script('https://cdn.jsdelivr.net/npm/wsemi@1.0.0/dist/wsemi.umd.js')),
@@ -448,36 +463,16 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             })
             let r = genDocsExams(O(dir))
             //R21②: 查詢與片段保留
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/a.html'), page(script('../libs/wsemi/dist/wsemi.umd.js?v=1#h'), script('../libs/w-jsonview-tree/dist/w-jsonview-tree.umd.js')))
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/s.css'), '@import url(../libs/w-ui-x/dist/w-ui-x.css);')
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/m.mjs'), 'import x from \'../libs/wsemi/dist/wsemi.umd.js\'\n')
-            //R21②: 每個檔案只複製一次
-            assert.strict.deepStrictEqual([...r.libs].sort(), ['w-jsonview-tree/dist/w-jsonview-tree.umd.js', 'w-ui-x/dist/w-ui-x.css', 'wsemi/dist/wsemi.umd.js'])
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/a.html'), page(script(`${WSEMI_GH}?v=1#h`), script(gh('w-jsonview-tree', 'dist/w-jsonview-tree.umd.js'))))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/b.html'), page(script(WSEMI_GH)))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/s.css'), `@import url(${gh('w-ui-x', 'dist/w-ui-x.css')});`)
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/m.mjs'), `import x from '${WSEMI_GH}'\n`)
             assert.strict.deepStrictEqual(r.rewrites.length, 5)
+            assert.strict.deepStrictEqual(r.warnings, [])
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
         })
 
-        it('本機找不到(套件未安裝/套件內無該檔)且路徑為/dist/<檔>: 改寫為擁有者之gh-pages網址並列入warnings(含網址與檔名), 範例其餘仍複製', function() {
-            let u1 = 'https://cdn.jsdelivr.net/npm/w-not-installed/dist/a.umd.js'
-            let u2 = 'https://cdn.jsdelivr.net/npm/wsemi/dist/missing.umd.js'
-            let dir = mkCase({
-                'examples/ex-a.html': page(script(u1), script(u2), script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
-                'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
-            })
-            let r = genDocsExams(O(dir))
-            let g1 = 'https://some-owner.github.io/w-not-installed/dist/a.umd.js'
-            let g2 = 'https://some-owner.github.io/wsemi/dist/missing.umd.js'
-            //wpt257b/規格規則2: 找不到者(dist檔)改指擁有者(取自package.json之repository)之gh-pages網址; 本機有者仍就地化
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(g1), script(g2), script('../libs/wsemi/dist/wsemi.umd.js')))
-            assert.strict.deepStrictEqual(r.rewrites.map((x) => [x.from, x.to]), [[u1, g1], [u2, g2], ['https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js', '../libs/wsemi/dist/wsemi.umd.js']])
-            //R21②: 列入回傳之警告(含網址、檔名與改寫結果)
-            assert.strict.deepStrictEqual(r.warnings.length, 2)
-            assert.strict.ok(r.warnings[0].includes(u1) && r.warnings[0].includes('ex-a.html') && r.warnings[0].includes(`rewritten to the gh-pages url[${g1}]`), r.warnings[0])
-            assert.strict.ok(r.warnings[1].includes(u2) && r.warnings[1].includes('missing.umd.js') && r.warnings[1].includes(`rewritten to the gh-pages url[${g2}]`), r.warnings[1])
-            assert.strict.deepStrictEqual(r.libs, ['wsemi/dist/wsemi.umd.js'])
-        })
-
-        it('本機找不到之gh-pages網址: 版本與協定形式不拘(@x.y.z、@latest、無協定、http、unpkg)皆正規化為https且不釘版; ?查詢與#片段、%編碼保留', function() {
+        it('版本與協定形式不拘(@x.y.z、@latest、無協定、http、unpkg、fastly)皆正規化為https且不釘版; ?查詢與#片段、%編碼保留', function() {
             let us = [
                 'https://cdn.jsdelivr.net/npm/w-a@1.2.3/dist/a.umd.js',
                 'https://cdn.jsdelivr.net/npm/w-a@latest/dist/a.umd.js?v=1#h',
@@ -493,11 +488,11 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let o = 'https://some-owner.github.io'
             //不釘版(規格規則5)、保留查詢片段與編碼
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(`${o}/w-a/dist/a.umd.js`), script(`${o}/w-a/dist/a.umd.js?v=1#h`), script(`${o}/w-b/dist/sub/b%20c.js`), script(`${o}/w-c/dist/c.css`), script(`${o}/w-d/dist/d.umd.js`)))
-            assert.strict.deepStrictEqual(r.warnings.length, 5)
-            assert.strict.deepStrictEqual(r.libs, [])
+            assert.strict.deepStrictEqual(r.warnings, [])
+            assert.strict.deepStrictEqual(r.rewrites.length, 5)
         })
 
-        it('本機找不到且路徑不是單純之/dist/<檔>(/res/…、/dist/、/dist/../x、/dist//x、反斜線、%2F、無repository之擁有者不明): 保留原網址並警告, 不組gh-pages網址', function() {
+        it('路徑不是單純之/dist/<檔>(/res/…、/dist/、/dist/../x、/dist//x、反斜線、%2F、%5C、/dist/./x): 保留原網址並警告(gh-pages站台只提供dist/), 不組gh-pages網址', function() {
             let us = [
                 'https://cdn.jsdelivr.net/npm/w-a/res/data/x.js',
                 'https://cdn.jsdelivr.net/npm/w-a/dist/',
@@ -511,12 +506,15 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let dir = mkCase({
                 'examples/ex-a.html': page(...us.map(script)),
                 'dist/w-fake.umd.js': 'DIST',
+                'node_modules/w-a/res/data/x.js': 'LOCAL',
             })
             let r = genDocsExams(O(dir))
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(...us.map(script)))
             assert.strict.deepStrictEqual(r.rewrites, [])
             assert.strict.deepStrictEqual(r.warnings.length, us.length, JSON.stringify(r.warnings))
             assert.strict.ok(r.warnings.every((s) => s.includes('kept') && !s.includes('github.io')), JSON.stringify(r.warnings))
+            //本機有該檔亦不複製(無libs)
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             //擁有者不明(無repository): /dist/<檔>亦無法組網址, 保留並警告
             let dir2 = mkCase({
                 'examples/ex-a.html': page(script('https://cdn.jsdelivr.net/npm/w-a/dist/a.umd.js')),
@@ -525,30 +523,28 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let r2 = genDocsExams(O(dir2))
             assert.strict.deepStrictEqual(get(dir2, 'docs/examples/ex-a.html'), page(script('https://cdn.jsdelivr.net/npm/w-a/dist/a.umd.js')))
             assert.strict.deepStrictEqual(r2.warnings.length, 1)
+            assert.strict.ok(r2.warnings[0].includes('owner of this package is unknown'), r2.warnings[0])
             assert.strict.deepStrictEqual(r2.rewrites, [])
         })
 
-        it('本機找不到: keepCdn內之套件優先(保留CDN、不警告、列入keeps); 已是gh-pages網址者原樣保留並警告(不記為改寫); 本機找得到者不改指gh-pages', function() {
+        it('keepCdn內之套件優先(保留CDN、不警告、列入keeps); 已是gh-pages網址者原樣保留(不記為改寫、不警告)', function() {
             let ghU = 'https://some-owner.github.io/w-none/dist/n.umd.js'
             let dir = mkCase({
-                'examples/ex-a.html': page(script('https://cdn.jsdelivr.net/npm/w-demores/dist/x.js'), script(ghU), script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
+                'examples/ex-a.html': page(script('https://cdn.jsdelivr.net/npm/w-demores/dist/x.js'), script(ghU), script(WSEMI_CDN)),
             })
             let r = genDocsExams(O(dir))
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('https://cdn.jsdelivr.net/npm/w-demores/dist/x.js'), script(ghU), script('../libs/wsemi/dist/wsemi.umd.js')))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('https://cdn.jsdelivr.net/npm/w-demores/dist/x.js'), script(ghU), script(WSEMI_GH)))
             assert.strict.deepStrictEqual(r.keeps.length, 1)
-            assert.strict.deepStrictEqual(r.rewrites.map((x) => x.to), ['../libs/wsemi/dist/wsemi.umd.js'])
-            assert.strict.deepStrictEqual(r.warnings.length, 1)
-            assert.strict.ok(r.warnings[0].includes(ghU) && r.warnings[0].includes('kept as the gh-pages url'), r.warnings[0])
+            assert.strict.deepStrictEqual(r.rewrites.map((x) => x.to), [WSEMI_GH])
+            assert.strict.deepStrictEqual(r.warnings, [])
         })
 
         it('同類警告於主控台歸併: 多頁各一則者印一列「warning xN: …」(不含檔名), 單則者印全文; 回傳之warnings仍逐則完整', function() {
-            let u = 'https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.min.js'
+            let u = 'https://cdn.jsdelivr.net/npm/wsemi/res/x.js'
             let dir = mkCase({
                 'examples/a.html': page(script(u)),
                 'examples/b.html': page(script(u)),
-                'examples/c.html': page(script(u), script('https://cdn.jsdelivr.net/npm/w-solo/dist/solo.js')),
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
+                'examples/c.html': page(script(u), script('https://cdn.jsdelivr.net/npm/w-solo/res/solo.js')),
             })
             let { v, lines } = capture(() => genDocsExams(O(dir, { bLog: true })))
             //回傳逐則(含檔名)
@@ -561,7 +557,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.ok(ws.some((s) => s.startsWith('  warning: ') && s.includes('w-solo') && s.includes('file[c.html]')), ws.join('\n'))
         })
 
-        it('keepCdn: 預設w-demores保留CDN(不複製、不警告、列入keeps); 可指定其他套件; 給[]則一般處理', function() {
+        it('keepCdn: 預設w-demores保留CDN(不改寫、不警告、列入keeps); 可指定其他套件(取代預設); 給[]則一般處理', function() {
             let u = 'https://cdn.jsdelivr.net/npm/w-demores/res/data/dataEasy.js'
             let u2 = 'https://cdn.jsdelivr.net/npm/w-gis/dist/w-gis.umd.js'
             let files = {
@@ -572,25 +568,27 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             }
             let dir = mkCase(files)
             let r = genDocsExams(O(dir))
-            //R21②: 預設保留w-demores, 其餘(w-gis)複製
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(u), script('../libs/w-gis/dist/w-gis.umd.js')))
+            //R21②: 預設保留w-demores, 其餘(w-gis)改寫為gh-pages網址
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(u), script(gh('w-gis', 'dist/w-gis.umd.js'))))
             assert.strict.deepStrictEqual(r.keeps, [{ file: 'ex-a.html', url: u }])
-            assert.strict.deepStrictEqual(has(dir, 'docs/libs/w-demores'), false)
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             assert.strict.deepStrictEqual(r.warnings, [])
             let dir2 = mkCase(files)
             let r2 = genDocsExams(O(dir2, { keepCdn: ['w-gis'] }))
-            //R21②: keepCdn由opt指定(取代預設)
-            assert.strict.deepStrictEqual(get(dir2, 'docs/examples/ex-a.html'), page(script('../libs/w-demores/res/data/dataEasy.js'), script(u2)))
+            //R21②: keepCdn由opt指定(取代預設): w-gis保留, w-demores之/res/路徑不是/dist/<檔>, 保留原網址並警告
+            assert.strict.deepStrictEqual(get(dir2, 'docs/examples/ex-a.html'), page(script(u), script(u2)))
             assert.strict.deepStrictEqual(r2.keeps, [{ file: 'ex-a.html', url: u2 }])
+            assert.strict.deepStrictEqual(r2.warnings.length, 1)
+            assert.strict.ok(r2.warnings[0].includes(u), r2.warnings[0])
             let dir3 = mkCase(files)
-            fs.rmSync(path.join(dir3, 'node_modules/w-demores'), { recursive: true, force: true })
             let r3 = genDocsExams(O(dir3, { keepCdn: [] }))
-            //R21②: keepCdn為[]時w-demores與一般套件同(本機無則警告)
+            //R21②: keepCdn為[]時w-demores與一般套件同(/res/路徑警告)
             assert.strict.deepStrictEqual(r3.keeps, [])
             assert.strict.ok(r3.warnings.some((s) => s.includes(u)), JSON.stringify(r3.warnings))
+            assert.strict.deepStrictEqual(get(dir3, 'docs/examples/ex-a.html'), page(script(u), script(gh('w-gis', 'dist/w-gis.umd.js'))))
         })
 
-        it('第三方套件與外形相似者一律不動: 內容位元一致、無libs、無警告', function() {
+        it('第三方套件與外形相似者一律不動: 內容位元一致、無警告', function() {
             let html = page(
                 script('https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.min.js'),
                 script('https://cdn.jsdelivr.net/npm/lodash/lodash.min.js'),
@@ -619,12 +617,12 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let r = genDocsExams(O(dir))
             //R21③: 第三方與非自有套件之網址不動
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), html)
-            assert.strict.deepStrictEqual(r.libs, [])
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             assert.strict.deepStrictEqual(r.rewrites, [])
             assert.strict.deepStrictEqual(r.warnings, [])
         })
 
-        it('本套件名取自package.json(不寫死): 自身CDN網址(任何版號/形式)改指docs/dist, 他名視為其他自有套件', function() {
+        it('本套件名取自package.json(不寫死): 自身CDN網址(任何版號/形式)改指docs/dist, 他名視為其他自有套件(改指其gh-pages網址)', function() {
             let dir = mkCase({
                 'examples/ex-a.html': page(
                     script('https://cdn.jsdelivr.net/npm/w-foo-bar@9.9.9/dist/w-foo-bar.umd.js'),
@@ -641,15 +639,15 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(
                 script('../dist/w-foo-bar.umd.js'),
                 script('../dist/w-foo-bar.wk.umd.js?x=1'),
-                script('../libs/w-foo/dist/w-foo.umd.js'),
+                script(gh('w-foo', 'dist/w-foo.umd.js')),
                 script('../dist/w-foo-bar.umd.js')
             ))
             assert.strict.deepStrictEqual(r.name, 'w-foo-bar')
-            assert.strict.deepStrictEqual(r.libs, ['w-foo/dist/w-foo.umd.js'])
             assert.strict.deepStrictEqual(r.warnings, [])
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
         })
 
-        it('自身網址: 路徑不在/dist/下、或跳出dist(/dist/../x、/dist/)保留原網址並警告; 檔不在dist者, 預設(dist由部署提供, 不驗證)改指同站dist, bCopyDist為true時保留並警告', function() {
+        it('自身網址: 路徑不在/dist/下、或跳出dist(/dist/../x、/dist/)保留原網址並警告; /dist/下之單純檔名一律改指同站dist(dist內有無該檔不驗證, 由genDocsDist負責)', function() {
             let u1 = 'https://cdn.jsdelivr.net/npm/w-fake@1.0.0/dist/nofile.umd.js'
             let u2 = 'https://cdn.jsdelivr.net/npm/w-fake@1.0.0/res/a.js'
             let u3 = 'https://cdn.jsdelivr.net/npm/w-fake@1.0.0/dist/../x.js'
@@ -663,18 +661,12 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             }
             let dir = mkCase(files)
             let r = genDocsExams(O(dir))
-            //wpt257b: 預設不複製也不驗證dist(部署時由bin/gh-pages提供), 檔名單純者改指同站dist; 非/dist/下與跳出dist者保留並警告
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../dist/nofile.umd.js'), ...outs.map(script)))
             assert.strict.deepStrictEqual(r.warnings.length, outs.length, JSON.stringify(r.warnings))
             assert.strict.deepStrictEqual(r.rewrites, [{ file: 'ex-a.html', from: u1, to: '../dist/nofile.umd.js' }])
-            //bCopyDist為true: 找不到者保留原網址並警告(R21原行為)
-            let dir2 = mkCase(files)
-            let r2 = genDocsExams(O(dir2, { bCopyDist: true }))
-            assert.strict.deepStrictEqual(get(dir2, 'docs/examples/ex-a.html'), page(script(u1), ...outs.map(script)))
-            assert.strict.deepStrictEqual(r2.warnings.length, outs.length + 1, JSON.stringify(r2.warnings))
         })
 
-        it('路徑跳出套件資料夾(../、%2F、反斜線): 不複製套件外之檔, 保留原網址並警告', function() {
+        it('路徑跳出套件資料夾(../、%2F、反斜線): 保留原網址並警告, 不複製任何檔', function() {
             let us = [
                 'https://cdn.jsdelivr.net/npm/w-a/../secret.txt',
                 'https://cdn.jsdelivr.net/npm/w-a/dist/../../secret.txt',
@@ -692,7 +684,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             //R21: 套件外之檔不被複製(docs內無secret.txt), 網址保留
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(...us.map(script)))
             assert.strict.deepStrictEqual(Object.keys(snap(path.join(dir, 'docs'))).filter((k) => k.includes('secret')), [])
-            assert.strict.deepStrictEqual(r.libs, [])
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             assert.strict.ok(r.warnings.length >= 5, JSON.stringify(r.warnings))
         })
 
@@ -701,7 +693,6 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 // eslint-disable-next-line no-template-curly-in-string
                 'examples/ex-a.html': '<script src="https://cdn.jsdelivr.net/npm/w-fake@${pks.version}/dist/w-fake.umd.js"></script>\n<script src="https://cdn.jsdelivr.net/npm/wsemi@1.0.0"></script>\n<script src="https://cdn.jsdelivr.net/npm/wsemi/"></script>\n',
                 'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
             })
             let r = genDocsExams(O(dir))
             //R21②: 無法解析者不改, 以警告回報
@@ -709,16 +700,16 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.deepStrictEqual(r.warnings.length, 3)
         })
 
-        it('網址含%編碼: 以解碼後檔名查找, 改寫後保留原編碼', function() {
+        it('網址含%編碼: 改寫後保留原編碼; 無法解碼者保留原網址並警告', function() {
             let dir = mkCase({
                 'examples/ex-a.html': page(script('https://cdn.jsdelivr.net/npm/w-a/dist/a%20b.js'), script('https://cdn.jsdelivr.net/npm/w-a/dist/bad%E0%A4%A.js')),
                 'dist/w-fake.umd.js': 'DIST',
                 'node_modules/w-a/dist/a b.js': 'AB',
             })
             let r = genDocsExams(O(dir))
-            //R21②: 解碼查找、保留編碼; 無法解碼者保留並警告
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/w-a/dist/a%20b.js'), script('https://cdn.jsdelivr.net/npm/w-a/dist/bad%E0%A4%A.js')))
-            assert.strict.deepStrictEqual(get(dir, 'docs/libs/w-a/dist/a b.js'), 'AB')
+            //R21②: 保留編碼; 無法解碼者保留並警告
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(gh('w-a', 'dist/a%20b.js')), script('https://cdn.jsdelivr.net/npm/w-a/dist/bad%E0%A4%A.js')))
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
             assert.strict.deepStrictEqual(r.warnings.length, 1)
         })
 
@@ -745,18 +736,17 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
 
         it('目錄配置可調: fdTar為docs根時, 同層之相對路徑以./開頭, 自身../dist/引用改指同層dist', function() {
             let dir = mkCase({
-                'examples/ex-a.html': page(script('../dist/w-fake.umd.js'), script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
+                'examples/ex-a.html': page(script('../dist/w-fake.umd.js'), script(WSEMI_CDN)),
                 'dist/w-fake.umd.js': 'DIST',
-                'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
             })
             let r = genDocsExams(O(dir, { fdTar: path.join(dir, 'docs') }))
-            //R21: 相對路徑以./或../開頭(瀏覽器以同層檔案解析)
-            assert.strict.deepStrictEqual(get(dir, 'docs/ex-a.html'), page(script('./dist/w-fake.umd.js'), script('./libs/wsemi/dist/wsemi.umd.js')))
+            //R21: 相對路徑以./或../開頭(瀏覽器以同層檔案解析); 他套件為絕對之gh-pages網址
+            assert.strict.deepStrictEqual(get(dir, 'docs/ex-a.html'), page(script('./dist/w-fake.umd.js'), script(WSEMI_GH)))
             assert.strict.deepStrictEqual(r.warnings, [])
         })
 
-        it('預設(dist由部署提供): 引用的dist檔不存在、dist資料夾不存在或為空(script.txt中本函數在dist建置之前執行)皆不警告、不影響範例複製與引用保持原字串', function() {
-            //wpt257b: 與dist建置之先後無關, 預設不再警告
+        it('不驗證dist(由genDocsDist負責): 引用的dist檔不存在、dist資料夾不存在或為空(script.txt中本函數在dist建置之前執行)皆不警告、不影響範例複製與引用保持原字串', function() {
+            //與dist建置之先後無關, 不警告
             let html = page(script('../dist/missing.umd.js'), script('../dist/w-fake.umd.js'))
             let dir = mkCase({ 'examples/ex-a.html': html, 'dist/w-fake.umd.js': 'DIST' })
             let r = genDocsExams(O(dir))
@@ -778,37 +768,8 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.deepStrictEqual(genDocsExams(O(dir4)).warnings, [])
         })
 
-        it('bCopyDist為true: 引用的dist檔不存在(未建置/檔名誤)或dist資料夾不存在/為空: 以warnings回報, 其餘照常複製', function() {
-            let dir = mkCase({
-                'examples/ex-a.html': page(script('../dist/missing.umd.js'), script('../dist/w-fake.umd.js')),
-                'dist/w-fake.umd.js': 'DIST',
-            })
-            let r = genDocsExams(O(dir, { bCopyDist: true }))
-            assert.strict.deepStrictEqual(r.warnings.length, 1)
-            assert.strict.ok(r.warnings[0].includes('missing.umd.js') && r.warnings[0].includes('ex-a.html'), r.warnings[0])
-            //資料夾不存在
-            let dir2 = mkCase({ 'examples/ex-a.html': page(script('../dist/w-fake.umd.js')) })
-            let r2 = genDocsExams(O(dir2, { bCopyDist: true }))
-            //R21: dist未建置須有警告: 資料夾本身一則、引用之檔一則(註明folder not found)
-            assert.strict.deepStrictEqual(r2.warnings.length, 2, JSON.stringify(r2.warnings))
-            assert.strict.ok(r2.warnings.some((s) => s.startsWith('dist folder[') && s.includes('not found, nothing copied')), JSON.stringify(r2.warnings))
-            assert.strict.ok(r2.warnings.some((s) => s.startsWith('dist file[') && s.includes('(folder not found)')), JSON.stringify(r2.warnings))
-            assert.strict.deepStrictEqual(r2.examples, ['ex-a.html'])
-            assert.strict.ok(has(dir2, 'docs/examples/ex-a.html'))
-            //範例無任何dist引用時, dist資料夾不存在仍警告(僅資料夾一則)
-            let dir2b = mkCase({ 'examples/ex-a.html': '<p>x</p>' })
-            let r2b = genDocsExams(O(dir2b, { bCopyDist: true }))
-            assert.strict.deepStrictEqual(r2b.warnings.length, 1, JSON.stringify(r2b.warnings))
-            assert.strict.ok(r2b.warnings[0].startsWith('dist folder[') && r2b.warnings[0].includes('not found, nothing copied'), r2b.warnings[0])
-            //資料夾為空(cleanFolder剛清空)
-            let dir3 = mkCase({ 'examples/ex-a.html': page(script('../dist/w-fake.umd.js')) })
-            fs.mkdirSync(path.join(dir3, 'dist'))
-            let r3 = genDocsExams(O(dir3, { bCopyDist: true }))
-            assert.strict.ok(r3.warnings.some((s) => s.includes('no file to copy')), JSON.stringify(r3.warnings))
-        })
-
-        it('他處之dist(如examples/dist/或libs/…/dist/或完整網址之/dist/)不被當成本套件dist', function() {
-            let html = page(script('./dist/local.js'), script('../libs/wsemi/dist/wsemi.umd.js'), script('https://example.com/dist/a.js'), '<a href="/dist/a.js">x</a>')
+        it('他處之dist(如examples/dist/或vendor/…/dist/或完整網址之/dist/)不被當成本套件dist', function() {
+            let html = page(script('./dist/local.js'), script('../vendor/wsemi/dist/wsemi.umd.js'), script('https://example.com/dist/a.js'), '<a href="/dist/a.js">x</a>')
             let dir = mkCase({
                 'examples/ex-a.html': html,
                 'dist/w-fake.umd.js': 'DIST',
@@ -836,8 +797,9 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             'node_modules/w-gis/dist/w-gis.umd.js': 'GIS',
             'node_modules/w-jsonview-tree/dist/w-jsonview-tree.umd.js': 'JV',
         }
+        let gGis = gh('w-gis', 'dist/w-gis.umd.js')
 
-        it('既有頁面(如gDistApp產製之app.html)之自有套件網址一併改寫, 規則同複製來之檔: 就地化、gh-pages形態、本機無檔改指gh-pages、keepCdn、自身改指同站dist、第三方不動; inplace列出有變動者, 不列入examples', function() {
+        it('既有頁面(如gDistApp產製之app.html)之自有套件網址一併改寫, 規則同複製來之檔: 他套件改指gh-pages(已是gh-pages形態者原樣)、keepCdn、自身改指同站dist、第三方不動; inplace列出有變動者, 不列入examples', function() {
             let app = page(script(uWsemiMin), script(uGis), script(uDemo), script(uVue), script(uJv), script(uSelf), script('../dist/w-fake.umd.js'))
             let bin = Buffer.concat([Buffer.from([0xff, 0xfe, 0x00]), Buffer.from(uGis)])
             let big5 = Buffer.concat([Buffer.from('<html>'), Buffer.from([0xa4, 0xa4, 0xa4, 0xe5]), Buffer.from('</html>')])
@@ -853,13 +815,13 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
                 ...nm,
             })
             let r = genDocsExams(O(dir))
-            //wpt257b#3: 既有頁面一併改寫(規則同複製來之檔); app.html之w-gis就地化(本機有), wsemi.umd.min.js本機無(只有umd.js)改指gh-pages
+            //wpt257b#3: 既有頁面一併改寫(規則同複製來之檔); wpt268: 他套件(w-gis、wsemi)一律改指gh-pages(本機有無皆然), w-jsonview-tree已是gh-pages形態故原樣
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/app.html'), page(
                 script('https://some-owner.github.io/wsemi/dist/wsemi.umd.min.js'),
-                script('../libs/w-gis/dist/w-gis.umd.js'),
+                script(gGis),
                 script(uDemo),
                 script(uVue),
-                script('../libs/w-jsonview-tree/dist/w-jsonview-tree.umd.js'),
+                script(uJv),
                 script('../dist/w-fake.umd.js'),
                 script('../dist/w-fake.umd.js')
             ))
@@ -867,20 +829,19 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.deepStrictEqual(r.inplace, ['app.html'])
             assert.strict.deepStrictEqual(r.examples, ['ex-a.html'])
             assert.strict.deepStrictEqual(r.keeps.map((x) => x.file), ['app.html'])
-            assert.strict.deepStrictEqual(r.warnings.length, 1)
-            assert.strict.ok(r.warnings[0].includes(uWsemiMin) && r.warnings[0].includes('app.html'), r.warnings[0])
+            assert.strict.deepStrictEqual(r.warnings, [])
             //非extsText副檔名(.map、.json、.png)與無改寫之檔(含非UTF-8)位元不動
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/app.umd.js.map'), uGis)
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/data.json'), uGis)
             assert.strict.deepStrictEqual(fs.readFileSync(path.join(dir, 'docs/examples/pic.png')).toString('hex'), bin.toString('hex'))
             assert.strict.deepStrictEqual(fs.readFileSync(path.join(dir, 'docs/examples/big5.html')).toString('hex'), big5.toString('hex'))
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/app.umd.js'), `var a = 1\n//no url here\n`)
-            //複製來之檔照常改寫
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/w-gis/dist/w-gis.umd.js')))
-            assert.strict.deepStrictEqual([...r.libs].sort(), ['w-gis/dist/w-gis.umd.js', 'w-jsonview-tree/dist/w-jsonview-tree.umd.js'])
+            //複製來之檔照常改寫; 不產生docs/libs
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(gGis)))
+            assert.strict.deepStrictEqual(has(dir, 'docs/libs'), false)
         })
 
-        it('由fdSrc複製覆蓋同名既有檔者只處理一次(不列入inplace、rewrites不重複); 其餘既有檔仍原地改寫; 子資料夾內相對路徑深度正確', function() {
+        it('由fdSrc複製覆蓋同名既有檔者只處理一次(不列入inplace、rewrites不重複); 其餘既有檔仍原地改寫; gh-pages網址與子資料夾深度無關', function() {
             let dir = mkCase({
                 'docs/examples/ex-a.html': page(script(uGis), script('STALE-OLD')),
                 'docs/examples/stale.html': page(script(uGis)),
@@ -890,12 +851,12 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             })
             let r = genDocsExams(O(dir))
             //覆蓋(非合併): 複製來之內容取代既有內容, 且只處理一次
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/w-gis/dist/w-gis.umd.js')))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(gGis)))
             assert.strict.deepStrictEqual(r.examples, ['ex-a.html'])
             assert.strict.deepStrictEqual(r.inplace, ['stale.html', 'sub/deep/p.html'])
             assert.strict.deepStrictEqual(r.rewrites.filter((x) => x.file === 'ex-a.html').length, 1)
             assert.strict.deepStrictEqual(r.rewrites.length, 3)
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/sub/deep/p.html'), page(script('../../../libs/w-gis/dist/w-gis.umd.js')))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/sub/deep/p.html'), page(script(gGis)))
         })
 
         it('bInplace為false: 既有檔不改寫(位元不動), 只改寫由fdSrc複製者', function() {
@@ -908,7 +869,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let r = genDocsExams(O(dir, { bInplace: false }))
             assert.strict.deepStrictEqual(get(dir, 'docs/examples/app.html'), pre)
             assert.strict.deepStrictEqual(r.inplace, [])
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script('../libs/w-gis/dist/w-gis.umd.js')))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/ex-a.html'), page(script(gGis)))
         })
 
         it('既有檔之相對dist引用以其目前位置判定: 已指向fdTarDist同一檔(../dist/…)或他處(dist/…)者保持原字串且不重寫(mtime不變); 指向專案./dist者(../../dist/…)改指fdTarDist', function() {
@@ -939,22 +900,19 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             assert.strict.deepStrictEqual(r2.inplace, ['q.html', 'sub/r.html'])
         })
 
-        it('fdLibs與fdTarDist位於fdTar內時其內之檔不改寫(其為函式庫/發布檔而非頁面); fdTar內之頁面照改', function() {
-            let lib = 'var u = "https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js"\n'
+        it('fdTarDist位於fdTar內時其內之檔不改寫(其為發布檔而非頁面); fdTar內之頁面照改', function() {
+            let lib = `var u = "${WSEMI_CDN}"\n`
             let dir = mkCase({
                 'docs/page.html': page(script(uGis)),
-                'docs/libs/other/dist/a.js': lib,
                 'docs/dist/b.js': lib,
                 'docs/other/c.js': lib,
                 'dist/w-fake.umd.js': 'DIST',
-                ...nm,
                 'examples/a.html': 'x',
             })
             let r = genDocsExams(O(dir, { fdTar: path.join(dir, 'docs') }))
-            assert.strict.deepStrictEqual(get(dir, 'docs/libs/other/dist/a.js'), lib)
             assert.strict.deepStrictEqual(get(dir, 'docs/dist/b.js'), lib)
-            assert.strict.deepStrictEqual(get(dir, 'docs/page.html'), page(script('./libs/w-gis/dist/w-gis.umd.js')))
-            assert.strict.deepStrictEqual(get(dir, 'docs/other/c.js'), 'var u = "../libs/wsemi/dist/wsemi.umd.js"\n')
+            assert.strict.deepStrictEqual(get(dir, 'docs/page.html'), page(script(gGis)))
+            assert.strict.deepStrictEqual(get(dir, 'docs/other/c.js'), `var u = "${WSEMI_GH}"\n`)
             assert.strict.deepStrictEqual(r.inplace, ['other/c.js', 'page.html'])
         })
 
@@ -963,10 +921,9 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let dir = mkCase({
                 'docs/examples/app.html': bom,
                 'examples/ex-a.html': 'x',
-                ...nm,
             })
             let r1 = genDocsExams(O(dir))
-            assert.strict.deepStrictEqual(get(dir, 'docs/examples/app.html'), bom.replace(uGis, '../libs/w-gis/dist/w-gis.umd.js'))
+            assert.strict.deepStrictEqual(get(dir, 'docs/examples/app.html'), bom.replace(uGis, gGis))
             assert.strict.deepStrictEqual(r1.inplace, ['app.html'])
             let s1 = snap(path.join(dir, 'docs'))
             let r2 = genDocsExams(O(dir))
@@ -983,7 +940,6 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let dir2 = mkCase({
                 'docs/examples/app.html': page(script(uGis)),
                 'outside/o.html': page(script(uGis)),
-                ...nm,
             })
             let link = path.join(dir2, 'docs/examples/lnk')
             try {
@@ -1012,49 +968,39 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
 
     describe('無範例頁(fdSrc為\'\')', function() {
 
-        it('fdSrc為\'\': 不複製範例也不要求資料夾存在; 預設不複製dist(無任何輸出); bCopyDist為true才複製dist', function() {
+        it('fdSrc為\'\': 不複製範例也不要求資料夾存在; 不複製dist、無任何輸出(dist由genDocsDist負責)', function() {
             let dir = mkCase({ 'dist/w-fake.umd.js': 'DIST' })
             let r0 = genDocsExams(O(dir, { fdSrc: '' }))
-            //wpt257b: dist由bin/gh-pages部署時提供, 無範例頁之套件不必再呼叫本函數; 呼叫亦不產生任何輸出
+            //wpt268: dist由genDocsDist複製, 本函數即使無範例頁亦不複製dist; 呼叫不產生任何輸出
             assert.strict.deepStrictEqual(r0.examples, [])
-            assert.strict.deepStrictEqual(r0.dist, [])
+            assert.strict.deepStrictEqual('dist' in r0, false)
             assert.strict.deepStrictEqual(r0.warnings, [])
             assert.strict.deepStrictEqual(has(dir, 'docs'), false)
-            let r = genDocsExams(O(dir, { fdSrc: '', bCopyDist: true }))
-            //R21: 特殊情形(不經bin/gh-pages部署)可自行複製dist
-            assert.strict.deepStrictEqual(r.examples, [])
-            assert.strict.deepStrictEqual(r.dist, ['w-fake.umd.js'])
-            assert.strict.deepStrictEqual(r.warnings, [])
-            assert.strict.deepStrictEqual(has(dir, 'docs/examples'), false)
         })
 
     })
 
     describe('摘要與主控台輸出', function() {
 
-        it('回傳{ name, examples, inplace, dist, libs, rewrites, keeps, warnings }; bLog為true(預設)時印出摘要與警告, false時不印', function() {
+        it('回傳{ name, examples, inplace, rewrites, keeps, warnings }(無dist、libs); bLog為true(預設)時印出摘要與警告, false時不印', function() {
             let dir = mkCase({
-                'examples/ex-a.html': page(script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js'), script('https://cdn.jsdelivr.net/npm/w-none/dist/a.js')),
-                'docs/examples/pre.html': page(script('https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js')),
+                'examples/ex-a.html': page(script(WSEMI_CDN), script('https://cdn.jsdelivr.net/npm/w-none/res/a.js')),
+                'docs/examples/pre.html': page(script(WSEMI_CDN)),
                 'dist/w-fake.umd.js': 'DIST',
                 'node_modules/wsemi/dist/wsemi.umd.js': 'WSEMI',
             })
             let { v, lines } = capture(() => genDocsExams(O(dir, { bLog: true })))
-            //R21: 回傳摘要之結構
-            assert.strict.deepStrictEqual(Object.keys(v), ['name', 'examples', 'inplace', 'dist', 'libs', 'rewrites', 'keeps', 'warnings'])
+            //R21: 回傳摘要之結構(wpt268: 移除dist、libs)
+            assert.strict.deepStrictEqual(Object.keys(v), ['name', 'examples', 'inplace', 'rewrites', 'keeps', 'warnings'])
             assert.strict.deepStrictEqual(v.name, 'w-fake')
             assert.strict.deepStrictEqual(v.inplace, ['pre.html'])
-            //R21: 主控台印出(摘要列、改寫列、警告列); dist預設不複製, 摘要註明
+            //R21: 主控台印出(摘要列、改寫列、警告列); 摘要不含dist、libs
             let text = lines.join('\n')
-            assert.strict.ok(text.includes('genDocsExams[w-fake]') && text.includes('examples 1 file(s)') && text.includes('in-place 1 file(s)') && text.includes('dist not copied (provided by deploy)') && text.includes('libs 1 file(s)') && text.includes('rewritten 3 url(s)') && text.includes('warnings 1'), text)
+            assert.strict.ok(text.includes('genDocsExams[w-fake]') && text.includes('examples 1 file(s)') && text.includes('in-place 1 file(s)') && text.includes('rewritten 2 url(s)') && text.includes('kept 0 url(s)') && text.includes('warnings 1'), text)
+            assert.strict.deepStrictEqual(/dist (not copied|\d+ file)|libs/.test(lines[0]), false, lines[0])
             //同一網址於ex-a.html與原地改寫之pre.html各一筆, 歸併為x2
-            assert.strict.ok(text.includes('rewrite x2: https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js -> ../libs/wsemi/dist/wsemi.umd.js'), text)
-            assert.strict.ok(text.includes('rewrite x1: https://cdn.jsdelivr.net/npm/w-none/dist/a.js -> https://some-owner.github.io/w-none/dist/a.js'), text)
+            assert.strict.ok(text.includes(`rewrite x2: ${WSEMI_CDN} -> ${WSEMI_GH}`), text)
             assert.strict.ok(text.includes('warning: ') && text.includes('w-none'), text)
-            //bCopyDist為true: 摘要列出dist
-            let dirD = mkCase({ 'examples/ex-a.html': 'x', 'dist/w-fake.umd.js': 'DIST' })
-            let qd = capture(() => genDocsExams(O(dirD, { bLog: true, bCopyDist: true })))
-            assert.strict.ok(qd.lines.join('\n').includes('dist 1 file(s) ->') && !qd.lines.join('\n').includes('not copied'), qd.lines.join('\n'))
             let dir2 = mkCase({ 'examples/ex-a.html': 'x', 'dist/w-fake.umd.js': 'DIST' })
             let q = capture(() => genDocsExams(O(dir2, { bLog: false })))
             assert.strict.deepStrictEqual(q.lines, [])
@@ -1122,10 +1068,7 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             let cases = [
                 { fdTar: path.join(dir, 'examples') },
                 { fdTar: path.join(dir, 'examples/out') },
-                { bCopyDist: true, fdTarDist: path.join(dir, 'dist') },
-                { bCopyDist: true, fdTarDist: path.join(dir, 'dist/docs') },
-                { fdLibs: path.join(dir, 'examples/libs') },
-                { fdLibs: path.join(dir, 'dist') },
+                { fdTar: path.join(dir, 'dist') },
                 { fdTar: path.join(dir, 'dist/ex') },
             ]
             for (let extra of cases) {
@@ -1135,9 +1078,9 @@ describe('genDocsExams: 範例頁自給自足(規則帳本R21)', function() {
             }
         })
 
-        it('fdTarDist只在bCopyDist為true時才是寫入目標: 預設(不複製dist)位於dist之內不報重疊(僅用於計算引用之相對路徑)', function() {
+        it('fdTarDist不是寫入目標(dist由genDocsDist複製): 位於dist之內不報重疊(僅用於計算引用之相對路徑), dist內容不被更動', function() {
             let dir = mkCase({ 'examples/a.html': page(script('https://cdn.jsdelivr.net/npm/w-fake/dist/w-fake.umd.js')), 'dist/a.js': 'x' })
-            //wpt257b: 此時fdTarDist不被寫入, 無自我複製之虞
+            //wpt268: 本函數不寫入fdTarDist, 無自我複製之虞
             let r = genDocsExams(O(dir, { fdTarDist: path.join(dir, 'dist') }))
             assert.strict.deepStrictEqual(r.examples, ['a.html'])
             assert.strict.deepStrictEqual(snap(path.join(dir, 'dist')), { 'a.js': Buffer.from('x').toString('hex') })

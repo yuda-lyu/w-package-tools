@@ -30,24 +30,33 @@ rollupWorker({...})
 Own packages are no longer published to npmjs, so the CDN (`cdn.jsdelivr.net/npm`) has no current versions of them. Example pages and the browser usage in README therefore point to gh-pages.
 
 ### genDocsExams (toolg/gDocsExams.mjs)
-Copies `./examples/` to `./docs/examples/` and rewrites the urls in the pages so they work on gh-pages. The package's own `../dist/xxx.umd.js` references are kept as they are: `dist/` is provided at deploy time by `gh-pages` (see below), so this function does not copy dist and does not depend on whether dist is built yet (`bCopyDist: true` copies `./dist/` to `./docs/dist/` for the special case of not deploying with `gh-pages`). Urls of other own packages (`wsemi`, `w-*`; jsDelivr or unpkg, pinned or not; or their gh-pages `https://<owner>.github.io/<name>/dist/...`) are copied from `./node_modules/` to `./docs/libs/` and changed to relative paths; when the package or file is not found locally, a `/dist/<file>` url is changed to `https://<owner>.github.io/<name>/dist/<file>` and reported in `warnings`, any other url is kept and reported. Text files already in `./docs/examples/` (for example `app.html` written by an earlier build step) are rewritten in place by the same rules (`bInplace: false` turns it off), so run it after the steps that write pages into `docs/examples/`. A value of the wrong type in `opt` is treated as not given (set `opt.debug: true` to see which keys fell back to the default). Third-party urls are not changed, and `w-demores` is kept on the CDN by default.
+Copies `./examples/` to `./docs/examples/` and rewrites the urls in the pages so they work on gh-pages. The package's own `../dist/xxx.umd.js` references are kept as they are: `./docs/dist/` is written by `genDocsDist` (see below), so this function does not copy dist and does not depend on whether dist is built yet. Urls of other own packages (`wsemi`, `w-*`; jsDelivr or unpkg, pinned or not; or their gh-pages `https://<owner>.github.io/<name>/dist/...`) are always changed to `https://<owner>.github.io/<name>/dist/<file>` (nothing is copied, whether the package is installed locally or not); an url whose path is not a plain `/dist/<file>`, or whose owner is unknown, is kept and reported in `warnings`. Text files already in `./docs/examples/` (for example `app.html` written by an earlier build step) are rewritten in place by the same rules (`bInplace: false` turns it off), so run it after the steps that write pages into `docs/examples/`. A value of the wrong type in `opt` is treated as not given (set `opt.debug: true` to see which keys fell back to the default). Third-party urls are not changed, and `w-demores` is kept on the CDN by default.
 ```alias
 
 import genDocsExams from 'w-package-tools/src/genDocsExams.mjs'
 
 genDocsExams()
 //genDocsExams({ fdSrc: './test-html/' }) //examples in another folder
-//genDocsExams({ bCopyDist: true }) //also copy ./dist/ to ./docs/dist/
+//genDocsExams({ fdSrc: '' }) //no examples to copy, only rewrite the pages already in ./docs/examples/
+
+```
+
+### genDocsDist (toolg/genDocsDist.mjs)
+Each own package serves its dist from its own gh-pages (`https://<owner>.github.io/<name>/dist/<file>`). `genDocsDist` copies all files of `./dist/` (subfolders and `.map` files included) to `./docs/dist/` the same way `genDocsExams` copies `./examples/` to `./docs/examples/`: the target is emptied first (created if missing), links (symlink, junction) are not followed. It throws when `./dist/` does not exist or has no file (so the publish stops), or when the target is inside the source or the source is inside the target. Put `node toolg/genDocsDist.mjs` in `script.txt` right above `git add`, after every step that builds dist.
+```alias
+
+import genDocsDist from 'w-package-tools/src/genDocsDist.mjs'
+
+genDocsDist()
+//genDocsDist({ fdDist: './dist/', fdTar: './docs/dist/' }) //the defaults
 
 ```
 
 ### gh-pages (bin/gh-pages.mjs, `npm run deploy`)
-`"deploy": "gh-pages -d docs"` in an own package resolves to the `gh-pages` bin of this package, not to the third-party `gh-pages`. Besides the content of the `-d` folder, it deploys the project's `./dist/` (without `.map`) as `dist/` of the site, so `https://<owner>.github.io/<name>/dist/<file>` exists after every deploy. If `./dist/` does not exist or is empty the deploy goes on as before and prints one line. A file of the `-d` folder's own `dist/` with the same path but different content is replaced by the one in `./dist/`, with a warning. Options: `-d <dir>` (default `docs`), `--no-dist` (do not provide dist), `--dist-map` (include `.map` files).
+`"deploy": "gh-pages -d docs"` in an own package resolves to the `gh-pages` bin of this package, not to the third-party `gh-pages`. It only deploys the content of the `-d` folder (default `docs`); it does not provide the project's `./dist/` (`genDocsDist` puts it into `docs/dist/` at build time, so it is deployed with the rest). Option: `-d <dir>`.
 ```alias
 
 "deploy": "gh-pages -d docs"
-//"deploy": "gh-pages -d docs --no-dist"
-//"deploy": "gh-pages -d docs --dist-map"
 
 ```
 

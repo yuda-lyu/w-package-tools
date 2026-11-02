@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>genDocsDist.mjs - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#genDocsDist">genDocsDist</a></li><li><a href="global.html#genDocsExams">genDocsExams</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">genDocsDist.mjs</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import fs from 'fs'
+import path from 'path'
+import cleanFolder from './cleanFolder.mjs'
+import { wptError } from './wptCommon.mjs'
+import { isInside, walk, copyFile, readOpt } from './docsCommon.mjs'
+
+
+//realPath, 路徑之真實位置: 取已存在之最深上層之realpath再接回其餘段(連結解開後才判定重疊, 目標不存在時亦可用)
+function realPath(p) {
+    let rest = []
+    let cur = p
+    while (true) {
+        try {
+            return path.join(fs.realpathSync.native(cur), ...rest.reverse())
+        }
+        catch (e) {
+            let up = path.dirname(cur)
+            if (up === cur) {
+                return p
+            }
+            rest.push(path.basename(cur))
+            cur = up
+        }
+    }
+}
+
+
+/**
+ * 複製發布檔（dist）至docs，給各專案之建置腳本使用（取代各專案自寫之複製dist）
+ *
+ * 各自有套件以自己的gh-pages提供dist（站台網址為https://擁有者.github.io/套件名/dist/檔案），故發布時須把./dist/全部檔案（含子資料夾與.map）複製到./docs/dist/，
+ * 隨docs提交並經bin/gh-pages部署（bin/gh-pages只部署docs，不另提供dist）。依循genDocsExams複製examples至docs/examples之方式。
+ * 於script.txt插在git add之前、所有建置dist之列之後（cleanFolder於前段清空dist，至此dist才重建完成）。
+ *
+ * 1. 先檢測，後寫入：dist資料夾不存在（或不是資料夾）、其內沒有任何檔案（含只有空資料夾或只有連結）皆拋錯；目標資料夾位於來源資料夾之內、來源資料夾位於目標資料夾之內（含相同）亦拋錯（連結解開後再判定一次），皆不更動任何檔案。
+ * 2. 清空目標資料夾（不存在則建立；以cleanFolder清空，失敗即拋錯），再把fdDist內全部檔案複製過去（保留子資料夾，位元組原樣複製，含.map）。
+ * 3. 不跟進連結（符號連結、junction），遇到則略過並列入warnings。空資料夾不複製。
+ *
+ * 路徑相對於cwd（發布列一律於套件根執行）。結果同時以console.log印出一行摘要。
+ *
+ * opt本身為undefined或null視為未給；其他非一般物件（字串、數字、布林、陣列）拋錯。opt各鍵為undefined或null取預設；給了而型別不符者視為未給、改用預設（不拋錯），
+ * opt.debug為true時另於warnings說明（'invalid opt.鍵: must be 種類, using default'，不含傳入之值）。
+ *
+ * 失敗即拋錯（Error物件，帶code），且先於任何寫入：opt為非一般物件為'WPT_DOCS_INVALID_OPT'；dist不存在或不是資料夾為'WPT_DOCS_DIST_NOT_FOUND'；
+ * dist內沒有任何檔案為'WPT_DOCS_DIST_EMPTY'；目標與來源重疊為'WPT_DOCS_PATH_OVERLAP'。清空目標失敗為cleanFolder之'WPT_CLEAN_FOLDER'（此時目標可能已部分清空）。
+ *
+ * @param {Object} [opt={}] 輸入設定物件，預設{}
+ * @param {String} [opt.fdDist='./dist/'] 輸入發布檔來源資料夾路徑字串，預設'./dist/'
+ * @param {String} [opt.fdTar='./docs/dist/'] 輸入發布檔輸出資料夾路徑字串，預設'./docs/dist/'；會先被清空
+ * @param {Boolean} [opt.bLog=true] 輸入是否於主控台印出摘要布林值，預設true
+ * @param {Boolean} [opt.debug=false] 輸入是否於warnings說明因型別不符而改用預設之鍵布林值，預設false
+ * @returns {Object} 回傳摘要物件{ files, nMap, warnings }，files為複製之檔案（相對fdTar之posix路徑，含.map）、nMap為其中.map檔（副檔名不分大小寫）之個數、warnings為警告字串陣列
+ * @example
+ * //各專案之toolg/genDocsDist.mjs（於script.txt之git add上方執行：node toolg/genDocsDist.mjs）
+ * import genDocsDist from 'w-package-tools/src/genDocsDist.mjs'
+ *
+ * genDocsDist()
+ *
+ * //來源與目標不在預設位置時
+ * genDocsDist({ fdDist: './dist-web/', fdTar: './docs/dist-web/' })
+ */
+function genDocsDist(opt = {}) {
+
+    //check opt
+    let { strOpt, bolOpt, msgs } = readOpt(opt)
+    let fdDistRaw = strOpt('fdDist', './dist/')
+    let fdTarRaw = strOpt('fdTar', './docs/dist/')
+    let bLog = bolOpt('bLog', true)
+
+    //絕對路徑於進入時即固定, 避免之後cwd改變
+    let fdDist = path.resolve(fdDistRaw)
+    let fdTar = path.resolve(fdTarRaw)
+
+    //result
+    let res = { files: [], nMap: 0, warnings: [...msgs] }
+
+    //dist須存在且其內有檔案(連結不跟進, 只有連結或空資料夾視為沒有檔案), 全部檢測先於任何寫入
+    let stDist = null
+    try {
+        stDist = fs.statSync(fdDist)
+    }
+    catch (e) {
+        stDist = null
+    }
+    if (!stDist || !stDist.isDirectory()) {
+        throw wptError('WPT_DOCS_DIST_NOT_FOUND', `dist folder[${fdDist}] not found, please build dist before this step`)
+    }
+    let skipped = []
+    let ltDist = walk(fdDist, skipped)
+    if (ltDist.length === 0) {
+        throw wptError('WPT_DOCS_DIST_EMPTY', `dist folder[${fdDist}] has no file, please build dist before this step`)
+    }
+
+    //目標與來源不得互相包含(含相同): 目標在來源內會把產物寫進dist, 來源在目標內則清空目標會刪掉來源; 另以連結解開後之位置再判定一次
+    let realDist = realPath(fdDist)
+    let realTar = realPath(fdTar)
+    if (isInside(fdTar, fdDist) || isInside(realTar, realDist)) {
+        throw wptError('WPT_DOCS_PATH_OVERLAP', `opt.fdTar[${fdTar}] must not be inside source folder[${fdDist}]`)
+    }
+    if (isInside(fdDist, fdTar) || isInside(realDist, realTar)) {
+        throw wptError('WPT_DOCS_PATH_OVERLAP', `source folder[${fdDist}] must not be inside opt.fdTar[${fdTar}]`)
+    }
+    for (let fp of skipped) {
+        res.warnings.push(`symbolic link or junction[${fp}] was skipped`)
+    }
+
+    //清空目標(不存在則建立)後複製
+    cleanFolder(fdTar)
+    for (let rel of ltDist) {
+        copyFile(path.join(fdDist, rel), path.join(fdTar, rel))
+        res.files.push(rel)
+        if (rel.toLowerCase().endsWith('.map')) {
+            res.nMap++
+        }
+    }
+
+    //log
+    if (bLog) {
+        console.log(`genDocsDist: dist ${res.files.length} file(s) (.map ${res.nMap}) -> ${fdTar}; warnings ${res.warnings.length}`)
+        for (let s of res.warnings) {
+            console.log(`  warning: ${s}`)
+        }
+    }
+
+    return res
+}
+
+
+export default genDocsDist
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Mon Nov 02 2026 10:32:32 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

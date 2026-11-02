@@ -1,10 +1,10 @@
 # 現況(state)
 
-本檔只記**現況**:各功能做到哪裡、對應之規則帳本條目與測試檔、已知缺口與待辦、最近一次驗證或發布之版本;過程寫入 `sgud/exp/experience.md`。與 `sgud/rule/rulebook.md`(藍圖)比對即知尚未做到者。2026-11-01 由 wpt257 建立(sgud 遷移後首份),各功能列之狀態取自規則帳本當日內容,未重新稽核。
+本檔只記**現況**:各功能做到哪裡、對應之規則帳本條目與測試檔、已知缺口與待辦、最近一次驗證或發布之版本;過程寫入 `sgud/exp/experience.md`。與 `sgud/rule/rulebook.md`(藍圖)比對即知尚未做到者。2026-11-01 由 wpt257 建立(sgud 遷移後首份);2026-11-02 wpt268 更新 R21–R24 相關列。
 
 ## 版本與驗證
 
-- `package.json` 版本 1.1.21(本輪未改版、未發布;發布由主控)。
+- `package.json` 版本 1.1.22(2026-11-01 已發布,含 wpt257b 之 genDocsExams 與 bin/gh-pages 提供 dist);**wpt268(2026-11-02)之改動未改版、未發布、未提交**,待主控複審後發布。
 - 內附 `src/wsemip.umd.js`、`src/wpf.umd.js`、`src/wpf_pmSeries.umd.js` 皆 v1.9.18(R18)。
 - 全套 `npm test`:見下〈最近一次驗證〉。
 
@@ -17,21 +17,23 @@
 | 產製 API 之錯誤回報(不吞錯、`WPT_` 碼 Error、暫存檔清理留痕) | `src/wptCommon.mjs` 及各 `rollup*.mjs` | R9、R19、R20 | `test/unit-buildError.test.mjs`、`unit-rejectShape.test.mjs`、`unit-tempCleanup.test.mjs` | 已套 |
 | rollupFile 回傳程式碼模式、路徑、targets | `src/rollupFile.mjs`、`src/rollupCode.mjs` | R14、R15 | `test/unit-rollupFileReturnCode.test.mjs`、`rollupCode.test.mjs` | 已套 |
 | 建置期檢查(引用、import.meta) | `src/buildCheck.mjs` | R16、R17 | `test/unit-buildCheck.test.mjs` | 已套 |
-| 清空資料夾 | `src/cleanFolder.mjs`、`src/buildCheck.mjs`(`cleanFolderStrict`) | R18 | `test/unit-cleanFolder.test.mjs`、`unit-wsemipContract.test.mjs`、`unit-wpfContract.test.mjs` | 已套 |
-| 範例頁自給自足 `genDocsExams`(2026-11-01 新增,wpt257b 修正) | `src/genDocsExams.mjs`、`src/ownPkg.mjs` | R21 | `test/unit-genDocsExams.test.mjs` | 本套件側已完成;**預設不複製 dist**(由 R23 部署時提供,與 dist 建置先後無關,`script.txt` 不必改);原地改寫 `fdTar` 既有頁面(`bInplace`);本機找不到之他自有套件 `/dist/<檔>` 改指 gh-pages;**各套件 `toolg` 改呼叫(樣板 A/B/D)由主控批次處理(未做)** |
-| 部署時提供專案 `./dist/`(2026-11-01 wpt257b 新增) | `bin/gh-pages.mjs` | R23 | `test/unit-ghPagesDeploy.test.mjs` | 本套件側已完成;各套件 `"deploy": "gh-pages -d docs"` 經 `.bin` 解析至此(121/121 實測);需各套件升級 w-package-tools 後生效 |
-| README 瀏覽器用法改指 gh-pages `modifyReadme`(2026-11-01 擴充) | `src/modifyReadme.mjs`、`src/ownPkg.mjs` | R22 | `test/unit-modifyReadme.test.mjs` | 本套件側已完成;各套件現有 `toolg/modifyReadme.mjs` 不改即生效;其指向之 gh-pages `dist/` 由 R23 提供 |
+| 清空資料夾 | `src/cleanFolder.mjs`、`src/buildCheck.mjs`(`cleanFolderStrict`) | R18 | `test/unit-cleanFolder.test.mjs`、`unit-wsemipContract.test.mjs`、`unit-wpfContract.test.mjs` | 已套;`genDocsDist` 清空目標亦經此 |
+| 範例頁自給自足 `genDocsExams`(wpt268 改版) | `src/genDocsExams.mjs`、`src/ownPkg.mjs`、`src/docsCommon.mjs` | R21 | `test/unit-genDocsExams.test.mjs`(72) | 本套件側已完成:**引用其他自有套件一律改寫為其 gh-pages 網址**(不複製、不讀 `node_modules`、無 `docs/libs/`);**不複製 dist**(`fdLibs`、`fdNodeModules`、`bCopyDist`、`bDistMap` 已移除,回傳無 `dist`、`libs`);自身 `../dist/…` 保持相對;原地改寫 `fdTar` 既有頁面(`bInplace`)。**各套件 `toolg` 改呼叫(樣板 A/B/D)由主控批次處理(未做)** |
+| 複製 dist 至 `docs/dist/` `genDocsDist`(2026-11-02 wpt268 新增) | `src/genDocsDist.mjs`、`src/docsCommon.mjs` | R24 | `test/unit-genDocsDist.test.mjs`(30) | 本套件側已完成:`./dist/` 全部檔案(含子資料夾、`.map`)複製到 `./docs/dist/`,先清空目標;dist 不存在或無檔案即拋錯(`WPT_DOCS_DIST_NOT_FOUND`/`WPT_DOCS_DIST_EMPTY`);目標與來源重疊(含連結解開後)拋 `WPT_DOCS_PATH_OVERLAP`;連結不跟進。**各套件 `toolg/genDocsDist.mjs`(一行呼叫)與 `script.txt` 於 `git add .  -A` 正上方插入 `node toolg/genDocsDist.mjs` 由主控批次處理(未做)** |
+| 部署 `-d` 資料夾至 gh-pages(wpt268 撤除提供 dist) | `bin/gh-pages.mjs` | R23 | `test/unit-ghPagesDeploy.test.mjs`(10) | 本套件側已完成:**職責僅部署 `-d` 資料夾**,不提供專案根 `./dist/`(`--no-dist`、`--dist-map` 已移除);各套件 `"deploy": "gh-pages -d docs"` 經 `.bin` 解析至此(121/121 實測,wpt257b);需各套件升級 w-package-tools 後生效 |
+| README 瀏覽器用法改指 gh-pages `modifyReadme`(2026-11-01 擴充) | `src/modifyReadme.mjs`、`src/ownPkg.mjs` | R22 | `test/unit-modifyReadme.test.mjs` | 本套件側已完成;各套件現有 `toolg/modifyReadme.mjs` 不改即生效;其指向之 gh-pages `dist/` 由 R24 提供(各套件須有 `docs/dist/`) |
 | 小工具:`getPks`、`setPks`、`addVersion`、`getFiles`、`getReadme`、`extractHtml`、`rollupVueToHtml`、`rollupFiles`、`parseVueCode` | `src/*.mjs` | R5、R6(補全解析、換行正規化)等 | `rollupFiles`、`rollupVueToHtml` 由 `unit-buildError`/`unit-rejectShape` 間接涵蓋;R5、R6 **無專屬測試** | 可用;R5、R6 測試為已知缺口 |
 
 ## 已知缺口與待辦
 
 - R5(`bResolveExtPath` 補全解析)、R6(`parseVueCode` 換行正規化)無專屬測試(規則帳本已列)。
 - 未修缺陷:`rollupFile` 未呼叫 `bundle.close()`(已知不修);其餘設計限制見規則帳本四之二。
-- 待主控(wpt257b 更新,見任務報告〈給主控之批次改寫指引〉):①47 套件(`gDocsExams` 33 + `gDocExams` 14,2026-11-01 wpt257b 盤點實數,含 w-knowledge-summarize)之 `toolg` 改呼叫 `genDocsExams`(樣板 A/B/D 不變);②**不再需要**:13 套件新增只複製 dist 之 toolg、`script.txt` 順序調整(wpt257 時之要求已作廢,dist 由 R23 提供);③各套件 `.gitignore` 加 `docs/libs/`(`docs/dist/` 本函數已不產生,不必);④`wsemi.umd.min.js`(wsemi dist 無此檔)出現於 w-leaflet-vue、w-maplibregl-vue、w-threejs-vue、w-flow-vue、w-trade-backtest 之 `toolg/gDistApp.mjs`/`gExtractHtml.mjs`,須改為 `wsemi.umd.js`;⑤w-geo 範例引用之 `w-component-vue`(釘版)未安裝時改指 gh-pages 並警告,可接受或安裝。
-- 已知未覆蓋(R23):`isSubPath` 之跨磁碟機分支(單磁碟機無法實測);`planProjDist` 讀取 `./dist/` 失敗之 `exit 1`。
+- 待主控(wpt268 更新,見任務報告〈給主控〉):①各有 dist 之套件新增 `toolg/genDocsDist.mjs`(`import genDocsDist from 'w-package-tools/src/genDocsDist.mjs'`＋空行×2＋`genDocsDist()`)並於 `script.txt` 的 `git add .  -A` 正上方插入 `node toolg/genDocsDist.mjs`;②47 套件(`gDocsExams` 33 + `gDocExams` 14,2026-11-01 wpt257b 盤點實數)之 `toolg` 改呼叫 `genDocsExams`(樣板 A/B/D 不變);③各套件 `.gitignore` 的 `docs/libs/` 行**撤除**(wpt257b 時要求加入者,wpt268 起不再產生 `docs/libs/`);④`wsemi.umd.min.js`(wsemi dist 無此檔)出現於 w-leaflet-vue、w-maplibregl-vue、w-threejs-vue、w-flow-vue、w-trade-backtest 之 `toolg/gDistApp.mjs`/`gExtractHtml.mjs`,須改為 `wsemi.umd.js`(wpt268 起 `genDocsExams` 不讀本機而**不再警告**,w-leaflet-vue 複本實跑已確認被靜默改寫為 `…/wsemi/dist/wsemi.umd.min.js`)。
+- 已知未覆蓋:`genDocsDist` 之 `realPath` 在 Windows 回傳短檔名(8.3)別名時的比對(`path.relative` 不分大小寫,但不解 8.3);複製中途失敗(磁碟滿等)之錯誤為 Node 原始 fs 錯誤,未包 `WPT_` 碼。
 
 ## 最近一次驗證
 
-- 2026-11-01 wpt257b:全套 `npm test`(`quiet-run --lock`)**407 passing**,exit 0(原 284 + `unit-genDocsExams` 77 + `unit-modifyReadme` 32 + `unit-ghPagesDeploy` 14);變異:genDocsExams 新增/改動分支 42 個全殺、ownPkg `ghPagesUrl` 5 個全殺、`bin/gh-pages` 28 個 27 殺 1 存活(跨磁碟機,單磁碟機無法實測);`unit-ghPagesDeploy` 對修前 HEAD 之 bin:11 紅 3 綠;以 w-leaflet-vue、w-aggrid-vue 之真實 `test-html/`、`dist/`、`docs/examples/`(gDistApp 產物)複本實跑 `genDocsExams` 後,再以 `bin/gh-pages` 部署到本機 bare 倉庫並取出站台:相對引用 5 情境皆 0 缺檔,結果見任務報告。未發布、未重產 docs。
+- 2026-11-02 wpt268:全套 `npm test`(`quiet-run --lock`)**428 passing**,exit 0(基準 407 + `unit-genDocsDist` 30 + `unit-genDocsExams` 77→72 + `unit-ghPagesDeploy` 14→10);變異 43 個全殺(d01–d17 genDocsDist、c01–c09 docsCommon、e01–e14 genDocsExams、g01–g03 bin;e01、g01 為整檔回 HEAD);新測試對修前 HEAD:`unit-genDocsExams` 47 紅 25 綠、`unit-ghPagesDeploy` 4 紅 6 綠;以 w-fft、w-leaflet-vue 之真實 `dist/`、`examples/`／`test-html/` 複本實跑預設路徑 `genDocsDist()`＋`genDocsExams()`:`docs/dist` 與 `dist` 位元一致(含 `.map`)、無 `docs/libs`、無殘留自有套件 CDN 網址(`w-demores` 依 `keepCdn` 保留)。未發布、未改版。
+- 2026-11-01 wpt257b:全套 407 passing(原 284 + `unit-genDocsExams` 77 + `unit-modifyReadme` 32 + `unit-ghPagesDeploy` 14);其變異與真實複本實跑見經驗二十二。
 - 2026-11-01 wpt257(前輪):`unit-genDocsExams` 60、`unit-modifyReadme` 32,全套 376 passing;99 變異全殺;w-fft、w-aggrid-vue 複本實跑。
-- 規格對照:`C:\opensrcOper\dspec\自有套件之瀏覽器端取用與gh-pages.md`(規則 1–3、5–7 本套件側已落實)、`輸入參數之檢測機制.md`(K2、K3、K9、V4、V17、V19)。
+- 規格對照:`C:\opensrcOper\dspec\自有套件之瀏覽器端取用與gh-pages.md`(規則 1–3、5–7 本套件側已落實)、`自有套件之發布與建置腳本.md`(規則 4 `genDocsDist.mjs`)、`自有套件之npm發布範圍.md`(第 2 條:`docs/dist/` 不計入 `docs/` 大小,與本套件無關)、`輸入參數之檢測機制.md`(K2、K3、K9、V4、V17、V19)。
