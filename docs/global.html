@@ -29,7 +29,7 @@
 <nav >
     
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#genDocsDist">genDocsDist</a></li><li><a href="global.html#genDocsExams">genDocsExams</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addVersion">addVersion</a></li><li><a href="global.html#cleanFolder">cleanFolder</a></li><li><a href="global.html#extractHtml">extractHtml</a></li><li><a href="global.html#genDocsDist">genDocsDist</a></li><li><a href="global.html#genDocsExams">genDocsExams</a></li><li><a href="global.html#getPks">getPks</a></li><li><a href="global.html#getReadme">getReadme</a></li><li><a href="global.html#modifyReadme">modifyReadme</a></li><li><a href="global.html#parfor">parfor</a></li><li><a href="global.html#rollupBabel">rollupBabel</a></li><li><a href="global.html#rollupCode">rollupCode</a></li><li><a href="global.html#rollupFile">rollupFile</a></li><li><a href="global.html#rollupFiles">rollupFiles</a></li><li><a href="global.html#rollupParfor">rollupParfor</a></li><li><a href="global.html#rollupVueToHtml">rollupVueToHtml</a></li><li><a href="global.html#rollupWorker">rollupWorker</a></li><li><a href="global.html#rollupWorkerCore">rollupWorkerCore</a></li><li><a href="global.html#setPks">setPks</a></li></ul>
     
 </nav>
 
@@ -3422,6 +3422,184 @@ modifyReadme()</code></pre>
 
     
 
+    <h4 class="name" id="rollupBabel"><span class="type-signature"></span>rollupBabel<span class="signature">(babelOptions<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+    
+    <dt class="tag-description">Description:</dt>
+    <dd class="tag-description"><ul class="dummy"><li><p>以babel轉譯模組之rollup外掛</p></li></ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="rollupBabel.mjs.html">rollupBabel.mjs</a>, <a href="rollupBabel.mjs.html#line27">line 27</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5 class="h5-parameters">Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>babelOptions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入babel設定物件(傳給loadPartialConfigAsync), 不含filename、sourceMaps、caller(由本外掛給定), 預設{}</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5 class="h5-returns">Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳rollup外掛物件</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="rollupCode"><span class="type-signature type-signature-async">(async) </span>rollupCode<span class="signature">(codeSrc, opt)</span><span class="type-signature"></span></h4>
 
     
@@ -4149,7 +4327,7 @@ modifyReadme()</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line56">line 56</a>
+        <a href="rollupFile.mjs.html">rollupFile.mjs</a>, <a href="rollupFile.mjs.html#line58">line 58</a>
     </li></ul></dd>
     
 
@@ -9751,7 +9929,7 @@ modifyReadme()</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Mon Nov 09 2026 19:19:59 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Nov 10 2026 15:34:40 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

@@ -9,10 +9,12 @@ import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import postcss from 'rollup-plugin-postcss'
-import { babel } from '@rollup/plugin-babel' //考慮ie11已剔除, 不須轉譯async或模版語法等, 故vue2直接使用轉譯程式碼的@rollup/plugin-babel
 // import babelForVue2 from 'rollup-plugin-babel' //才能轉譯vue2含async語法的組件
 import terser from '@rollup/plugin-terser'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
+import presetEnv from '@babel/preset-env'
+import pluginTransformRuntime from '@babel/plugin-transform-runtime'
+import rollupBabel from './rollupBabel.mjs' //取代@rollup/plugin-babel(其peer至7.1.0仍為@babel/core ^7), 帳本R25
 import getPks from './getPks.mjs'
 import { genBuildCheck } from './buildCheck.mjs'
 import { rejectWpt } from './wptCommon.mjs'
@@ -338,22 +340,25 @@ async function rollupFileCore(opt = {}, internal = {}) {
         plugins.push(resolve(resolveOpt))
     }
 
+    //babelOpt, 帳本R25: 不讀使用端之babel設定(babel.config.*、.babelrc*、package.json之babel鍵), 其內容(如Babel 8已移除之useBuiltIns、corejs)與其以字串指名之外掛(自使用端根目錄解析, 版本取決於安裝擺放)皆不影響建置;
+    //preset與外掛傳入本檔import之模組本身(自本套件位置解析), 不以字串指名;
+    //轉譯等級只由targets決定: 頂層亦給targets並關閉browserslistConfigFile, 否則core於無頂層targets時會自cwd讀使用端之browserslist設定(.browserslistrc、package.json之browserslist鍵、環境變數BROWSERSLIST), 設定衝突或無效即建置失敗, 且讀api.targets()之外掛所見與preset不同
     let babelOpt = {
-        // babelrc: false,
+        babelrc: false,
+        configFile: false,
+        browserslistConfigFile: false,
+        targets,
         presets: [
             [
-                '@babel/preset-env',
+                presetEnv,
                 {
-                    useBuiltIns: 'entry', //entry usage, usage is not stable
-                    corejs: 3,
                     // modules: false,
                     targets,
                 }
             ]
         ],
         plugins: [
-            '@babel/plugin-transform-runtime',
-            '@babel/plugin-proposal-export-default-from',
+            pluginTransformRuntime, //helpers改為引用@babel/runtime/helpers/*(同@rollup/plugin-babel之babelHelpers:'runtime'); 其預設version為8.0.0-beta.0, 較其新之helper改為內嵌; 引用自被轉譯檔之位置解析(帳本R25已知限制)
             // '@babel/plugin-proposal-nullish-coalescing-operator', //browser與nodejs已支援
             // '@babel/plugin-proposal-object-rest-spread', //browser與nodejs已支援
             // '@babel/plugin-proposal-optional-chaining', //browser與nodejs已支援
@@ -368,8 +373,7 @@ async function rollupFileCore(opt = {}, internal = {}) {
     //     babelOpt.babelHelpers = 'runtime' //新版babel設定
     //     babelPlugin = babelForJs(babelOpt)
     // }
-    babelOpt.babelHelpers = 'runtime' //新版babel設定
-    babelPlugin = babel(babelOpt)
+    babelPlugin = rollupBabel(babelOpt)
     plugins.push(babelPlugin)
 
     plugins.push(postcss({

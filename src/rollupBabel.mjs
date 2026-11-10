@@ -1,0 +1,81 @@
+import { loadPartialConfigAsync, transformAsync, DEFAULT_EXTENSIONS } from '@babel/core'
+
+
+//rollupBabel, 以babel轉譯模組之rollup外掛(輸入端), 取代@rollup/plugin-babel(規則帳本R25)
+//why: @rollup/plugin-babel(至7.1.0)之peer為@babel/core ^7, 其import '@babel/core'自其安裝位置解析;
+//使用端根目錄另有@babel/core 7(如由@vue/cli-plugin-babel帶入)時, 該外掛會與core 7同層提升而取得core 7, 本套件傳入之Babel 8外掛跑在core 7上即建置失敗;
+//本外掛之import '@babel/core'自本套件位置解析, 固定使用本套件相依之版本
+//行為比照@rollup/plugin-babel 6.1.0之輸入端外掛(babelHelpers為'runtime'時): 含\0之虛擬模組不處理、去query後以DEFAULT_EXTENSIONS篩選(區分大小寫)、caller同名同能力、sourceMaps開啟;
+//只供rollupFile以固定之babel設定呼叫(不是通用替身): 不處理plugin-babel之extensions、include、exclude、filter、babelHelpers等外掛選項, 其餘鍵原樣交給babel;
+//不做其preflight檢查(其檢查ES模組語法被保留、helpers模式與外掛相符): 呼叫端固定設定(preset-env未設modules、caller宣告supportsStaticESM、掛plugin-transform-runtime)下兩者恆成立, 且有測試鎖定ES模組語法保留(帳本R25)
+
+
+let regExpCharactersRegExp = /[\\^$.*+?()[\]{}|]/g
+
+
+function escapeRegExpCharacters(str) {
+    return str.replace(regExpCharactersRegExp, '\\$&')
+}
+
+
+/**
+ * 以babel轉譯模組之rollup外掛
+ *
+ * @param {Object} [babelOptions={}] 輸入babel設定物件(傳給loadPartialConfigAsync), 不含filename、sourceMaps、caller(由本外掛給定), 預設{}
+ * @returns {Object} 回傳rollup外掛物件
+ */
+function rollupBabel(babelOptions = {}) {
+
+    //extensionRegExp, 同@rollup/plugin-babel 6.1.0, 以@babel/core之DEFAULT_EXTENSIONS(.js .jsx .es6 .es .mjs .cjs)結尾才處理
+    let extensionRegExp = new RegExp(`(${DEFAULT_EXTENSIONS.map(escapeRegExpCharacters).join('|')})$`)
+
+    //filter, 同@rollup/plugin-babel 6.1.0(未給include/exclude時之@rollup/pluginutils createFilter): 非字串或含\0之id不處理, 去query後之bareId須符合副檔名
+    let filter = (id) => {
+        if (typeof id !== 'string' || id.includes('\0')) {
+            return false
+        }
+        let bareId = id.split('?')[0]
+        return extensionRegExp.test(bareId)
+    }
+
+    return {
+        name: 'babel',
+        async transform(code, id) {
+
+            //filter
+            if (!filter(id)) {
+                return null
+            }
+
+            //config
+            let config = await loadPartialConfigAsync({
+                ...babelOptions,
+                filename: id,
+                sourceMaps: true,
+                caller: {
+                    name: '@rollup/plugin-babel', //沿用@rollup/plugin-babel之caller名稱, 使preset與外掛依caller之判斷與取代前相同
+                    supportsStaticESM: true, //保留ES模組語法交由rollup處理
+                    supportsDynamicImport: true,
+                    supportsTopLevelAwait: true,
+                    supportsExportNamespaceFrom: true,
+                },
+            })
+
+            //check, 檔案被babel之ignore/only排除時為null
+            if (!config) {
+                return null
+            }
+
+            //transformAsync
+            let r = await transformAsync(code, config.options)
+
+            return {
+                code: r.code,
+                map: r.map,
+            }
+        },
+    }
+}
+
+
+export default rollupBabel

@@ -1,19 +1,12 @@
 {
   "name": "w-package-tools",
-  "version": "1.1.24",
+  "version": "1.1.25",
   "dependencies": {
-    "@babel/cli": "^7.21.0",
-    "@babel/core": "^7.21.3",
+    "@babel/core": "^8.1.0",
     "@babel/eslint-parser": "^7.21.3",
-    "@babel/node": "^7.20.7",
-    "@babel/plugin-proposal-export-default-from": "^7.18.10",
-    "@babel/plugin-transform-regenerator": "^7.20.5",
-    "@babel/plugin-transform-runtime": "^7.21.0",
-    "@babel/polyfill": "^7.12.1",
-    "@babel/preset-env": "^7.20.2",
-    "@babel/register": "^7.21.0",
-    "@babel/runtime": "^7.21.0",
-    "@rollup/plugin-babel": "^6.0.3",
+    "@babel/plugin-transform-runtime": "^8.0.6",
+    "@babel/preset-env": "^8.0.7",
+    "@babel/runtime": "^8.1.0",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -22,7 +15,6 @@
     "@starptech/prettyhtml": "^0.10.0",
     "acorn": "^8.19.0",
     "cheerio": "^1.2.0",
-    "core-js": "^3.29.1",
     "docdash": "^2.0.2",
     "eslint": "^8.37.0",
     "eslint-config-standard": "^17.1.0",
@@ -46,6 +38,11 @@
     "rollup-plugin-vue-template-compiler": "^1.0.3",
     "vue-eslint-parser": "^9.1.0",
     "vue-template-compiler": "^2.7.16"
+  },
+  "overrides": {
+    "@babel/eslint-parser": {
+      "@babel/core": "$@babel/core"
+    }
   },
   "bin": {
     "gh-pages": "bin/gh-pages.mjs"
