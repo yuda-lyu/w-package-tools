@@ -5,7 +5,7 @@
 ## 版本與驗證
 
 - `package.json` 版本 1.1.25(bb02 之 Babel 8 已隨 1.1.25 發布)。**pt395(2026-11-11,rollup 3 → 4)之改動未改版、未發布、未提交**,待主控複審後發布並跑全庫連動(對使用端之變化見 README〈Breaking changes〉之 rollup 4 節)。
-- 相依(pt395 起):`rollup` ^4.67.4(lock 4.67.4;使用端安裝時解析為範圍內滿 7 天之最新,2026-11-11 為 4.67.5)、`@rollup/plugin-commonjs` ^29.0.3、`@rollup/plugin-node-resolve` ^16.0.3、`@rollup/plugin-replace` ^6.0.3、`@rollup/plugin-terser` ^1.0.2(terser 5.51.2)、`@rollup/plugin-json` ^6.1.0;`rollup-plugin-vue` 5.1.9、`rollup-plugin-postcss` 4.0.2、`rollup-plugin-node-polyfills` 0.2.1 不變。Babel(bb02 起):`@babel/core` ^8.1.0、`@babel/preset-env` ^8.0.7、`@babel/plugin-transform-runtime` ^8.0.6、`@babel/runtime` ^8.1.0;`@babel/eslint-parser` ^7.21.3(lock 7.29.9,限主版號 7,經 `overrides` 用本套件之 core 8)。mocha 11、jsdoc-vuejs 3.0.9 未動(mocha 12 另輪)。
+- 相依(pt395 起):`rollup` ^4.67.4(lock 4.67.4;使用端安裝時解析為範圍內滿 7 天之最新,2026-11-11 為 4.67.5)、`@rollup/plugin-commonjs` ^29.0.3、`@rollup/plugin-node-resolve` ^16.0.3、`@rollup/plugin-replace` ^6.0.3、`@rollup/plugin-terser` ^1.0.2(terser 5.51.2)、`@rollup/plugin-json` ^6.1.0;`rollup-plugin-vue` 5.1.9、`rollup-plugin-postcss` 4.0.2、`rollup-plugin-node-polyfills` 0.2.1 不變。Babel(bb02 起):`@babel/core` ^8.1.0、`@babel/preset-env` ^8.0.7、`@babel/plugin-transform-runtime` ^8.0.6、`@babel/runtime` ^8.1.0;`@babel/eslint-parser` ^7.21.3(lock 7.29.9,限主版號 7,經 `overrides` 用本套件之 core 8)。mocha ^12.0.3(2026-11-12 主控升,排程第 396 項;Node 下限 20.19、`bin/mocha.js` 仍在、全庫 `npm test` 之兩種寫法與用到之旗標經 bb01 實測可用)、jsdoc-vuejs 3.0.9 未動(4.0.0 帶入 Vue 3 編譯器)。
 - 內附 `src/wsemip.umd.js`、`src/wpf.umd.js`、`src/wpf_pmSeries.umd.js` 皆 v1.9.18(R18)。
 - 全套 `npm test`:見下〈最近一次驗證〉。
 
