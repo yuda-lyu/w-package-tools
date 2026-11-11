@@ -414,7 +414,7 @@ async function rollupFileCore(opt = {}, internal = {}) {
         input: fpSrc,
         // treeshake: false,
         plugins,
-        onwarn: bc.onwarn, //記錄無法解析之裸引用並照常輸出警告, 由bc.plugin依產物判定(帳本R16①); 不用onLog: 其於rollup 3.25才有, 下游實裝之rollup最舊為3.20.2
+        onwarn: bc.onwarn, //記錄無法解析之裸引用並照常輸出警告, 由bc.plugin依產物判定(帳本R16①); onwarn為rollup 4之正式選項, log掛鉤只此一個
     }
 
     //outputOptions

@@ -3,6 +3,8 @@ import fs from 'fs'
 import assert from 'assert'
 import { createRequire } from 'module'
 import { pathToFileURL } from 'url'
+import { rollup } from 'rollup'
+import { genBuildCheck } from '../src/buildCheck.mjs'
 import rollupFile from '../src/rollupFile.mjs'
 import rollupFiles from '../src/rollupFiles.mjs'
 import rollupCode from '../src/rollupCode.mjs'
@@ -54,27 +56,41 @@ let fx = {
     dynRequire: `import load from './dynReqLib.js'\nexport default function where() { return load('./lit.js') }\n`,
     litRequire: `import load from './litReqLib.js'\nexport default function where() { return load() }\n`,
     //R17 墊片劫持(umd)
-    tdzLet: H + `let __filename = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(__filename) }\n`,
-    tdzConst: H + `const __filename = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(__filename) }\n`,
-    tdzVar: H + `var __filename = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(__filename) }\n`,
-    tdzExportLet: H + `export let __filename = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(__filename) }\n`,
-    tdzComma: H + `let a = 1, __filename = fileURLToPath(import.meta.url)\nexport default function where() { return a + path.dirname(__filename) }\n`,
-    tdzDestr: H + `const { __filename } = { __filename: fileURLToPath(import.meta.url) }\nexport default function where() { return path.dirname(__filename) }\n`,
-    tdzFunc: H + `function __filename() { return 'fn' }\nlet u = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(u) + __filename() }\n`,
-    tdzClass: H + `class __filename {}\nlet u = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(u) + typeof __filename }\n`,
-    tdzImport: H + `import __filename from './fnDefault.mjs'\nlet u = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(u) + __filename }\n`,
+    //  頂層 __filename 各形式之 where 回傳產物檔之完整路徑(不只 dirname, 同資料夾之他檔不得通過)
+    tdzLet: H + `let __filename = fileURLToPath(import.meta.url)\nexport default function where() { return __filename }\n`,
+    tdzConst: H + `const __filename = fileURLToPath(import.meta.url)\nexport default function where() { return __filename }\n`,
+    tdzVar: H + `var __filename = fileURLToPath(import.meta.url)\nexport default function where() { return __filename }\n`,
+    tdzExportLet: H + `export let __filename = fileURLToPath(import.meta.url)\nexport default function where() { return __filename }\n`,
+    tdzComma: H + `let a = 1, __filename = fileURLToPath(import.meta.url)\nexport default function where() { return a + __filename }\n`,
+    tdzDestr: H + `const { __filename } = { __filename: fileURLToPath(import.meta.url) }\nexport default function where() { return __filename }\n`,
+    tdzFunc: H + `function __filename() { return 'fn' }\nlet u = fileURLToPath(import.meta.url)\nexport default function where() { return u + __filename() }\n`,
+    tdzClass: H + `class __filename {}\nlet u = fileURLToPath(import.meta.url)\nexport default function where() { return u + typeof __filename }\n`,
+    tdzImport: H + `import __filename from './fnDefault.mjs'\nlet u = fileURLToPath(import.meta.url)\nexport default function where() { return u + __filename }\n`,
     tdzLocation: H + `let location = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(location) }\n`,
+    //  umd 頂層 location 之其他宣告形式與跨模組(rollup 4 皆不改名)
+    tdzLocConst: H + `const location = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(location) }\n`,
+    tdzLocFunc: H + `function location() { return 'fn' }\nexport default function where() { return path.dirname(fileURLToPath(import.meta.url)) + location() }\n`,
+    tdzLocClass: H + `class location {}\nexport default function where() { return path.dirname(fileURLToPath(import.meta.url)) + typeof location }\n`,
+    tdzLocImport: H + `import location from './fnDefault.mjs'\nexport default function where() { return path.dirname(fileURLToPath(import.meta.url)) + location }\n`,
+    tdzLocCross: `import { loc } from './crossLoc.mjs'\nimport { b } from './crossB.mjs'\nexport default function where() { return loc() + '|' + b() }\n`,
     crossAB: `import { a } from './crossA.mjs'\nimport { b } from './crossB.mjs'\nexport default function where() { return a() + '|' + b() }\n`,
     crossBA: `import { b } from './crossB.mjs'\nimport { a } from './crossA.mjs'\nexport default function where() { return a() + '|' + b() }\n`,
     crossLate: `import { a } from './crossA.mjs'\nimport { bLate } from './crossBLate.mjs'\nexport default function where() { return a() + '|' + bLate() }\n`,
     //R17 墊片劫持(umd與cjs之函數內)
     localParam: H + `function g(__filename) { return fileURLToPath(import.meta.url) + __filename }\nexport default function where() { return g('x') }\n`,
     localLet: H + `export default function where() { let __filename = 'local'; return path.dirname(fileURLToPath(import.meta.url)) + __filename }\n`,
+    localVarHoist: H + `export default function where() { if (globalThis) { var __filename = 'hoisted' } return path.dirname(fileURLToPath(import.meta.url)) + __filename }\n`,
+    //R17 墊片劫持(頂層區塊、迴圈、箭頭函數參數: 非模組作用域, rollup 4不改名; umd之函數參數location)
+    tdzBlockLet: H + `let r\n{ let __filename = 'blk'; r = path.dirname(fileURLToPath(import.meta.url)) + __filename }\nexport default function where() { return r }\n`,
+    tdzForOf: H + `let r\nfor (let __filename of ['fo']) { r = path.dirname(fileURLToPath(import.meta.url)) + __filename }\nexport default function where() { return r }\n`,
+    tdzArrowParam: H + `let g = (__filename) => path.dirname(fileURLToPath(import.meta.url)) + __filename\nexport default function where() { return g('ar') }\n`,
+    localLocation: H + `function g(location) { return path.dirname(fileURLToPath(import.meta.url)) + location }\nexport default function where() { return g('lo') }\n`,
     //R17 對照(不得誤擋)
     okDirOnly: H + `let __dirname = path.dirname(fileURLToPath(import.meta.url))\nexport default function where() { return __dirname }\n`,
     okRenamed: H + `let fpSelf = fileURLToPath(import.meta.url)\nexport default function where() { return path.dirname(fpSelf) }\n`,
     okGlobals: H + `let document = 1\nlet URL = 2\nexport default function where() { return path.dirname(fileURLToPath(import.meta.url)) + '|' + (document + URL) }\n`,
     okUnusedDecl: H + `let __filename = 'unused'\nexport default function where() { return path.dirname(fileURLToPath(import.meta.url)) }\n`,
+    okCjsDepVar: `import { bTop } from './crossB.mjs'\nimport dep from './cjsDepVar.js'\nexport default function where() { return bTop + '|' + dep() }\n`,
     //R17 屬性
     metaDirname: `export default function where() { return String(import.meta.dirname) }\n`,
     metaFilename: `export default function where() { return String(import.meta.filename) }\n`,
@@ -117,6 +133,8 @@ let libs = {
     'crossA.mjs': `export let __filename = 'A-decl'\nexport function a() { return __filename }\n`,
     'crossB.mjs': `export let bTop = import.meta.url\nexport function b() { return bTop }\n`,
     'crossBLate.mjs': `export function bLate() { return import.meta.url }\n`,
+    'cjsDepVar.js': `var __filename = 'cjs-decl'\nmodule.exports = function() { return __filename }\n`,
+    'crossLoc.mjs': `export let location = 'L-decl'\nexport function loc() { return location }\n`,
     'dynReqTryLib.js': `module.exports = function(n) { try { return typeof require(n) } catch (e) { return 'fallback' } }\n`,
     'typeofReqLib.js': `module.exports = function() { return typeof require === 'function' ? 'cjs' : 'none' }\n`,
 }
@@ -333,34 +351,125 @@ describe('import.meta類: 墊片不被劫持、url以外屬性與worker inner使
 
     after(clearFx)
 
-    it('umd: 頂層以各宣告形式宣告__filename(let、const、var、function、class、export let、逗號串列、解構、import綁定)或location即reject且不產出', async function() {
-        for (let c of ['tdzLet', 'tdzConst', 'tdzVar', 'tdzFunc', 'tdzClass', 'tdzExportLet', 'tdzComma', 'tdzDestr', 'tdzImport', 'tdzLocation']) {
-            let { res, fp } = await build(c)
-            //R17②: umd之墊片引用__filename、location, 產物內同名宣告使墊片綁到該宣告, 建置即失敗
-            assert.strict.deepStrictEqual(res.state, 'reject', c)
-            assert.strict.deepStrictEqual(codeOf(res.e), 'WPT_IMPORT_META_SHIM', `${c}: ${msgOf(res.e)}`)
-            assert.strict.ok(msgOf(res.e).includes(c === 'tdzLocation' ? 'location' : '__filename'), msgOf(res.e))
-            assert.strict.deepStrictEqual(fs.existsSync(fp), false, c)
+    it('umd: 頂層以各宣告形式宣告__filename(let、const、var、function、class、export let、逗號串列、解構、import綁定)者墊片未被劫持(rollup 4改名避讓), 照常建置, 產物取得產物所在資料夾且宣告保留其值', async function() {
+        for (let bMinify of [false, true]) {
+            for (let c of ['tdzLet', 'tdzConst', 'tdzVar', 'tdzFunc', 'tdzClass', 'tdzExportLet', 'tdzComma', 'tdzDestr', 'tdzImport']) {
+                let { res, fp } = await build(c, { bMinify })
+                //R17②: 判定依輸出之實際綁定; 墊片內之__filename未解析到產物內之宣告(rollup 4把模組頂層之同名宣告改名)即不擋
+                assert.strict.deepStrictEqual(res.state, 'resolve', `${c} bMinify[${bMinify}]: ${res.e && msgOf(res.e)}`)
+                //R17(文件化): umd之import.meta.url為產物檔之URL(取得產物檔之完整路徑); 使用者之同名宣告仍為其自身之值(fn、class、import綁定)
+                let want = { tdzComma: '1' + fp, tdzFunc: fp + 'fn', tdzClass: fp + 'function', tdzImport: fp + 'imp' }[c] || fp
+                assert.strict.deepStrictEqual(await loadWhere(fp, 'umd'), want, `${c} bMinify[${bMinify}]`)
+                if (c === 'tdzExportLet') {
+                    //R17(文件化): 具名匯出之__filename亦為產物檔之完整路徑(輸出內之綁定改名不影響匯出名)
+                    assert.strict.deepStrictEqual(req(fp).__filename, fp, `tdzExportLet named export bMinify[${bMinify}]`)
+                }
+            }
         }
-        let { res } = await build('tdzLet', { bMinify: true })
-        //R17②: 壓縮時亦同(檢查於terser之前)
-        assert.strict.deepStrictEqual(res.state, 'reject')
     })
 
-    it('umd: 跨模組(宣告與使用在不同模組, 兩種引入順序與延後使用)即reject', async function() {
+    it('umd: 頂層宣告location(let、const、function、class、import綁定、跨模組)即reject且不產出(rollup 4未改名, 墊片之typeof location與location.href綁到該宣告), 壓縮時亦同; cjs照常且得正確值', async function() {
+        for (let bMinify of [false, true]) {
+            let { res, fp } = await build('tdzLocation', { bMinify })
+            //R17②: umd之墊片引用location, 產物內同名宣告使墊片綁到該宣告(載入即TDZ), 建置即失敗(檢查於terser之前)
+            assert.strict.deepStrictEqual(res.state, 'reject', `bMinify[${bMinify}]`)
+            assert.strict.deepStrictEqual(codeOf(res.e), 'WPT_IMPORT_META_SHIM', msgOf(res.e))
+            assert.strict.ok(msgOf(res.e).includes('location'), msgOf(res.e))
+            assert.strict.deepStrictEqual(fs.existsSync(fp), false)
+        }
+        for (let c of ['tdzLocConst', 'tdzLocFunc', 'tdzLocClass', 'tdzLocImport', 'tdzLocCross']) {
+            let r1 = await build(c, { format: 'umd' })
+            //R17②: 各宣告形式與跨模組皆綁到該宣告
+            assert.strict.deepStrictEqual(r1.res.state, 'reject', c)
+            assert.strict.deepStrictEqual(codeOf(r1.res.e), 'WPT_IMPORT_META_SHIM', `${c}: ${msgOf(r1.res.e)}`)
+            assert.strict.ok(msgOf(r1.res.e).includes('location'), msgOf(r1.res.e))
+        }
+        for (let c of ['tdzLocation', 'tdzLocConst', 'tdzLocFunc', 'tdzLocClass', 'tdzLocImport', 'tdzLocCross']) {
+            let { res, fp } = await build(c, { format: 'cjs' })
+            //R17②之反面: cjs之墊片不引用location, 不得誤擋; 產物取得產物所在資料夾、宣告保留其值
+            assert.strict.deepStrictEqual(res.state, 'resolve', `${c} cjs: ${res.e && msgOf(res.e)}`)
+            let dir = path.dirname(fp)
+            let want = { tdzLocFunc: dir + 'fn', tdzLocClass: dir + 'function', tdzLocImport: dir + 'imp', tdzLocCross: `L-decl|${pathToFileURL(fp).href}` }[c] || dir
+            assert.strict.deepStrictEqual(await loadWhere(fp, 'cjs'), want, `${c} cjs`)
+        }
+    })
+
+    it('umd: 跨模組(宣告與使用在不同模組, 兩種引入順序與延後使用)之頂層__filename墊片未被劫持, 照常建置且兩模組各得其值', async function() {
         for (let c of ['crossAB', 'crossBA', 'crossLate']) {
-            let { res } = await build(c)
-            //R17②: 以bundle為單位(同名宣告在任一模組)
-            assert.strict.deepStrictEqual(res.state, 'reject', c)
-            assert.strict.deepStrictEqual(codeOf(res.e), 'WPT_IMPORT_META_SHIM', `${c}: ${msgOf(res.e)}`)
+            let { res, fp } = await build(c)
+            //R17②: 以bundle之輸出為準(同名宣告在任一模組之頂層皆由rollup 4改名)
+            assert.strict.deepStrictEqual(res.state, 'resolve', `${c}: ${res.e && msgOf(res.e)}`)
+            assert.strict.deepStrictEqual(await loadWhere(fp, 'umd'), `A-decl|${pathToFileURL(fp).href}`, c)
         }
     })
 
-    it('umd與cjs: 使用import.meta.url之函數內以參數或區域宣告__filename即reject', async function() {
-        for (let c of ['localParam', 'localLet']) {
+    it('umd與cjs: 使用import.meta.url處位於頂層區塊、for迴圈或箭頭函數參數之__filename作用域內即reject(非模組作用域, rollup 4不改名); umd之函數參數location即reject, cjs照常', async function() {
+        for (let c of ['tdzBlockLet', 'tdzForOf', 'tdzArrowParam']) {
+            for (let format of ['umd', 'cjs']) {
+                let { res, fp } = await build(c, { format })
+                //R17②: 墊片綁到區塊、迴圈、參數之宣告(靜默錯值: 以cwd組成之路徑), 建置即失敗
+                assert.strict.deepStrictEqual(res.state, 'reject', `${c} ${format}`)
+                assert.strict.deepStrictEqual(codeOf(res.e), 'WPT_IMPORT_META_SHIM', `${c} ${format}: ${msgOf(res.e)}`)
+                assert.strict.deepStrictEqual(fs.existsSync(fp), false)
+            }
+        }
+        let r1 = await build('localLocation', { format: 'umd' })
+        //R17②: umd之墊片另引用location
+        assert.strict.deepStrictEqual(r1.res.state, 'reject')
+        assert.strict.deepStrictEqual(codeOf(r1.res.e), 'WPT_IMPORT_META_SHIM', msgOf(r1.res.e))
+        assert.strict.ok(msgOf(r1.res.e).includes('location'), msgOf(r1.res.e))
+        let r2 = await build('localLocation', { format: 'cjs' })
+        //R17②之反面: cjs之墊片不引用location
+        assert.strict.deepStrictEqual(r2.res.state, 'resolve', r2.res.e && msgOf(r2.res.e))
+        assert.strict.deepStrictEqual(await loadWhere(r2.fp, 'cjs'), path.dirname(r2.fp) + 'lo')
+    })
+
+    it('genBuildCheck: 同一輸入只改變輸出之綁定, 判定隨之改變(墊片內__filename綁到宣告即reject; 宣告改名則照常)', async function() {
+        //以rollup與檢查外掛直接建置, 檢查外掛之前置一外掛於renderChunk改寫輸出之宣告名(模擬打包器是否避讓), 證判定依輸出之實際綁定而非原始碼之宣告
+        let gen = async (c, rename, format = 'umd') => {
+            let bc = genBuildCheck({ external: ['path', 'url'], runin: 'browser' })
+            let bundle = await rollup({
+                input: path.resolve(fdSrc, `${c}.mjs`),
+                external: ['path', 'url'],
+                plugins: [{ name: 'rename-decl', renderChunk: (code) => rename(code) }, bc.plugin],
+                onwarn: (w) => bc.onwarn(w, () => {}),
+            })
+            try {
+                await bundle.generate({ format, name: c, globals: { path: 'path', url: 'url' } })
+                return { state: 'resolve' }
+            }
+            catch (e) {
+                return { state: 'reject', e }
+            }
+            finally {
+                await bundle.close()
+            }
+        }
+        let same = (code) => code
+        //頂層宣告: rollup 4輸出為改名之宣告(如__filename$1, 未劫持); 改回__filename即墊片綁到該宣告
+        let r1 = await gen('tdzLet', same)
+        assert.strict.deepStrictEqual(r1.state, 'resolve', r1.e && msgOf(r1.e))
+        let renamed = null
+        let r2 = await gen('tdzLet', (code) => {
+            renamed = /\b__filename\$\d+\b/.test(code)
+            return code.replace(/\b__filename\$\d+\b/g, '__filename')
+        })
+        //前提: 輸出確有改名之宣告(rollup不再改名時此條先紅, 指出須重做兩版對照)
+        assert.strict.deepStrictEqual(renamed, true)
+        assert.strict.deepStrictEqual(r2.state, 'reject')
+        assert.strict.deepStrictEqual(codeOf(r2.e), 'WPT_IMPORT_META_SHIM', msgOf(r2.e))
+        //函數內宣告: 輸出未改名即劫持; 把函數內之宣告與使用改名即不劫持
+        let r3 = await gen('localLet', same)
+        assert.strict.deepStrictEqual(r3.state, 'reject')
+        let r4 = await gen('localLet', (code) => code.replace(/\blet __filename\b/, 'let __fnLocal').replace(/\+\s*__filename\b/, '+ __fnLocal'))
+        assert.strict.deepStrictEqual(r4.state, 'resolve', r4.e && msgOf(r4.e))
+    })
+
+    it('umd與cjs: 使用import.meta.url之函數內以參數、區域宣告或提升之var宣告__filename即reject', async function() {
+        for (let c of ['localParam', 'localLet', 'localVarHoist']) {
             for (let format of ['umd', 'cjs']) {
                 let { res } = await build(c, { format })
-                //R17②: cjs之頂層由rollup避讓, 函數內不避讓
+                //R17②: 模組頂層由rollup避讓(cjs於rollup 3起、umd於rollup 4起), 函數內不避讓
                 assert.strict.deepStrictEqual(res.state, 'reject', `${c} ${format}`)
                 assert.strict.deepStrictEqual(codeOf(res.e), 'WPT_IMPORT_META_SHIM', `${c} ${format}: ${msgOf(res.e)}`)
             }
@@ -385,6 +494,12 @@ describe('import.meta類: 墊片不被劫持、url以外屬性與worker inner使
             //R17(文件化): umd/cjs之import.meta.url為產物檔之URL, 端到端取得產物所在資料夾
             let v = await loadWhere(fp, format)
             assert.strict.ok(String(v).startsWith(path.dirname(fp)), `${c} ${format}: ${v}`)
+        }
+        for (let format of ['umd', 'cjs']) {
+            let { res, fp } = await build('okCjsDepVar', { format })
+            //R17②之反面: 被打包之commonjs相依之頂層var __filename不在墊片之作用域鏈上(commonjs外掛包裝於函數內), 不得誤擋
+            assert.strict.deepStrictEqual(res.state, 'resolve', `okCjsDepVar ${format}: ${res.e && msgOf(res.e)}`)
+            assert.strict.deepStrictEqual(await loadWhere(fp, format), `${pathToFileURL(fp).href}|cjs-decl`, format)
         }
     })
 

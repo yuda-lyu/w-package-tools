@@ -8,9 +8,9 @@ import { wptError } from './wptCommon.mjs'
 
 //buildCheck, 內部用(非公開API): 建置期檢查(帳本R16、R17)與清空資料夾(帳本R18)
 //  R16 引用: 產物仍引用之無法解析裸引用(Node內建模組除外, 受try/catch守衛之動態import()只警告)即錯誤; 產物不可能取得內建模組者(iife、瀏覽器且bNodePolyfill)不豁免; commonjs動態require樁之未受守衛呼叫即錯誤; 瀏覽器worker之inner不得引用外部模組(rollupWorkerCore以imports與findFreeRequires判定)
-//  R17 import.meta: 非es格式存活之url以外屬性未受守衛即錯誤; umd/cjs之url墊片內之__filename(umd另有location)不得綁到產物內之宣告
+//  R17 import.meta: 非es格式存活之url以外屬性未受守衛即錯誤; umd/cjs之url墊片內之__filename(umd另有location)不得綁到產物內之宣告(依輸出之實際綁定判定)
 //  R18 清空: 非success即拋錯, 暫時性占用與並發刪除自寫重試, 拒絕清空根目錄與cwd(含其上層)
-//  只用rollup 3.20起即有之API(onwarn、moduleParsed、resolveImportMeta、renderChunk、chunk.imports): 下游實裝之rollup為3.20.2~3.30.0, onLog於3.25才有
+//  rollup依本套件package.json之^4.67.4(使用端根目錄另有rollup 3時, npm為本套件另裝rollup 4於其巢狀node_modules); 用onwarn、moduleParsed、resolveImportMeta、renderChunk、chunk.imports、chunk.dynamicImports、chunk.modules之renderedLength、this.getModuleInfo, rollup 4皆有
 
 
 //commonjs外掛(24.x)把require(非字面值)與非呼叫之require參照換成引用此模組之commonjsRequire(未設dynamicRequireTargets時為呼叫即拋Could not dynamically require之樁)
@@ -20,7 +20,8 @@ const cjsRequireStub = 'commonjsRequire'
 //rollup於非es格式只模擬url, 其餘屬性換成undefined(呼叫則拋錯), 裸import.meta只得{ url }
 const metaUrl = 'url'
 
-//umd/cjs之url墊片以free之__filename取Node端位置(umd另以typeof location判斷), rollup未避讓者會被同名宣告劫持
+//umd/cjs之url墊片以free之__filename取Node端位置(umd另以typeof location判斷), 同名宣告在墊片之作用域鏈上即被劫持:
+//  rollup 4把模組頂層之__filename宣告改名(如__filename$1)而避讓, umd頂層之location不改名; 函數、區塊、迴圈、參數、catch參數之同名宣告不改名, 故依輸出之實際綁定判定, 不依原始碼之宣告
 const shimNames = {
     umd: ['__filename', 'location'],
     cjs: ['__filename'],

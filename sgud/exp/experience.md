@@ -253,3 +253,17 @@
 - **升 Babel 大版要查「預設會悄悄做的事」被移除者**(外審 F6):transform-runtime 7 預設 `regenerator: true` 會改寫自由全域 `regeneratorRuntime`,8 移除後產物建置成功、執行期才 `regeneratorRuntime is not defined`。下游逐位元組相同只證明「那兩包」沒用到;要判全庫影響,用該 runtime 特有之字串(`Generator is already running`)掃全庫已提交之 dist(先以改前產物確認判準抓得到),本次 0/140。
 - **測試不依賴傳遞相依**:要解 sourcemap 時 `@jridgewell/trace-mapping` 雖在 node_modules,卻只是 Babel 之傳遞相依(wsemi core-js 對拍案即因此被本次改動影響),故於測試內自寫 20 行 VLQ 解碼。`api.caller(fn)` 之回傳須為簡單型別(作快取鍵),要取整個 caller 物件用 `JSON.stringify`。
 - **外審時效**:terra(gpt-6.1-terra/max,Codex 唯讀沙箱)約 20 分鐘回 11 條,其中 F1、F6 為我漏掉之高嚴重度格;Claude API 兩把金鑰皆無額度時 `dispatchAiFallback` 回 `QUOTA_EXHAUSTED`(`failureKind: no-credit`),以 `probe-anthropic-keys.mjs` 交叉確認後不派。
+
+## 二十五、rollup 3 → 4 與 R17 墊片之兩版對照(2026-11-11,主控任務 20261111182635 pt395)
+
+- **「上游已修」要逐形態驗,不能以一格推全類**:評估時以頂層 `let __filename` 一格得出「rollup 4 已修墊片劫持」;逐形態實測後,rollup 4 只改名**模組頂層之 `__filename`**,umd 頂層之 `location` 仍劫持,函數、區塊、if、for、箭頭與方法參數、catch 參數之同名宣告兩版皆劫持。檢查本即依輸出之作用域綁定判定,故程式不必改,改的是測試之預期與帳本之理由。
+- **兩版對照之作法**(升 rollup 時重做):對每個形態 × umd/cjs,①不加檢查外掛建置、載入產物呼叫,取得之值不含產物所在資料夾或拋錯即「實際劫持」;②加檢查外掛建置得判定;③兩者逐格比對。rollup 與 commonjs 取自執行環境之 node_modules,於升版前後各跑一次(本輪 3.30.0 與 4.67.4 各 64 格,0 格不一致)。腳本放 `./tmp/`,證據交任務資料夾。
+- **證明「判定依輸出綁定」可不靠打包器版本**:以 rollup 直接建置,檢查外掛前置一個 `renderChunk` 外掛改寫輸出之宣告名(`__filename$1` 改回 `__filename`、或把函數內宣告改名),同一輸入之判定隨之翻轉(`test/unit-buildCheck.test.mjs`「genBuildCheck: 同一輸入只改變輸出之綁定」)。renderChunk 依外掛順序串接,前者之輸出即後者之輸入。
+- **指紋測試換語意斷言,先在兩版都跑**:新斷言於 rollup 3.30.0 與 4.67.4(及 4.67.5)皆綠、舊斷言於 4 紅,才證明新斷言不是 4 之新指紋。舊版環境取法:下游副本 `npm ci` 後其 `node_modules/w-package-tools` 即修前版(lock 之 integrity 與修前 `npm pack` 相同),把新測試檔放進該處以其為 cwd 跑 mocha;或在 `./tmp/` 建空 `package.json` 後 `npm i <修前 tgz>`。`.vue` 產物以 `new Function('module','exports','document', code)` 載入(假 document 只需 `head.appendChild`、`createElement`、`createTextNode`),render 以假 vm(`_self._c`、`_v`、`_s`)呼叫得節點樹;es 產物以 `data:text/javascript;base64,` 動態 import。
+- **產物大小之歸因要固定 terser**:含 worker 之下游包 r4 反而大 3.6%,先疑 commonjs 29 之 `strictRequires: true`(改 `"auto"` 實測大小幾乎不變而排除),再查 lock:該包鎖 terser 5.16.8,`@rollup/plugin-terser` 1.0.2 帶入 5.51.2;以同為 terser 5.51.2 之 rollup 3 環境重建,rollup 4 反小 206 bytes。下游 lock 之舊 terser、舊 rollup(3.20.2)會讓「rollup 4 之差異」混入其他升版。
+- **下游解析之版本 ≠ 本 repo 之 lock**:本 repo lock 4.67.4,下游 `npm i <tgz>` 解析 `^4.67.4` 得 4.67.5(當日剛滿 7 天冷卻)。測試要在下游實際會拿到之版本也跑一次。
+- **UMD 冒煙之相依解析看產物所在位置**:`createRequire(<副本>/package.json)` 之 require 只決定產物本身從哪找,產物內之 `require('dayjs')` 依產物檔所在位置解析;快照放在副本外即 `Cannot find module`,須複製回副本內再載入。
+- **外審(terra)補出之軸:壓縮在檢查之後**:R17② 在 terser 之前檢查,預設參數用 `import.meta.url`＋本體 `var __filename` 之形態,未壓縮正確、壓縮後 terser 把預設參數之全域參照改綁到本體之短名而 `ReferenceError`(terser 5.16.8/5.46.1/5.51.2 皆然,非本輪引入;列四之一待裁示)。兩版對照只比「打包器版本」會漏「壓縮器」這一軸;判「實際劫持」要以**最終產物**(含壓縮)為準。
+- **升外掛大版要逐一讀其 CHANGELOG 之預設值變更**:本輪自己列了 commonjs 之 `strictRequires`,漏了 node-resolve 16 之 `exports` 條件(加 `production`)、replace 6 之識別子界線、rollup 4 錯誤訊息加 `[plugin <名>]` 前綴、原生二進位改 optional 相依——皆外審補出,於 4 包下游無差異但屬可觀察變更。曝險以「已提交 dist 之 `.map` sources → 該 repo `node_modules/<名>/package.json`」全庫只讀掃描(126 repo、152 map、0 個)。
+- **語意斷言也要做反例**:首版 gVue1 只斷言方法「存在」、gAsync2 只要「產物某處有 async」,外審以「方法改輸出」「預設匯出改同步、另放無關 async」兩反例皆過;改為呼叫方法比對輸出、斷言預設匯出本身為 AsyncFunction 後,於 `./tmp` 變體輸入實跑 2 案皆紅。
+- **commonjs 包裝影響 R17 之軸**:被打包之 CJS 相依之頂層 `var __filename` 於 commonjs 24(`strictRequires: "auto"`)在模組頂層而劫持 umd 墊片;commonjs 29(`true`)包於函數內,不在墊片之作用域鏈上。外掛預設值之改變也會移動「何者劫持」之邊界。
