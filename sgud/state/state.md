@@ -4,7 +4,7 @@
 
 ## 版本與驗證
 
-- `package.json` 版本 1.1.25(bb02 之 Babel 8 已隨 1.1.25 發布)。**pt395(2026-11-11,rollup 3 → 4)之改動未改版、未發布、未提交**,待主控複審後發布並跑全庫連動(對使用端之變化見 README〈Breaking changes〉之 rollup 4 節)。
+- 已發布 1.1.28(主控 2026-11-14 更正本列:原載「1.1.25、pt395 未改版未發布未提交」已過時——pt395〔rollup 3 → 4〕已於 commit `8c8ea77` 提交並發布,其後 1.1.27〔mocha 12〕、1.1.28〔rollup ^4.67.5、eslint-parser〕;已跑全庫連動)。對使用端之變化見 README〈Breaking changes〉之 rollup 4 節。2026-11-21 主控升 `rollup` ^4.68.3、`postcss` ^8.5.33(主控排程第 459、578 項):先過編譯閘(使用者 2026-11-19 定)——暫存副本以新版建置 wsemi(3 支建置腳本)與 w-component-vue(4 支),產物與 4.67.5 逐位元組相同(w-component-vue 只差 `app.html` 之快取時間戳)、警告逐行相同、瀏覽器載入 88 元件 0 錯誤;本套件全套 447 passing、`rollupCode.test.mjs` 5 案不必改預期檔;#6645(namespace 成員重新指派)兩版皆警告 ILLEGAL_REASSIGNMENT,新版由載入即 SyntaxError 改為執行期 TypeError(報告 opensrcOper `dnow/20261121090209/agent-out/cg-rollup-報告.md`)。
 - 相依(pt395 起):`rollup` ^4.67.4(lock 4.67.4;使用端安裝時解析為範圍內滿 7 天之最新,2026-11-11 為 4.67.5)、`@rollup/plugin-commonjs` ^29.0.3、`@rollup/plugin-node-resolve` ^16.0.3、`@rollup/plugin-replace` ^6.0.3、`@rollup/plugin-terser` ^1.0.2(terser 5.51.2)、`@rollup/plugin-json` ^6.1.0;`rollup-plugin-vue` 5.1.9、`rollup-plugin-postcss` 4.0.2、`rollup-plugin-node-polyfills` 0.2.1 不變。Babel(bb02 起):`@babel/core` ^8.1.0、`@babel/preset-env` ^8.0.7、`@babel/plugin-transform-runtime` ^8.0.6、`@babel/runtime` ^8.1.0;`@babel/eslint-parser` ^7.21.3(lock 7.29.9,限主版號 7,經 `overrides` 用本套件之 core 8)。mocha ^12.0.3(2026-11-12 主控升,排程第 396 項;Node 下限 20.19、`bin/mocha.js` 仍在、全庫 `npm test` 之兩種寫法與用到之旗標經 bb01 實測可用)、jsdoc-vuejs 3.0.9 未動(4.0.0 帶入 Vue 3 編譯器)。
 - 內附 `src/wsemip.umd.js`、`src/wpf.umd.js`、`src/wpf_pmSeries.umd.js` 皆 v1.9.18(R18)。
 - 全套 `npm test`:見下〈最近一次驗證〉。
