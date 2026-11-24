@@ -646,7 +646,7 @@
 |---|---|
 | 後端/前端 | 無。測試頁與產物以 Playwright `page.route('http://wpt.test/**')` 攔截供檔,**不開埠**、不出網 |
 | e2e 執行 | 單檔:`npx mocha --no-parallel test/e2e-workerBrowser.test.mjs --timeout 180000`;全套經 `npm test`(同一 mocha 指令,`test/*.test.mjs`) |
-| 瀏覽器 | `playwright`(devDependency `^1.63.0`,安裝時之 1.63.0 對應本機已裝之 chromium-1243);Chromium headless |
+| 瀏覽器 | `playwright`(devDependency `^1.65.1`;2026-11-24 由 1.63.0 對齊全庫之 1.65.1〔chromium-1255〕——全庫升級後舊版所需之 chromium-1243 已不在本機,1.63.0 時本檔 e2e 啟動即失敗);Chromium headless |
 | 共用實作 | 不引用 w-package-tools-e2e:本檔只需 launch 與 page.route,無截圖、紅框、比對需求 |
 
 ### 契約映射
