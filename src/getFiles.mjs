@@ -5,8 +5,8 @@ import w from './wsemip.umd.js'
 function getFiles(fd) {
     //給各專案處理使用
 
-    //fsGetFilesInFolder
-    let vpfs = w.fsGetFilesInFolder(fd)
+    //fsGetFilesInFolder, 只取第1層之檔(wsemi 1.9.80起第2參數為opt, 未給levelLimit即窮舉全部, 故須明給{ levelLimit: 1 })
+    let vpfs = w.fsGetFilesInFolder(fd, { levelLimit: 1 })
     let files = _.map(vpfs, (v) => {
         return w.getFileName(v.path)
     })

@@ -227,26 +227,77 @@ describe('內附wsemip之契約守門(規則帳本R18、wsemip版本敏感站點
         })
     })
 
-    describe('getFiles.mjs之w.fsGetFilesInFolder', function() {
+    describe('getFiles.mjs之w.fsGetFilesInFolder(站點: src/getFiles.mjs; wsemip 1.9.80起第2參數為opt, 未給opt.levelLimit即窮舉全部, 本站須明給{ levelLimit: 1 }以保持只取第1層)', function() {
 
-        it('回傳第一層檔案之檔名陣列; 目標非資料夾同步拋出', function() {
+        //夾具: 各層之檔名逐一相異, 且每層之檔數不同(第1層2檔、第2層3檔、第3層1檔), 使「多取一層」「不限層」「取錯層」皆得出不同之檔名集合
+        let mkTree = (fd) => {
+            fs.mkdirSync(`${fd}/sub1/deep`, { recursive: true })
+            fs.mkdirSync(`${fd}/sub2`, { recursive: true })
+            fs.mkdirSync(`${fd}/emptydir`, { recursive: true })
+            fs.writeFileSync(`${fd}/a1.txt`, 'a1')
+            fs.writeFileSync(`${fd}/b1.txt`, 'b1')
+            fs.writeFileSync(`${fd}/sub1/c2.txt`, 'c2')
+            fs.writeFileSync(`${fd}/sub1/d2.txt`, 'd2')
+            fs.writeFileSync(`${fd}/sub2/f2.txt`, 'f2')
+            fs.writeFileSync(`${fd}/sub1/deep/e3.txt`, 'e3')
+        }
+        let lvNm = (items) => items.map((v) => `${v.level}:${v.name}`).sort()
+
+        it('getFiles: 資料夾含子資料夾內之檔時, 只回第1層之檔名(不含第2層以下)', function() {
             let fd = `${fdTmp}/gf`
+            mkTree(fd)
+            //getFiles註解: 給各專案處理使用, 回傳檔名陣列(只第一層); 帳本R18站點src/getFiles.mjs: 省略第2參數者改{ levelLimit: 1 }以保持行為
+            assert.strict.deepStrictEqual(getFiles(fd).sort(), ['a1.txt', 'b1.txt'])
+        })
+
+        it('getFiles: 第1層無檔而子資料夾內有檔 → 回空陣列', function() {
+            let fd = `${fdTmp}/gf-onlysub`
             fs.mkdirSync(`${fd}/sub`, { recursive: true })
+            fs.writeFileSync(`${fd}/sub/only2.txt`, 'x')
+            assert.strict.deepStrictEqual(getFiles(fd), [])
+        })
+
+        it('getFiles: 目標非資料夾(檔案、不存在)同步拋出Error, 訊息為wsemip之固定說明字串', function() {
+            let fd = `${fdTmp}/gf-err`
+            fs.mkdirSync(fd, { recursive: true })
             fs.writeFileSync(`${fd}/a.txt`, 'a')
-            fs.writeFileSync(`${fd}/sub/b.txt`, 'b')
-            //getFiles註解: 給各專案處理使用, 回傳檔名陣列(levelLimit預設1, 只第一層)
-            assert.strict.deepStrictEqual(getFiles(fd), ['a.txt'])
-            let items = w.fsGetFilesInFolder(fd)
-            assert.strict.deepStrictEqual(items.map((v) => [v.level, v.name]), [[1, 'a.txt']])
-            assert.strict.ok(typeof items[0].path === 'string' && path.basename(items[0].path) === 'a.txt')
+            for (let target of [`${fd}/a.txt`, `${fd}/nope`]) {
+                let r = null
+                try {
+                    getFiles(target)
+                }
+                catch (e) {
+                    r = e
+                }
+                //wsemip 1.9.80: fd無效(含不存在、為檔案)同步拋'invalid fd: must be an existing folder'(1.9.18為'fd[<路徑>] is not a folder', 帶輸入路徑)
+                assert.strict.ok(r instanceof Error && r.message === 'invalid fd: must be an existing folder', msgOf(r))
+            }
+        })
+
+        it('w.fsGetFilesInFolder(fd, { levelLimit: n }): opt.levelLimit為有效正整數才限層, 回傳項目帶level、path、name', function() {
+            let fd = `${fdTmp}/gf-w`
+            mkTree(fd)
+            //本套件依賴之契約: { levelLimit: 1 }只第1層; { levelLimit: 2 }至第2層(1.9.79以前之bundle忽略opt.levelLimit而恆取1層, 故此條同時守住「bundle已換為opt版」)
+            assert.strict.deepStrictEqual(lvNm(w.fsGetFilesInFolder(fd, { levelLimit: 1 })), ['1:a1.txt', '1:b1.txt'])
+            assert.strict.deepStrictEqual(lvNm(w.fsGetFilesInFolder(fd, { levelLimit: 2 })), ['1:a1.txt', '1:b1.txt', '2:c2.txt', '2:d2.txt', '2:f2.txt'])
+            let items = w.fsGetFilesInFolder(fd, { levelLimit: 1 })
+            assert.strict.ok(items.every((v) => typeof v.path === 'string' && path.basename(v.path) === v.name && v.level === 1))
+        })
+
+        it('w.fsGetFilesInFolder(fd): 未給opt即窮舉全部層(本套件不得省略第2參數之原因); 第2參數為數字(舊寫法)拋invalid opt: must be an object', function() {
+            let fd = `${fdTmp}/gf-w2`
+            mkTree(fd)
+            //刻意之舊形呼叫2處(本行省略第2參數、下方傳數字1): 用以證明內附bundle之新語意, 非遷移對象(帳本R18〈列舉函數第2參數〉之盤點將此2處列為測試內刻意站點)
+            assert.strict.deepStrictEqual(lvNm(w.fsGetFilesInFolder(fd)), ['1:a1.txt', '1:b1.txt', '2:c2.txt', '2:d2.txt', '2:f2.txt', '3:e3.txt'])
+            assert.strict.deepStrictEqual(lvNm(w.fsGetFilesInFolder(fd, {})), ['1:a1.txt', '1:b1.txt', '2:c2.txt', '2:d2.txt', '2:f2.txt', '3:e3.txt'])
             let r = null
             try {
-                getFiles(`${fd}/a.txt`)
+                w.fsGetFilesInFolder(fd, 1)
             }
             catch (e) {
                 r = e
             }
-            assert.strict.ok(r instanceof Error && /is not a folder/.test(r.message), msgOf(r))
+            assert.strict.ok(r instanceof Error && r.message === 'invalid opt: must be an object', msgOf(r))
         })
     })
 

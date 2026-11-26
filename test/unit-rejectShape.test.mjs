@@ -324,8 +324,8 @@ describe('cleanFolderStrict之錯誤訊息(規則帳本R19④)', function() {
     })
 
     it('原錯誤之message與path為亂碼(Windows ANSI碼頁): 訊息不引用之', function() {
-        let garbled = 'EPERM, Permission denied: \\\\?\\C:\\opensrc\\¶}·½-JS-001\\dist\\sub \'\\\\?\\C:\\opensrc\\\uFFFD}\uFFFD\uFFFD-JS-001\\dist\\sub\''
-        let err = mkErr('EPERM', garbled, { syscall: 'rm', errno: 1, path: '\\\\?\\C:\\opensrc\\\uFFFD}\uFFFD\uFFFD-JS-001\\dist\\sub' })
+        let garbled = 'EPERM, Permission denied: \\\\?\\D:\\work\\¶}·½-JS-001\\dist\\sub \'\\\\?\\D:\\work\\\uFFFD}\uFFFD\uFFFD-JS-001\\dist\\sub\''
+        let err = mkErr('EPERM', garbled, { syscall: 'rm', errno: 1, path: '\\\\?\\D:\\work\\\uFFFD}\uFFFD\uFFFD-JS-001\\dist\\sub' })
         let fd = './test/_tmp/rejectShape-clean/開源-dist'
         let r = strictOf(err, fd)
         assertShape(r.e, 'WPT_CLEAN_FOLDER', `can not clean folder[${path.resolve(fd)}]: code[EPERM] syscall[rm] attempts[3]`, '亂碼')
@@ -454,10 +454,14 @@ describe('cleanFolderStrict之錯誤訊息(規則帳本R19④)', function() {
             await exited
         }
         assert.strict.deepStrictEqual(r.ok, false, '被占用時應reject')
-        //斷言形狀而非Node實作細節(syscall為rm、碼為EPERM是Node 24之C++版rmSync; 其他版本可能為rmdir/unlink、EBUSY/ENOTEMPTY), 三者皆屬重試集合故attempts為11
-        assertShape(r.e, 'WPT_CLEAN_FOLDER', new RegExp(`^can not clean folder\\[${fdTar.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')}\\]: code\\[(EPERM|EBUSY|ENOTEMPTY)\\] syscall\\[\\w+\\] attempts\\[11\\]$`), '實測')
+        //斷言形狀而非Node實作細節(碼為EPERM是Node 24之C++版rmSync; 其他版本可能為EBUSY/ENOTEMPTY), 三者皆屬重試集合故attempts為11
+        //wsemip 1.9.80起fsCleanFolder回傳之error為去除路徑與syscall之新建Error(只保留code, message為'operation failed (code <code>)'), 故訊息無syscall段(1.9.18為code[EPERM] syscall[rm]); describe對無syscall者本即省略該段
+        assertShape(r.e, 'WPT_CLEAN_FOLDER', new RegExp(`^can not clean folder\\[${fdTar.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')}\\]: code\\[(EPERM|EBUSY|ENOTEMPTY)\\] attempts\\[11\\]$`), '實測')
         assert.strict.ok(!/\uFFFD|¶}/.test(r.e.message), r.e.message)
         assert.strict.ok(r.e.cause instanceof Error && r.e.cause.code === 'EPERM', 'cause須保留原錯誤')
+        //cause為wsemip去除路徑後之Error: message不含路徑(Windows下原為ANSI碼頁亂碼, 帳本R19已知限制①於wsemip 1.9.80起不再成立), 無path、syscall屬性
+        assert.strict.deepStrictEqual(r.e.cause.message, 'operation failed (code EPERM)')
+        assert.strict.ok(!('path' in r.e.cause) && !('syscall' in r.e.cause), JSON.stringify(Object.keys(r.e.cause)))
         assert.strict.deepStrictEqual(fs.existsSync(path.resolve(fdTar, 'fxA.umd.js')), false, '清空失敗不得續行建置')
     })
 

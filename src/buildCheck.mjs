@@ -612,7 +612,7 @@ function cleanFolderStrict(w, fd, opt = {}) {
             break
         }
     }
-    throw fail(last instanceof Error ? describe(last, attempts) : String(last), last) //wsemip以字串回報者(如input path is not a folder)為wsemi自撰文字, 無路徑
+    throw fail(last instanceof Error ? describe(last, attempts) : String(last), last) //wsemip以字串回報者(如invalid fd: must be a folder or not exist; 1.9.18為input path is not a folder)為wsemi自撰文字, 無路徑
 }
 
 

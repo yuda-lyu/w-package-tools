@@ -86,7 +86,7 @@
 
 ## 十一、工具與環境
 
-- Glob 工具於 `C:/opensrc/*` 層級搜尋 20 秒逾時;跨專案找檔改用 Bash glob(`ls /c/opensrc/*/*/sgud/rule/rulebook.md`),跨專案搜內容用 `git -C <repo> grep`(只搜 tracked 檔)。
+- Glob 工具於自有套件庫根(各套件之上一層)之 `*` 層級搜尋 20 秒逾時;跨專案找檔改用 Bash glob(`ls /c/opensrc/*/*/sgud/rule/rulebook.md`),跨專案搜內容用 `git -C <repo> grep`(只搜 tracked 檔)。
 - Git Bash 對含中文之路徑直接 `cd` 會因編碼失敗;改用 glob 展開或 `git -C`。
 - Node 下 `node -e "<code>" a b` 之額外參數在 `process.argv.slice(1)`,中文路徑可完整傳遞。**起宿主子程序不可用 `--input-type=module`**:子程序內建立之 eval worker 會繼承 execArgv,inner 之 cjs 程式碼被當 ESM 而 `require is not defined`,worker 靜默壞掉(2026-10-13 實測);改用 CommonJS `-e` 並於 async 函數內動態 `import()`。
 
@@ -96,7 +96,7 @@
 - **終止路徑的單一擁有者要先抽出來**:terminate 要 reject pending 但不能 emit error,原 `emitError` 把兩件事綁在一起;先抽出 `rejectPendings`(清理)再讓 `emitError` 與 `terminate` 各自組合,否則就會在 terminate 內手寫第二份清理迴圈。
 - **建立失敗不要回 null**:回 null 等於把錯誤換成呼叫端對 null 取值之 TypeError;保存原始錯誤、照常回傳物件、讓呼叫以原始錯誤 reject,呼叫端才看得到真因(如瀏覽器 CSP)。
 - **測試手法**:①持久實體要新實例 → 把產物複製成新檔名再 import(UMD 以檔名快取)②建立失敗 → 暫換 `require('worker_threads').Worker`(UMD 於呼叫時才取用模組物件之 Worker),ESM 具名匯入者(src/parfor.mjs)再呼叫 `module.syncBuiltinESMExports()` 使其同步,finally 必還原 ③改碼前之紅燈若會遺留存活 worker,以 `mocha --exit` 跑,否則 mocha 不結束;綠燈則**不加** `--exit` 跑一次,能自行結束即證明無遺留 ④改碼前之 cb 拋錯、DataCloneError 會成為 mocha 行程之 Uncaught,同一條測試會被記兩次失敗——屬缺陷本身,不是測試寫錯。
-- **真實呼叫端驗收找法**:盤點 C:\opensrc 自有套件之 toolg 腳本,找會碰到該路徑之使用(`execFunctionByInstance:false` 只有 w-pubsub client)。以其實際參數重產,宿主連一個無人監聽之埠使 `subscribe` 停在 mqtt 佇列,即得「呼叫中之 pending」;宿主須在 w-pubsub 目錄執行(eval worker 之 require 以 cwd 為基準)。改碼前先產出 before 產物留著,改碼後無法再以舊 src 重產。
+- **真實呼叫端驗收找法**:盤點全部自有套件之 toolg 腳本,找會碰到該路徑之使用(`execFunctionByInstance:false` 只有 w-pubsub client)。以其實際參數重產,宿主連一個無人監聽之埠使 `subscribe` 停在 mqtt 佇列,即得「呼叫中之 pending」;宿主須在 w-pubsub 目錄執行(eval worker 之 require 以 cwd 為基準)。改碼前先產出 before 產物留著,改碼後無法再以舊 src 重產。
 - **clearExportCode 的觸發條件**:只有 `bMinify:false` 且 `opt.name` 與原始碼 default export 不同名才會壞(壓縮時 cleim 以第一處 `module.exports=` 通吃)。下游 w-pubsub 雖用 bMinify false 但同名,所以一直沒踩到;測試 fixture 之 name 本就與原始碼不同名,補一支 bMinify false 即可重現。
 
 ## 十三、messageerror 與執行環境前提(2026-10-13)
@@ -182,7 +182,7 @@
 ## 十九、R19/R20(字串拒絕改帶碼 Error、暫存檔清理留痕)與 wsemi 1.9.18 換入(2026-10-17,主控任務 20261017051850 run01)
 
 - **`CLAUDE*.md` 被 `.gitignore`(第 4 行 `CLAUDE*.md`)**:帳本與本檔之改動不會出現在 `git status`,`git ls-files` 亦無;新增之 `src/wptCommon.mjs` 與測試檔為未追蹤,帳本盤點指令對新檔須加 `git grep --untracked`。
-- **全庫呼叫端盤點作法**:Grep 工具於 `C:\opensrc` 加 `glob: '!{**/node_modules/**,**/dist/**,**/docs/**,**/tmp/**,**/.git/**,**/*.md}'` 數秒即回(先前「`C:/opensrc/*` 層級逾時」之記載僅限 Glob)。要看錯誤處理形態改寫成 .mjs 走訪(5643 檔、564 檔引用本套件、53 個 catch 處理器中 50 個只印出),比逐檔人讀可靠;`fns` 之形態亦以走訪分類。腳本在 `./tmp/t55/scan*.mjs`。
+- **全庫呼叫端盤點作法**:Grep 工具於自有套件庫根加 `glob: '!{**/node_modules/**,**/dist/**,**/docs/**,**/tmp/**,**/.git/**,**/*.md}'` 數秒即回(先前「套件庫根之 `*` 層級逾時」之記載僅限 Glob)。要看錯誤處理形態改寫成 .mjs 走訪(5643 檔、564 檔引用本套件、53 個 catch 處理器中 50 個只印出),比逐檔人讀可靠;`fns` 之形態亦以走訪分類。腳本在 `./tmp/t55/scan*.mjs`。
 - **`util.inspect(err)` 於 Error 帶自有可列舉屬性(`code`)時,把 ` {` 接在最後一個堆疊框行尾**:w-pksupdate R15 之 `RE_STACK_FRAME` 以 `$` 結尾,該行不匹配;堆疊 ≥ 2 框時前一行仍匹配故無礙,**只有單框堆疊(模組頂層呼叫＋top-level await 後)會漏判**,此時靠訊息不變之固定字串清單兜底。改 Error 屬性時要用 w-pksupdate 的 `detectPrintedFailure` 實測輸出(唯讀 import 其 `src/ectScripts.mjs`),不要憑想像。
 - **Windows `fs.rmSync` 的 EPERM 實測形狀**:`code: 'EPERM'`、`syscall: 'rm'`、`errno: 1`,`message` 與 `path` 為 ANSI 碼頁亂碼(含 U+FFFD);路徑含「開源」即重現,製造法同帳本 R18(子行程 cwd 設在目標之子資料夾內)。wsemip 之 `fsCleanFolder` 回傳 `{ error: Error }` 原樣帶出。
 - **先紅後綠的分組**:同一站點拆兩組測試——「訊息文字鎖定」(修前即綠,證明沒改到訊息)與「帶碼 Error 形狀」(修前紅)。27 站點於 `before` 一次跑完並記錄各站結果,每案之意外記於該案,不使整檔失去判別力(同十六)。
@@ -212,7 +212,7 @@
 - **變異集合要避免「變異本身會寫到 repo」**:`strOpt` 允許空字串的變異會令 `fdTar: ''` 解析成 cwd(repo 根)而把範例寫進 repo,故不納入;`fdSrc` 不處理 `''` 之變異靠「fdTar 位於 fdSrc(=cwd)之內」的重疊檢查在寫入前拋錯而安全。凡變異可能擴大寫入範圍者先想寫入點再納入。
 - **變異驗證的做法(一次取鎖)**:`tmp/wpt257/mutate.mjs` 在 `tmp/wpt257/mut/<id>/` 只複製受測的 6 個 src 檔與 2 個測試檔(測試以 `../src/` 引用副本,工作目錄仍為 repo 根,夾具在 `test/_tmp/`),以 mocha `--reporter json --reporter-option output=` 取失敗清單;整支腳本包在**一次** `quiet-run --lock` 內(約 60 個變異),不是每個變異各取一次鎖(等鎖 30 秒 × 60 次)。`find` 以正規式比對並容忍 CRLF,出現次數不為 1 即記 `NOT APPLIED`(不當作存活)。
 - **真實專案實跑不寫入原 repo**:把 `package.json`、README、`examples/`(或 `test-html/`)、`dist/`,以及 node_modules 內**自有套件**之 `package.json` 與 `dist/` 複製到 `tmp/wpt257/real/<名>/`,以**子行程、cwd=複本夾**呼叫預設路徑之 `genDocsExams()` 與**未改**之 `toolg/modifyReadme.mjs`,才驗得到「預設路徑」與「各套件 toolg 不改即生效」。不用 junction 連回原 node_modules(清理時會穿過)。
-- **動工前先掃 `C:\opensrcOper\dspec\README.md` 索引,不要等到寫〈審查三要點自查〉才讀**:本輪規格寫成後才讀到〈自有套件之瀏覽器端取用與gh-pages〉與〈輸入參數之檢測機制〉,補出三個缺口並重跑全部變異(約 20 分鐘):①規則 2 將範例原始檔之他套件網址改指其 gh-pages,規則 3 又要求產製時就地化——只認 jsDelivr/unpkg 的實作在主控批次改寫原始檔之後會讓範例頁對外取用 gh-pages(違規則 3),故辨識「本套件擁有者之 `github.io/<名>/dist/…`」並就地化(`/examples/…`、`/global.html` 之導覽連結不動且不警告,否則 80 個範例頁各一則假警告);②K3:opt 鍵型別不符視為未給改用預設,不拋錯(我原先 throw `WPT_DOCS_INVALID_OPT`);`null` 一律視為未給,故 `fdSrc: null` 不再等於「無範例」,只剩 `''`;③V17:全部檢測先於任何寫入(原先 `fdSrc` 不存在之檢查排在 dist 複製之後)。**dspec 內部不一致**:`process_review.md` 審查三要點(3)舉例「opt 給錯值卻靜默回退(違 K3)」與 dspec K3(2026-10-31 改寫:非預期之輸入視為未給、改用預設)相反,以 dspec 正文為準並列待裁示。
+- **動工前先掃主控 dspec 之 `README.md` 索引,不要等到寫〈審查三要點自查〉才讀**:本輪規格寫成後才讀到〈自有套件之瀏覽器端取用與gh-pages〉與〈輸入參數之檢測機制〉,補出三個缺口並重跑全部變異(約 20 分鐘):①規則 2 將範例原始檔之他套件網址改指其 gh-pages,規則 3 又要求產製時就地化——只認 jsDelivr/unpkg 的實作在主控批次改寫原始檔之後會讓範例頁對外取用 gh-pages(違規則 3),故辨識「本套件擁有者之 `github.io/<名>/dist/…`」並就地化(`/examples/…`、`/global.html` 之導覽連結不動且不警告,否則 80 個範例頁各一則假警告);②K3:opt 鍵型別不符視為未給改用預設,不拋錯(我原先 throw `WPT_DOCS_INVALID_OPT`);`null` 一律視為未給,故 `fdSrc: null` 不再等於「無範例」,只剩 `''`;③V17:全部檢測先於任何寫入(原先 `fdSrc` 不存在之檢查排在 dist 複製之後)。**dspec 內部不一致**:`process_review.md` 審查三要點(3)舉例「opt 給錯值卻靜默回退(違 K3)」與 dspec K3(2026-10-31 改寫:非預期之輸入視為未給、改用預設)相反,以 dspec 正文為準並列待裁示。
 - **K3 之變異要含 `null` 與「改用預設後結果相同」之格**:型別不符鍵改用預設後輸出與不給相同,只比輸出會讓「是否真的走預設路徑」的變異存活(`arrOpt` 把 `null` 當無效,輸出相同但 debug 說明多一則);須搭配 `opt.debug` 之說明斷言,且 `null`/`undefined` 各鍵都要有格(變異 k09 因此才被殺)。
 - **在變異腳本裡替換成「語法有效」的文字**:`h04` 第一版因括號數不對使副本載入即 SyntaxError(記為 NO RESULT,不是被殺);腳本須把 NO RESULT、NOT APPLIED 與存活分開統計,並逐一處理。
 - **gh-pages 部署不受 `.gitignore` 影響**:`bin/gh-pages.mjs` 是 clone 目標分支 → 清空 → 複製 `-d` 資料夾 → push,所以 `docs/dist`、`docs/libs` 可列入各套件 `.gitignore` 避免 repo 增大(一個 wsemi umd 約 1.3MB,每個引用 wsemi 之套件 +1.3MB)而仍會上線;此為建議,未改任何套件。
@@ -220,7 +220,7 @@
 ## 二十二、dist 改由部署工具提供、原地改寫既有頁面、找不到改指 gh-pages(R21 修正、R23;2026-11-01,主控任務 20261101202155 wpt257b)
 
 - **設計被「不可改之檔」改變時,把責任搬到下游那個「必定在對的時間執行」的工具**:`script.txt` 在重建 dist 之前就跑 `gDocsExams` 且不得改,wpt257 的「複製 dist 並警告須排序」依賴使用者去改排序;wpt257b 改由 `npm run deploy` 所用之 `bin/gh-pages.mjs` 提供 dist——部署必在 dist 建好之後(盤點 121 個有 deploy 之套件,`deployBeforeDist` 0 個),`genDocsExams` 因此與 dist 先後完全無關,並刪去全部 dist 警告(預設)。判斷「該不該由函數驗證 dist」時注意:Vue 類在 `gDistApp` 與 `gDistRollupComps` 之間可能已有**部分** dist,預設去驗證會有誤報;故預設完全不驗證。
-- **先確認 `gh-pages` 指令解析到誰,不要憑 package.json 的字面**:`"deploy": "gh-pages -d docs"` 是第三方套件之指令名;實際由 `node_modules/.bin/gh-pages`(shim)決定。盤點方法:讀各套件 `node_modules/.bin/gh-pages(.cmd)` 之 shim 內容(正規式取 `../<套件>/…/gh-pages*`),並確認 `package.json` 無 `gh-pages` 依賴、`node_modules/gh-pages` 不存在(121/121 皆指 `w-package-tools/bin/gh-pages.mjs`;另提醒:盤點期間 `C:\opensrc` 下會有他 session 新增套件〔本輪出現 w-knowledge-summarize〕,數字以最後一次重跑為準)。盤點腳本 `tmp/wpt257b/inventory.mjs`(只讀)。
+- **先確認 `gh-pages` 指令解析到誰,不要憑 package.json 的字面**:`"deploy": "gh-pages -d docs"` 是第三方套件之指令名;實際由 `node_modules/.bin/gh-pages`(shim)決定。盤點方法:讀各套件 `node_modules/.bin/gh-pages(.cmd)` 之 shim 內容(正規式取 `../<套件>/…/gh-pages*`),並確認 `package.json` 無 `gh-pages` 依賴、`node_modules/gh-pages` 不存在(121/121 皆指 `w-package-tools/bin/gh-pages.mjs`;另提醒:盤點期間自有套件庫下會有他 session 新增套件〔本輪出現 w-knowledge-summarize〕,數字以最後一次重跑為準)。盤點腳本 `tmp/wpt257b/inventory.mjs`(只讀)。
 - **CLI 型腳本之測試**:`bin/gh-pages.mjs` 是頂層執行之腳本,不匯出函數;以**子行程實跑**搭**本機 bare 倉庫**當 origin 即可完整驗證(`git ls-tree -r --name-only gh-pages`、`git show gh-pages:<path>` 取遠端內容與位元組)。要點:①git 身分與 `core.autocrlf` 用環境變數固定(`GIT_AUTHOR_*`、`GIT_COMMITTER_*`、`GIT_CONFIG_COUNT/KEY_0/VALUE_0`),不依賴使用者設定;②**每個案先斷言 origin 是暫存夾內之本機路徑**(防止測試誤推真實遠端);③`git clone --depth` 對本機路徑只警告不失敗;④不存在之 origin 路徑會走「orphan」分支再於 push 失敗,是測「部署失敗」的現成作法;⑤`-d .` 因暫存夾在專案內而無窮遞迴(修改前即有),測試別用。
 - **同一特例分支要先問「它能被測到嗎」**:`isSubPath` 的 `r === '' ||` 與 `!isAbsolute(r)` 兩項,前者冗餘(空字串通過後面兩項檢查),刪;後者只有跨磁碟機才觸發,單磁碟機機器無法實測,以 `path.win32.relative('C:\\p\\dist','D:\\site')` → `D:\site`(絕對)推理驗證,保留並在規則帳本標為已知未覆蓋(變異 b10b 存活)。冗餘防線不留,無法測的防線要明寫。
 - **%5C 的冗餘**:`isSimpleDistPath` 先對 `%5C` 寫了獨立判斷,變異 g09d 存活——解碼後的反斜線已被 `pthFs.includes('\\')` 擋,`%5C` 判斷為冗餘(`%2F` 則必要,因解碼後是 `/` 而看不出)。測試加了 `%5C` 的案例並不能讓冗餘判斷變得必要;刪冗餘判斷。
@@ -267,3 +267,14 @@
 - **升外掛大版要逐一讀其 CHANGELOG 之預設值變更**:本輪自己列了 commonjs 之 `strictRequires`,漏了 node-resolve 16 之 `exports` 條件(加 `production`)、replace 6 之識別子界線、rollup 4 錯誤訊息加 `[plugin <名>]` 前綴、原生二進位改 optional 相依——皆外審補出,於 4 包下游無差異但屬可觀察變更。曝險以「已提交 dist 之 `.map` sources → 該 repo `node_modules/<名>/package.json`」全庫只讀掃描(126 repo、152 map、0 個)。
 - **語意斷言也要做反例**:首版 gVue1 只斷言方法「存在」、gAsync2 只要「產物某處有 async」,外審以「方法改輸出」「預設匯出改同步、另放無關 async」兩反例皆過;改為呼叫方法比對輸出、斷言預設匯出本身為 AsyncFunction 後,於 `./tmp` 變體輸入實跑 2 案皆紅。
 - **commonjs 包裝影響 R17 之軸**:被打包之 CJS 相依之頂層 `var __filename` 於 commonjs 24(`strictRequires: "auto"`)在模組頂層而劫持 umd 墊片;commonjs 29(`true`)包於函數內,不在墊片之作用域鏈上。外掛預設值之改變也會移動「何者劫持」之邊界。
+
+## 二十六、內附 wsemi bundle 1.9.18 → 1.9.80 與列舉函數第 2 參數改 opt(2026-11-26,主控任務 20261126180310 m667a、排程第 667 項)
+
+- **「省略參數」型舊形不會被簽章攔下**:`fsGetFilesInFolder(fd)` 於新舊 bundle 皆不拋錯,只是語意由「第 1 層」變「窮舉全部」,換 bundle 後靜默改變(下游之檔案列舉範圍變大)。傳數字之舊形反而會拋 `invalid opt: must be an object`,易被發現。盤點指令之判準要把「省略第 2 參數」列為與「傳數字」同等之舊形;本套件唯一站點為前者。
+- **舊 bundle 遇物件之第 2 參數仍取 1 層**:`{ levelLimit: 1 }` 於新舊 bundle 皆為 1 層,故「先改呼叫點、後換 bundle」與「同批」皆安全,順序不拘(實測:換回 1.9.18 而保留新寫法,只取第 1 層之 2 案仍綠)。反之換 bundle 而不改呼叫點即為修前紅(M1)。測試要同時有「行為保持」案(新舊 bundle 皆綠)與「版本判別」案(`{ levelLimit: 2 }` 至第 2 層、省略即窮舉、同版守門),前者證遷移正確、後者證 bundle 確已換。
+- **夾具要使「多取一層」「不限層」「取錯層」得出不同結果**:各層檔名逐一相異、每層檔數不同(第 1 層 2、第 2 層 3、第 3 層 1),另加「第 1 層無檔而子層有檔」一案(M1 變異下回非空陣列);只放「第 1 層 1 檔、子層 1 檔」之夾具,數量相同時改取 `levelLimit: 2` 仍可能因檔名排序而巧合通過。
+- **盤點指令會命中測試內刻意之舊形**:為證明新語意,測試必須呼叫 `fsGetFilesInFolder(fd)` 與 `(fd, 1)`(各 1 處),以 `git grep` 盤點(正式站點應只 1 處)時一併出現;以行內註解標明並在帳本之現值欄分列(標題、`{ levelLimit }`、`{}`、刻意舊形),不以包一層 helper 隱藏呼叫(隱藏即使盤點指令失去作用)。
+- **差異探測之夾具須在沙箱 cwd 內解析相對路徑**:首版探測把 `'a'`、`'.hid'`、`'x,'`、`'123'` 等相對路徑值餵給 `fsCreateFolder`/`fsCleanFolder`,在專案根建出 4 個空資料夾(舊版 bundle 先跑,留下之資料夾又使新版跑時 `fsIsFolder('a')` 之回傳不同而出現假差異)。處置:輸入矩陣含相對路徑時先 `process.chdir` 至沙箱再跑、結束還原 cwd;新舊兩版共用同一夾具根(路徑相同,含路徑之訊息才可逐字比對);跑完 `git status --short` 與 `ls -a` 查有無孤兒資料夾。
+- **wsemi 之 fs 結果錯誤現已去除路徑與 syscall**(`fsErrSan`:帶 `code` 之真 Error 改為 `operation failed (code <code>)`,不留 `path`、`syscall`、`errno`、`cause`):`cleanFolderStrict` 之重試只讀 `code`,不受影響;但訊息 `syscall[…]` 段消失,原斷言 `syscall\[\w+\]` 之測試須改。**斷言形狀不斷言 Node 實作細節**,並新增 `cause.message === 'operation failed (code EPERM)'` 與「無 `path`/`syscall`」兩項以釘住去路徑之行為。
+- **Edit 工具對含 `\uXXXX` 跳脫字面之舊字串不穩**:欲改之行含 `\uFFFD` 字面時,含該跳脫之 `old_string` 比對失敗(工具把它當跳脫處理);改以不含跳脫之短錨點(只取磁碟機代號與資料夾名之片段)加 `replace_all` 改寫,改後以 `git diff --word-diff` 確認 `\uFFFD` 字面原樣保留。
+- **WARN-LOCAL 之順手改寫**:本輪改動之 `sgud/exp`、`sgud/rule`、`sgud/state` 與 `test/unit-rejectShape.test.mjs` 內之本機路徑字樣共 17 行已改寫(改為「自有套件庫」「主控 dspec〈…〉」等泛稱或 `D:\\work` 佔位路徑);未動之 `test/unit-tempCleanup.test.mjs` 之 3 處留待該檔下次改動。以 `scanLocalPaths` 列出全部位置(CLI 只印前 5 處)。
